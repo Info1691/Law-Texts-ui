@@ -4,31 +4,15 @@
   <meta charset="UTF-8">
   <title>Trust Law Textbooks</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- ✅ Main Page Styles -->
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 0;
       background-color: #f0f4ff;
     }
-<style media="print">
-  body * {
-    visibility: hidden;
-  }
 
-  #textbookText, #textbookText * {
-    visibility: visible;
-  }
-
-  #textbookText {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    max-height: none !important;
-    overflow: visible !important;
-    white-space: pre-wrap;
-  }
-</style>
     header {
       background-color: #0b5394;
       color: white;
@@ -85,7 +69,29 @@
       padding: 0.4em;
     }
   </style>
+
+  <!-- ✅ Print Styles -->
+  <style media="print">
+    body * {
+      visibility: hidden;
+    }
+
+    #textbookText, #textbookText * {
+      visibility: visible;
+    }
+
+    #textbookText {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      max-height: none !important;
+      overflow: visible !important;
+      white-space: pre-wrap;
+    }
+  </style>
 </head>
+
 <body>
   <header>
     <img src="logo.png" alt="Blue Chip Logo" id="logo" />
@@ -107,7 +113,7 @@
     </section>
     <section id="actions">
       <button onclick="window.print()">🖨️ Print</button>
-      <button id="exportBtn">📄 Export to PDF</button>
+      <button id="exportBtn">📄 Export to TXT</button>
     </section>
   </main>
 
@@ -140,14 +146,14 @@
           });
         });
 
-          document.getElementById("exportBtn").addEventListener("click", () => {
-            const text = document.getElementById("textbookText").textContent;
-            const blob = new Blob([text], { type: "text/plain" });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = "textbook-export.txt";
-            link.click();
-        });
+      document.getElementById("exportBtn").addEventListener("click", () => {
+        const text = document.getElementById("textbookText").textContent;
+        const blob = new Blob([text], { type: "text/plain" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "textbook-export.txt";
+        link.click();
+      });
     });
   </script>
 </body>
