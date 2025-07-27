@@ -1,0 +1,14 @@
+[
+  {
+    "title": "Lewin on Trusts (20th ed)",
+    "jurisdiction": "uk",
+    "reference": "LEWIN-20",
+    "reference_url": "data/textbooks/uk/Lewin-on-Trusts.txt"
+  },
+  {
+    "title": "Principles of Jersey Trusts",
+    "jurisdiction": "jersey",
+    "reference": "JERSEY-TEXT-01",
+    "reference_url": "data/textbooks/jersey/Principles-of-Jersey-Trusts.txt"
+  }
+]
