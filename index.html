@@ -120,14 +120,14 @@
           });
         });
 
-      document.getElementById("exportBtn").addEventListener("click", () => {
-        const text = document.getElementById("textbookText").textContent;
-        const blob = new Blob([text], { type: "application/pdf" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "textbook-export.pdf";
-        link.click();
-      });
+          document.getElementById("exportBtn").addEventListener("click", () => {
+            const text = document.getElementById("textbookText").textContent;
+            const blob = new Blob([text], { type: "text/plain" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "textbook-export.txt";
+            link.click();
+        });
     });
   </script>
 </body>
