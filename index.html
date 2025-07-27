@@ -10,7 +10,25 @@
       margin: 0;
       background-color: #f0f4ff;
     }
+<style media="print">
+  body * {
+    visibility: hidden;
+  }
 
+  #textbookText, #textbookText * {
+    visibility: visible;
+  }
+
+  #textbookText {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    max-height: none !important;
+    overflow: visible !important;
+    white-space: pre-wrap;
+  }
+</style>
     header {
       background-color: #0b5394;
       color: white;
