@@ -2,27 +2,19 @@
 html, body { margin: 0; padding: 0; }
 body { font-family: -apple-system, system-ui, Segoe UI, Roboto, Arial, sans-serif; background: #f7f7f7; color: #111; }
 
-/* Header */
 .app-header { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #0b3c6d; color: #fff; }
 .logo { height: 40px; background: #fff; padding: 4px; border-radius: 4px; }
 .title { margin: 0; font-size: 1.25rem; }
 
-/* Layout */
 .wrap { margin: 0 auto; max-width: 1100px; padding: 16px; }
-
-/* Controls */
 .controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
 .controls label { font-size: 14px; }
-.controls select {
-  padding: 6px 10px; font-size: 14px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff;
-}
+.controls select { padding: 6px 10px; font-size: 14px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; }
 .chapter-label { margin-left: 12px; }
 
-/* Meta */
 .meta { display: grid; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); gap: 8px; margin: 8px 0 12px; }
 .meta code, .meta a { word-break: break-all; }
 
-/* Text window */
 .text {
   background: #fff; border: 1px solid #e5e7eb; border-radius: 6px;
   padding: 12px; min-height: 240px;
@@ -30,17 +22,11 @@ body { font-family: -apple-system, system-ui, Segoe UI, Roboto, Arial, sans-seri
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
 }
 
-/* Buttons */
 .actions { display: flex; gap: 10px; margin-top: 10px; }
 .btn { padding: 8px 12px; border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 6px; cursor: pointer; }
 .btn:hover { filter: brightness(0.98); }
 
-/* Status */
 .status { color: #4b5563; font-size: 12px; margin-top: 8px; min-height: 16px; }
-
-/* Footer */
 .footer { padding: 12px 16px; color: #4b5563; font-size: 12px; }
 
-@media (max-width: 640px) {
-  .wrap { padding: 12px; }
-}
+@media (max-width: 640px) { .wrap { padding: 12px; } }
