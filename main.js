@@ -1,5 +1,3 @@
-// Textbooks UI — robust loader with 404/HTML guards and chapter selection
-
 const PATHS = { JSON: 'textbooks.json' };
 
 const $ = (id) => document.getElementById(id);
@@ -19,7 +17,7 @@ let books = [];
 let activeBook = null;
 let activeChapter = null;
 
-// ---------- fetch helpers ----------
+// ---- fetch helpers ----
 async function fetchJSON(path) {
   const res = await fetch(path, { cache: 'no-store' });
   if (!res.ok) throw new Error(`${path} → ${res.status} ${res.statusText}`);
@@ -29,14 +27,13 @@ async function fetchTextStrict(path) {
   const res = await fetch(path, { cache: 'no-store' });
   if (!res.ok) throw new Error(`${path} → ${res.status} ${res.statusText}`);
   const txt = await res.text();
-  // prevent GH Pages 404 HTML being shown as text
   if (/<!doctype html/i.test(txt) && /page not found/i.test(txt)) {
     throw new Error(`${path} → 404 (file not found)`);
   }
   return txt;
 }
 
-// ---------- renderers ----------
+// ---- rendering ----
 function renderBookSelect() {
   els.bookSelect.innerHTML = '';
   books.forEach((b, i) => {
@@ -63,18 +60,16 @@ function renderChapterSelect(book) {
   });
   els.chapterSelect.disabled = false;
 }
-
 function updateMeta(book, chapter) {
   els.jur.textContent = book.jurisdiction || '—';
   els.ref.textContent = book.reference || '—';
   els.src.textContent = chapter?.reference_url || '—';
 }
 
-// ---------- state transitions ----------
+// ---- selection ----
 async function selectBookByIndex(idx) {
   activeBook = books[idx] || null;
   activeChapter = null;
-
   if (!activeBook) return;
 
   renderChapterSelect(activeBook);
@@ -88,7 +83,6 @@ async function selectBookByIndex(idx) {
     els.status.textContent = '';
   }
 }
-
 async function selectChapterByIndex(idx) {
   if (!activeBook) return;
   activeChapter = activeBook.chapters[idx] || null;
@@ -112,19 +106,17 @@ async function selectChapterByIndex(idx) {
   }
 }
 
-// ---------- actions ----------
+// ---- actions ----
 function exportToTxt() {
-  const nameSafe = (s) => (s || 'chapter')
-    .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const nameSafe = (s) => (s || 'chapter').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   const fileName = `${nameSafe(activeBook?.reference)}-${nameSafe(activeChapter?.title)}.txt`;
-
   const blob = new Blob([els.text.textContent || ''], { type: 'text/plain' });
   const url = URL.createObjectURL(blob);
   const a = Object.assign(document.createElement('a'), { href: url, download: fileName });
   document.body.appendChild(a); a.click(); URL.revokeObjectURL(url); a.remove();
 }
 
-// ---------- init ----------
+// ---- init ----
 function bindEvents() {
   els.bookSelect.addEventListener('change', async () => {
     const i = Number(els.bookSelect.value);
@@ -137,21 +129,17 @@ function bindEvents() {
   els.printBtn.addEventListener('click', () => window.print());
   els.exportBtn.addEventListener('click', exportToTxt);
 }
-
 async function init() {
   try {
     const data = await fetchJSON(PATHS.JSON);
     books = Array.isArray(data) ? data : (Array.isArray(data?.books) ? data.books : []);
     if (!books.length) throw new Error('textbooks.json must be an array or { "books": [...] }');
-
     renderBookSelect();
     bindEvents();
-
     els.bookSelect.value = '0';
     await selectBookByIndex(0);
   } catch (e) {
     els.text.textContent = `Failed to load textbooks.json\n${e.message}`;
   }
 }
-
 document.addEventListener('DOMContentLoaded', init);
