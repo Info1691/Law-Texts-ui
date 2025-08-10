@@ -1,0 +1,25 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { font-family: -apple-system, system-ui, Segoe UI, Roboto, Arial, sans-serif; background: #f7f7f7; color: #111; }
+
+.app-header { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #0b3c6d; color: #fff; }
+.logo { height: 40px; background: #fff; padding: 4px; border-radius: 4px; }
+.title { margin: 0; font-size: 1.25rem; }
+
+.wrap { margin: 0 auto; max-width: 980px; padding: 16px; }
+.controls { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.controls select { padding: 6px 10px; font-size: 14px; border: 1px solid #cbd5e1; border-radius: 6px; }
+
+.meta { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 8px; margin: 8px 0 12px; }
+
+.text {
+  background: #fff; border: 1px solid #e5e7eb; border-radius: 6px;
+  padding: 12px; min-height: 220px; white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+.actions { display: flex; gap: 10px; margin-top: 10px; }
+.btn { padding: 8px 12px; border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 6px; cursor: pointer; }
+.btn:hover { filter: brightness(0.98); }
+
+.status { color: #4b5563; font-size: 12px; margin-top: 8px; min-height: 16px; }
+.footer { padding: 12px 16px; color: #4b5563; font-size: 12px; }
