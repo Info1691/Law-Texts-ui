@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Trust Law Textbooks</title>
-  <link rel="stylesheet" href="style.css?v=1"/>
+  <link rel="stylesheet" href="style.css?v=2"/>
 </head>
 <body>
   <header class="app-header">
@@ -16,14 +16,18 @@
     <section class="controls">
       <label for="bookSelect">Select a Textbook:</label>
       <select id="bookSelect"><option>Loading…</option></select>
+
+      <label for="chapterSelect" class="chapter-label">Chapter:</label>
+      <select id="chapterSelect" disabled><option>—</option></select>
     </section>
 
     <section class="meta">
       <div><strong>Jurisdiction:</strong> <span id="jurisdiction">—</span></div>
       <div><strong>Reference:</strong> <span id="reference">—</span></div>
+      <div><strong>Source file:</strong> <span id="sourceFile">—</span></div>
     </section>
 
-    <pre id="chapterText" class="text">Select a book…</pre>
+    <pre id="chapterText" class="text" aria-live="polite">Select a book…</pre>
 
     <div class="actions">
       <button id="printBtn" class="btn">Print</button>
@@ -37,6 +41,6 @@
     <small>Reads from <code>textbooks.json</code> and chapter files under <code>data/books/</code>. No file writes.</small>
   </footer>
 
-  <script src="main.js?v=1"></script>
+  <script src="main.js?v=2"></script>
 </body>
 </html>
