@@ -1,160 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Trust Law Textbooks</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- ✅ Main Page Styles -->
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background-color: #f0f4ff;
-    }
-
-    header {
-      background-color: #0b5394;
-      color: white;
-      padding: 1em;
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      gap: 5.5em;
-    }
-
-    #logo {
-       height: 50px;
-       width: auto;
-       object-fit: contain;
-       background-color: white;
-       padding: 0.2em;
-    }
-
-    h1 {
-      margin: 0;
-      font-size: 1.8em;
-    }
-
-    main {
-      max-width: 960px;
-      margin: 0 auto;
-      padding: 1em;
-      background-color: white;
-      min-height: 100vh;
-    }
-
-    #selector, #metadata, #actions {
-      margin-bottom: 1em;
-    }
-
-    .text-container {
-      white-space: pre-wrap;
-      background: #fdfdfd;
-      padding: 1em;
-      border: 1px solid #ccc;
-      overflow-x: auto;
-      max-height: none;
-    }
-
-    button {
-      padding: 0.6em 1.2em;
-      font-size: 1em;
-      margin-right: 0.5em;
-      cursor: pointer;
-    }
-
-    select {
-      font-size: 1em;
-      padding: 0.4em;
-    }
-  </style>
-
-  <!-- ✅ Print Styles -->
-  <style media="print">
-    body * {
-      visibility: hidden;
-    }
-
-    #textbookText, #textbookText * {
-      visibility: visible;
-    }
-
-    #textbookText {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      max-height: none !important;
-      overflow: visible !important;
-      white-space: pre-wrap;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css?v=1"/>
 </head>
-
 <body>
-  <header>
-    <img src="logo.png" alt="Blue Chip Logo" id="logo" />
-    <h1>Trust Law Textbooks</h1>
+  <header class="app-header">
+    <img src="logo.png" alt="Logo" class="logo"/>
+    <h1 class="title">Trust Law Textbooks</h1>
   </header>
-  <main>
-    <section id="selector">
-      <label for="textbookSelect">Select a Textbook:</label>
-      <select id="textbookSelect">
-        <option value="">-- Choose --</option>
-      </select>
+
+  <main class="wrap">
+    <section class="controls">
+      <label for="bookSelect">Select a Textbook:</label>
+      <select id="bookSelect"><option>Loading…</option></select>
     </section>
-    <section id="metadata">
-      <p><strong>Jurisdiction:</strong> <span id="jurisdiction"></span></p>
-      <p><strong>Reference:</strong> <span id="reference"></span></p>
+
+    <section class="meta">
+      <div><strong>Jurisdiction:</strong> <span id="jurisdiction">—</span></div>
+      <div><strong>Reference:</strong> <span id="reference">—</span></div>
     </section>
-    <section id="textDisplay" class="text-container">
-      <pre id="textbookText"></pre>
-    </section>
-    <section id="actions">
-      <button onclick="window.print()">🖨️ Print</button>
-      <button id="exportBtn">📄 Export to TXT</button>
-    </section>
+
+    <pre id="chapterText" class="text">Select a book…</pre>
+
+    <div class="actions">
+      <button id="printBtn" class="btn">Print</button>
+      <button id="exportBtn" class="btn">Export to TXT</button>
+    </div>
+
+    <p id="status" class="status" aria-live="polite"></p>
   </main>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      fetch("textbooks.json")
-        .then(res => res.json())
-        .then(data => {
-          const select = document.getElementById("textbookSelect");
-          data.forEach(entry => {
-            const option = document.createElement("option");
-            option.value = entry.reference_url;
-            option.textContent = entry.title;
-            option.dataset.jurisdiction = entry.jurisdiction;
-            option.dataset.reference = entry.reference;
-            select.appendChild(option);
-          });
+  <footer class="footer">
+    <small>Reads from <code>textbooks.json</code> and chapter files under <code>data/books/</code>. No file writes.</small>
+  </footer>
 
-          select.addEventListener("change", function () {
-            const url = this.value;
-            const jurisdiction = this.selectedOptions[0].dataset.jurisdiction;
-            const reference = this.selectedOptions[0].dataset.reference;
-            document.getElementById("jurisdiction").textContent = jurisdiction;
-            document.getElementById("reference").textContent = reference;
-            fetch(url)
-              .then(res => res.text())
-              .then(text => {
-                document.getElementById("textbookText").textContent = text;
-              });
-          });
-        });
-
-      document.getElementById("exportBtn").addEventListener("click", () => {
-        const text = document.getElementById("textbookText").textContent;
-        const blob = new Blob([text], { type: "text/plain" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "textbook-export.txt";
-        link.click();
-      });
-    });
-  </script>
+  <script src="main.js?v=1"></script>
 </body>
 </html>
