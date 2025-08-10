@@ -3,12 +3,20 @@
     "title": "Lewin on Trusts (20th ed)",
     "jurisdiction": "uk",
     "reference": "LEWIN-20",
-    "reference_url": "data/textbooks/uk/Lewin-on-Trusts.txt"
+    "chapters": [
+      { "title": "Chapter 1: Introduction to Trusts", "reference_url": "data/books/lewin-20/01-introduction.txt" },
+      { "title": "Chapter 2: Trustees’ Core Duties",      "reference_url": "data/books/lewin-20/02-trustees-duties.txt" },
+      { "title": "Chapter 3: Breach of Trust",            "reference_url": "data/books/lewin-20/03-breach-of-trust.txt" }
+    ]
   },
   {
-    "title": "Principles of Jersey Trusts",
-    "jurisdiction": "jersey",
-    "reference": "JERSEY-TEXT-01",
-    "reference_url": "data/textbooks/jersey/Principles-of-Jersey-Trusts.txt"
+    "title": "Underhill & Hayton: Law of Trusts (20th ed)",
+    "jurisdiction": "uk",
+    "reference": "UNDERHILL-20",
+    "chapters": [
+      { "title": "Part 1: Concepts",             "reference_url": "data/books/underhill-20/01-concepts.txt" },
+      { "title": "Part 2: Creation of Trusts",   "reference_url": "data/books/underhill-20/02-creation-of-trusts.txt" },
+      { "title": "Part 3: Trustees’ Powers",     "reference_url": "data/books/underhill-20/03-trustees-powers.txt" }
+    ]
   }
 ]
