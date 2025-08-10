@@ -5,8 +5,8 @@
     "reference": "LEWIN-20",
     "chapters": [
       { "title": "Chapter 1: Introduction to Trusts", "reference_url": "data/books/lewin-20/01-introduction.txt" },
-      { "title": "Chapter 2: Trustees’ Core Duties",      "reference_url": "data/books/lewin-20/02-trustees-duties.txt" },
-      { "title": "Chapter 3: Breach of Trust",            "reference_url": "data/books/lewin-20/03-breach-of-trust.txt" }
+      { "title": "Chapter 2: Trustees’ Core Duties",   "reference_url": "data/books/lewin-20/02-trustees-duties.txt" },
+      { "title": "Chapter 3: Breach of Trust",         "reference_url": "data/books/lewin-20/03-breach-of-trust.txt" }
     ]
   },
   {
