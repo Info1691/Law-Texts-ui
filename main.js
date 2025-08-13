@@ -1,145 +1,290 @@
-const PATHS = { JSON: 'textbooks.json' };
+/* textbooks-ui/main.js — full build
+   - Base-URL-safe registry with fallbacks (fixes 404 in workflow links)
+   - Accepts array or {books:[...]} and single-file or chaptered books
+   - Sticky search toolbar + Prev/Next; scrolls inside text panel
+   - Gentle glyph normalization on render (□/� → •, NBSP → space)
+   - Print & Export
+*/
 
-const $ = (id) => document.getElementById(id);
-const els = {
-  bookSelect: $('bookSelect'),
-  chapterSelect: $('chapterSelect'),
-  jur: $('jurisdiction'),
-  ref: $('reference'),
-  src: $('sourceFile'),
-  text: $('chapterText'),
-  status: $('status'),
-  printBtn: $('printBtn'),
-  exportBtn: $('exportBtn')
-};
+(function () {
+  // ----- Registry locations (first that works) -----
+  const REGISTRY_PATHS = [
+    'data/books/textbooks.json',
+    'data/textbooks.json',
+    'textbooks.json'
+  ];
 
-let books = [];
-let activeBook = null;
-let activeChapter = null;
+  // ----- DOM -----
+  const $ = (id) => document.getElementById(id);
+  const els = {
+    itemList: $('itemList') || $('itemlist'), // tolerate either id
+    listSearch: $('listSearch'),
+    textSearch: $('textSearch'),
+    prevBtn: $('prevBtn'),
+    nextBtn: $('nextBtn'),
+    docText: $('docText'),
+    status: $('status'),
+    bookTitle: $('bookTitle'),
+    chapterTitle: $('chapterTitle'),
+    source: $('source'),
+    reference: $('reference'),
+    printBtn: $('printBtn'),
+    exportBtn: $('exportBtn')
+  };
+  const missing = Object.entries(els).filter(([,n]) => !n).map(([k])=>k);
+  if (missing.length) throw new Error('Missing elements: ' + missing.join(', '));
 
-// ---- fetch helpers ----
-async function fetchJSON(path) {
-  const res = await fetch(path, { cache: 'no-store' });
-  if (!res.ok) throw new Error(`${path} → ${res.status} ${res.statusText}`);
-  return res.json();
-}
-async function fetchTextStrict(path) {
-  const res = await fetch(path, { cache: 'no-store' });
-  if (!res.ok) throw new Error(`${path} → ${res.status} ${res.statusText}`);
-  const txt = await res.text();
-  if (/<!doctype html/i.test(txt) && /page not found/i.test(txt)) {
-    throw new Error(`${path} → 404 (file not found)`);
+  // ----- State -----
+  let items = [];       // flattened: one row per chapter (or whole book)
+  let current = null;   // { bookTitle, chapterTitle, path, source, reference }
+  let plainText = '';
+  let hits = [];
+  let hitIndex = -1;
+  let lastQuery = '';
+
+  // ----- Utils -----
+  const escapeHTML = (s='') => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const debounce = (fn, ms) => { let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; };
+
+  // Resolve fetch relative to this script (base-URL safe across workflow paths/iframes)
+  function getBaseUrl() {
+    const script = document.currentScript || Array.from(document.scripts).find(s => /main\.js/.test(s.src));
+    const u = new URL(script.src, location.href);
+    u.pathname = u.pathname.replace(/[^/]*main\.js.*$/, '');
+    return u.toString();
   }
-  return txt;
-}
+  const BASE = getBaseUrl();
+  const abs = (rel) => new URL(rel, BASE).toString();
 
-// ---- rendering ----
-function renderBookSelect() {
-  els.bookSelect.innerHTML = '';
-  books.forEach((b, i) => {
-    const o = document.createElement('option');
-    o.value = String(i);
-    o.textContent = b.title || `Book ${i+1}`;
-    els.bookSelect.appendChild(o);
+  async function fetchFirstOk(paths) {
+    let last = '';
+    for (const p of paths) {
+      const url = abs(p);
+      try {
+        const r = await fetch(url, { cache: 'no-store' });
+        if (!r.ok) { last = `${url} → ${r.status}`; continue; }
+        const json = await r.json();
+        return { used: url, json };
+      } catch (e) {
+        last = `${url} → ${e.message || e}`;
+      }
+    }
+    throw new Error('Could not load registry. ' + last);
+  }
+
+  // Accept:
+  //  - Array of books
+  //  - { books: [...] }
+  // Each book may be single-file (reference_url/text_file/file) OR { chapters: [ {title, reference_url|text_file|file} ] }
+  function flattenRegistry(reg) {
+    const books = Array.isArray(reg) ? reg
+                : (Array.isArray(reg?.books) ? reg.books : []);
+    const out = [];
+    books.forEach(b => {
+      const bookTitle = b.title || b.book_title || 'Untitled';
+      const source = b.source || '';
+      const reference = b.reference || '';
+      if (Array.isArray(b.chapters) && b.chapters.length) {
+        b.chapters.forEach(ch => {
+          const path = ch.reference_url || ch.text_file || ch.file || '';
+          out.push({
+            bookTitle,
+            chapterTitle: ch.title || ch.chapter || 'Chapter',
+            path,
+            source,
+            reference
+          });
+        });
+      } else {
+        const path = b.reference_url || b.text_file || b.file || '';
+        out.push({
+          bookTitle,
+          chapterTitle: b.subtitle || 'Full book',
+          path,
+          source,
+          reference
+        });
+      }
+    });
+    return out;
+  }
+
+  // ----- List rendering -----
+  function renderList(list) {
+    els.itemList.innerHTML = '';
+    list.forEach((it, idx) => {
+      const li = document.createElement('li');
+      li.className = 'rule-list-item';
+      li.innerHTML = `<div><strong>${escapeHTML(it.bookTitle)}</strong></div>
+                      <div style="font-size:.85rem;color:#555">${escapeHTML(it.chapterTitle || '')}</div>`;
+      li.addEventListener('click', () => selectItem(it, li));
+      els.itemList.appendChild(li);
+      if (idx === 0 && !current) selectItem(it, li);
+    });
+  }
+  function markActive(liEl) {
+    [...els.itemList.children].forEach(li => li.classList.remove('active'));
+    if (liEl) liEl.classList.add('active');
+  }
+
+  // ----- Load text (with gentle glyph normalization) -----
+  async function loadText(path) {
+    els.docText.textContent = 'Loading…';
+    setStatus('Loading…');
+    try {
+      const url = abs(path);
+      const r = await fetch(url, { cache: 'no-store' });
+      if (!r.ok) throw new Error(`${url} → ${r.status}`);
+      let txt = await r.text();
+
+      // Guard against wrong path returning HTML
+      if (/<!doctype\s*html/i.test(txt) || /<html/i.test(txt)) {
+        throw new Error(`${url} → looks like HTML (check path/filename).`);
+      }
+
+      // Visual cleanup (does NOT change your source files)
+      txt = txt
+        .replace(/\u0000/g, '')
+        .replace(/[\u25A0\u25A1\u25CF\u25CB\uF0B7\u2022\uFFFD]/g, '•')
+        .replace(/\u00A0/g, ' ');
+
+      plainText = txt;
+      els.docText.innerHTML = escapeHTML(plainText);
+      setStatus(`Loaded: ${path}`);
+
+      const q = els.textSearch.value.trim();
+      if (q) highlightMatches(q);
+    } catch (e) {
+      els.docText.textContent = `Error loading: ${path}\n${e.message || e}`;
+      setStatus('Load error.');
+    }
+  }
+
+  // ----- Selection -----
+  function selectItem(it, liEl) {
+    current = it;
+    markActive(liEl);
+    els.bookTitle.textContent = it.bookTitle || '—';
+    els.chapterTitle.textContent = it.chapterTitle || '—';
+    els.source.textContent = it.source || '—';
+    els.reference.textContent = it.reference || '—';
+    resetSearchState();
+    loadText(it.path);
+  }
+
+  // ----- Search / highlight / navigation -----
+  function resetSearchState() {
+    hits = [];
+    hitIndex = -1;
+    lastQuery = '';
+    els.prevBtn.disabled = true;
+    els.nextBtn.disabled = true;
+  }
+
+  function highlightMatches(query) {
+    const q = query.trim();
+    if (!q) {
+      els.docText.innerHTML = escapeHTML(plainText || '');
+      resetSearchState();
+      setStatus('Cleared search.');
+      return;
+    }
+    const rx = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+    let i = 0;
+    const html = (plainText || '').replace(rx, m => `<mark data-hit="${i++}">${escapeHTML(m)}</mark>`);
+    els.docText.innerHTML = html;
+    hits = [...els.docText.querySelectorAll('mark[data-hit]')];
+    lastQuery = q;
+
+    if (!hits.length) {
+      setStatus(`No results for “${q}”.`);
+      els.prevBtn.disabled = true;
+      els.nextBtn.disabled = true;
+      hitIndex = -1;
+      return;
+    }
+    els.prevBtn.disabled = false;
+    els.nextBtn.disabled = false;
+    hitIndex = 0;
+    scrollToHit(hitIndex);
+    updateStatus();
+  }
+
+  // Scroll INSIDE the text panel (center the match)
+  function scrollToHit(i) {
+    const el = hits[i];
+    if (!el) return;
+    const container = els.docText;
+    const rect = el.getBoundingClientRect();
+    const crect = container.getBoundingClientRect();
+    const targetTop = (rect.top - crect.top) + container.scrollTop
+                    - (container.clientHeight / 2) + (rect.height / 2);
+    container.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
+    hits.forEach(h => h.classList.remove('current'));
+    el.classList.add('current');
+  }
+  function updateStatus() {
+    if (hits.length) {
+      els.status.textContent = `Matches: ${hits.length} — Viewing ${hitIndex + 1} of ${hits.length} — “${lastQuery}”`;
+    } else {
+      els.status.textContent = '';
+    }
+  }
+
+  const onTextSearch = debounce(() => {
+    highlightMatches(els.textSearch.value);
+  }, 160);
+
+  els.textSearch.addEventListener('input', onTextSearch);
+  els.prevBtn.addEventListener('click', () => {
+    if (!hits.length) return;
+    hitIndex = (hitIndex - 1 + hits.length) % hits.length;
+    scrollToHit(hitIndex);
+    updateStatus();
   });
-}
-function renderChapterSelect(book) {
-  els.chapterSelect.innerHTML = '';
-  if (!Array.isArray(book.chapters) || !book.chapters.length) {
-    els.chapterSelect.disabled = true;
-    const o = document.createElement('option');
-    o.textContent = '—';
-    els.chapterSelect.appendChild(o);
-    return;
-  }
-  book.chapters.forEach((c, i) => {
-    const o = document.createElement('option');
-    o.value = String(i);
-    o.textContent = c.title || `Chapter ${i+1}`;
-    els.chapterSelect.appendChild(o);
+  els.nextBtn.addEventListener('click', () => {
+    if (!hits.length) return;
+    hitIndex = (hitIndex + 1) % hits.length;
+    scrollToHit(hitIndex);
+    updateStatus();
   });
-  els.chapterSelect.disabled = false;
-}
-function updateMeta(book, chapter) {
-  els.jur.textContent = book.jurisdiction || '—';
-  els.ref.textContent = book.reference || '—';
-  els.src.textContent = chapter?.reference_url || '—';
-}
 
-// ---- selection ----
-async function selectBookByIndex(idx) {
-  activeBook = books[idx] || null;
-  activeChapter = null;
-  if (!activeBook) return;
-
-  renderChapterSelect(activeBook);
-  els.chapterSelect.value = '0';
-
-  if (Array.isArray(activeBook.chapters) && activeBook.chapters[0]) {
-    await selectChapterByIndex(0);
-  } else {
-    updateMeta(activeBook, null);
-    els.text.textContent = 'No chapters listed for this book.';
-    els.status.textContent = '';
-  }
-}
-async function selectChapterByIndex(idx) {
-  if (!activeBook) return;
-  activeChapter = activeBook.chapters[idx] || null;
-  updateMeta(activeBook, activeChapter);
-
-  if (!activeChapter?.reference_url) {
-    els.text.textContent = 'Chapter has no reference_url.';
-    els.status.textContent = '';
-    return;
-  }
-
-  els.text.textContent = 'Loading…';
-  els.status.textContent = '';
-  try {
-    const content = await fetchTextStrict(activeChapter.reference_url);
-    els.text.textContent = content || '(empty file)';
-    els.status.textContent = `Loaded: ${activeChapter.reference_url}`;
-  } catch (e) {
-    els.text.textContent = `Error loading: ${activeChapter.reference_url}\n${e.message}`;
-    els.status.textContent = '';
-  }
-}
-
-// ---- actions ----
-function exportToTxt() {
-  const nameSafe = (s) => (s || 'chapter').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-  const fileName = `${nameSafe(activeBook?.reference)}-${nameSafe(activeChapter?.title)}.txt`;
-  const blob = new Blob([els.text.textContent || ''], { type: 'text/plain' });
-  const url = URL.createObjectURL(blob);
-  const a = Object.assign(document.createElement('a'), { href: url, download: fileName });
-  document.body.appendChild(a); a.click(); URL.revokeObjectURL(url); a.remove();
-}
-
-// ---- init ----
-function bindEvents() {
-  els.bookSelect.addEventListener('change', async () => {
-    const i = Number(els.bookSelect.value);
-    await selectBookByIndex(i);
+  // ----- List filter -----
+  els.listSearch.addEventListener('input', () => {
+    const q = els.listSearch.value.trim().toLowerCase();
+    const filtered = items.filter(it =>
+      (it.bookTitle || '').toLowerCase().includes(q) ||
+      (it.chapterTitle || '').toLowerCase().includes(q) ||
+      (it.reference || '').toLowerCase().includes(q)
+    );
+    renderList(filtered);
   });
-  els.chapterSelect.addEventListener('change', async () => {
-    const i = Number(els.chapterSelect.value);
-    await selectChapterByIndex(i);
-  });
+
+  // ----- Actions -----
   els.printBtn.addEventListener('click', () => window.print());
-  els.exportBtn.addEventListener('click', exportToTxt);
-}
-async function init() {
-  try {
-    const data = await fetchJSON(PATHS.JSON);
-    books = Array.isArray(data) ? data : (Array.isArray(data?.books) ? data.books : []);
-    if (!books.length) throw new Error('textbooks.json must be an array or { "books": [...] }');
-    renderBookSelect();
-    bindEvents();
-    els.bookSelect.value = '0';
-    await selectBookByIndex(0);
-  } catch (e) {
-    els.text.textContent = `Failed to load textbooks.json\n${e.message}`;
-  }
-}
-document.addEventListener('DOMContentLoaded', init);
+  els.exportBtn.addEventListener('click', () => {
+    const name = ((current?.bookTitle + ' ' + (current?.chapterTitle||'')) || 'textbook')
+      .toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+    const blob = new Blob([plainText || ''], { type:'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = Object.assign(document.createElement('a'), { href:url, download:`${name}.txt` });
+    document.body.appendChild(a); a.click(); URL.revokeObjectURL(url); a.remove();
+  });
+
+  function setStatus(msg){ els.status.textContent = msg || ''; }
+
+  // ----- Init -----
+  (async function init() {
+    try {
+      setStatus('Loading registry…');
+      const { used, json } = await fetchFirstOk(REGISTRY_PATHS);
+      items = flattenRegistry(json);
+      if (!items.length) throw new Error('Registry loaded, but no items found.');
+      renderList(items);
+      setStatus(`Loaded registry: ${used}`);
+    } catch (e) {
+      els.docText.textContent = `Error loading registry\n${e.message || e}`;
+      setStatus('Error loading registry.');
+    }
+  })();
+})();
