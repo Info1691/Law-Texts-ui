@@ -4,23 +4,21 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Trust Law Textbooks</title>
-  <link rel="stylesheet" href="style.css?v=15"/>
+  <link rel="stylesheet" href="style.css?v=1"/>
 </head>
 <body>
-  <header class="app-header" role="banner">
+  <header class="app-header">
     <img src="logo.png" alt="Logo" class="logo"/>
-    <h1 class="title">Trust Law Textbooks</h1>
+    <h1>Trust Law Textbooks</h1>
   </header>
 
-  <main id="app" role="main" aria-label="Textbook viewer">
-    <!-- Sidebar: selector -->
-    <aside id="sidebar" aria-label="Book/chapter selector">
-      <h2 class="sidebar-title">Select Book / Chapter</h2>
+  <main id="app" role="main" aria-label="Books viewer">
+    <aside id="sidebar" aria-label="Book selector">
+      <h2 class="sr-only">Select Book / Chapter</h2>
       <input id="listSearch" type="search" placeholder="Filter list…" aria-label="Filter list"/>
-      <ul id="itemList" class="rule-list" role="listbox" aria-label="Available items"></ul>
+      <ul id="itemList" class="listbox" aria-label="Available items"></ul>
     </aside>
 
-    <!-- Viewer -->
     <section id="viewer" aria-live="polite">
       <div class="toolbar">
         <input id="textSearch" type="search" placeholder="Search within text…" aria-label="Search within text"/>
@@ -28,14 +26,14 @@
         <button id="nextBtn" type="button" class="btn">Next</button>
       </div>
 
-      <div class="meta">
+      <section id="meta" class="meta">
         <div><strong>Book:</strong> <span id="bookTitle">—</span></div>
         <div><strong>Chapter:</strong> <span id="chapterTitle">—</span></div>
         <div><strong>Source:</strong> <span id="source">—</span></div>
         <div><strong>Reference:</strong> <span id="reference">—</span></div>
-      </div>
+      </section>
 
-      <pre id="docText" class="text" aria-live="polite">Loading…</pre>
+      <pre id="docText" class="doc" aria-label="Text content">Loading…</pre>
 
       <div class="actions">
         <button id="printBtn" class="btn" type="button">Print</button>
@@ -43,13 +41,14 @@
       </div>
 
       <p id="status" class="status" aria-live="polite"></p>
+
       <p class="footnote">
-        Registry fallbacks: <code>data/books/textbooks.json</code>, <code>data/textbooks.json</code>, <code>textbooks.json</code>.
-        Chapters and single-file books supported. Text files under <code>data/books/</code>.
+        Registry fallbacks: <code>data/books/textbooks.json</code>, <code>data/textbooks.json</code>, <code>textbooks.json</code>.  
+        Chapters and single-file books supported. Text files live under <code>data/books/</code>.
       </p>
     </section>
   </main>
 
-  <script src="main.js?v=15"></script>
+  <script src="main.js?v=1"></script>
 </body>
 </html>
