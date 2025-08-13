@@ -4,15 +4,15 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Trust Law Textbooks</title>
-  <link rel="stylesheet" href="style.css?v=1"/>
+  <link rel="stylesheet" href="style.css?v=12"/>
 </head>
 <body>
   <header class="app-header">
     <img src="logo.png" alt="Logo" class="logo"/>
-    <h1>Trust Law Textbooks</h1>
+    <h1 class="title">Trust Law Textbooks</h1>
   </header>
 
-  <main id="app" role="main" aria-label="Books viewer">
+  <main id="app" class="wrap" aria-label="Main viewer">
     <aside id="sidebar" aria-label="Book selector">
       <h2 class="sr-only">Select Book / Chapter</h2>
       <input id="listSearch" type="search" placeholder="Filter list…" aria-label="Filter list"/>
@@ -26,29 +26,29 @@
         <button id="nextBtn" type="button" class="btn">Next</button>
       </div>
 
-      <section id="meta" class="meta">
+      <div class="meta">
         <div><strong>Book:</strong> <span id="bookTitle">—</span></div>
         <div><strong>Chapter:</strong> <span id="chapterTitle">—</span></div>
         <div><strong>Source:</strong> <span id="source">—</span></div>
         <div><strong>Reference:</strong> <span id="reference">—</span></div>
-      </section>
+      </div>
 
-      <pre id="docText" class="doc" aria-label="Text content">Loading…</pre>
+      <pre id="docText" class="text" aria-label="Text content">Loading…</pre>
 
       <div class="actions">
-        <button id="printBtn" class="btn" type="button">Print</button>
-        <button id="exportBtn" class="btn" type="button">Export to TXT</button>
+        <button id="printBtn" type="button" class="btn">Print</button>
+        <button id="exportBtn" type="button" class="btn">Export to TXT</button>
       </div>
 
       <p id="status" class="status" aria-live="polite"></p>
 
       <p class="footnote">
-        Registry fallbacks: <code>data/books/textbooks.json</code>, <code>data/textbooks.json</code>, <code>textbooks.json</code>.  
+        Registry fallbacks: <code>data/books/textbooks.json</code>, <code>data/textbooks.json</code>, <code>textbooks.json</code>.
         Chapters and single-file books supported. Text files live under <code>data/books/</code>.
       </p>
     </section>
   </main>
 
-  <script src="main.js?v=1"></script>
+  <script src="main.js?v=12"></script>
 </body>
 </html>
