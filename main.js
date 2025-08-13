@@ -1,12 +1,11 @@
-/* textbooks-ui/main.js — complete build
-   - Registry fallbacks (fixes 404s)
-   - Single-file and chaptered books
-   - Sticky search toolbar + Prev/Next (scrolls inside text panel)
-   - Gentle glyph normalization (smart quotes, NBSP → space)
-   - Print & Export
+/* textbooks-ui/main.js – single-file + chaptered books
+   - registry fallbacks
+   - sticky search with Prev/Next
+   - highlight & safe escaping
+   - clear 404/status messages
 */
 (function () {
-  // ---------- Registry locations (checked in order) ----------
+  // ---------- registry fallbacks ----------
   const REGISTRY_PATHS = [
     'data/books/textbooks.json',
     'data/textbooks.json',
@@ -31,229 +30,204 @@
     exportBtn: $('exportBtn'),
   };
 
-  // ---------- State ----------
-  let registry = [];     // normalized [{id,title,jurisdiction,reference,source,chapters:[{title,text_file}]}]
-  let flatList = [];     // flattened list for the sidebar
-  let currentIndex = -1; // index into flatList
-  let searchHits = [];
-  let hitIndex = -1;
+  // ---------- state ----------
+  let registry = [];
+  let items = [];        // flat list to render in sidebar
+  let rawText = '';      // current file raw text
+  let matches = [];      // NodeList of marks
+  let matchIndex = -1;   // current match
 
-  // ---------- Helpers ----------
-  const normText = (s='') =>
-    s.replace(/\u00A0/g, ' ')               // NBSP -> space
-     .replace(/[\u2018\u2019]/g, "'")       // smart single quotes
-     .replace(/[\u201C\u201D]/g, '"')       // smart double quotes
-     .replace(/\u2026/g, '...');            // ellipsis
+  // ---------- helpers ----------
+  const escapeHTML = (s) =>
+    s.replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-  const host = (u) => { try { return new URL(u).hostname; } catch { return ''; } };
+  function status(msg) { els.status.textContent = msg || ''; }
 
-  const fetchJsonFirst = async (paths) => {
-    for (const p of paths) {
-      try {
-        const r = await fetch(p, { cache: 'no-store' });
-        if (r.ok) return await r.json();
-      } catch (e) { /* continue */ }
-    }
-    throw new Error('No registry found at fallback paths.');
-  };
-
-  const toArray = (x) => Array.isArray(x) ? x : (x ? [x] : []);
-
-  const normalizeRegistry = (raw) => {
-    // Accept either {books:[...]} or [...]
-    const books = Array.isArray(raw) ? raw : (Array.isArray(raw.books) ? raw.books : []);
-    return books.map(b => {
-      const chapters = toArray(b.chapters).map(ch => ({
-        title: ch.title || ch.name || 'Untitled chapter',
-        text_file: ch.text_file || ch.file || ''
-      }));
-      // Single-file book? allow `text_file` at book level
-      if (!chapters.length && b.text_file) {
-        chapters.push({ title: b.title || 'Text', text_file: b.text_file });
-      }
-      return {
-        id: b.id || (b.title || 'book').toLowerCase().replace(/\W+/g,'-'),
-        title: b.title || 'Untitled',
-        jurisdiction: b.jurisdiction || '',
-        reference: b.reference || '',
-        source: b.source || '',
-        chapters
-      };
-    }).filter(b => b.chapters && b.chapters.length);
-  };
-
-  const buildFlatList = () => {
-    flatList = [];
-    registry.forEach((b, bi) => {
-      b.chapters.forEach((ch, ci) => {
-        flatList.push({
-          key: `${b.id}:${ci}`,
-          bookIndex: bi,
-          chapterIndex: ci,
-          label: `${b.title}${b.chapters.length>1 ? ' — ' + ch.title : ''}`,
-          book: b, chapter: ch
+  function normalizeEntry(e) {
+    // supports:
+    // 1) { title, jurisdiction, reference, chapters:[ {title, reference_url}, ... ] }
+    // 2) { title, jurisdiction, reference, reference_url }  (single-file)
+    const list = [];
+    if (e.chapters && Array.isArray(e.chapters) && e.chapters.length) {
+      e.chapters.forEach((ch, i) => {
+        list.push({
+          book: e.title,
+          jurisdiction: e.jurisdiction || '',
+          reference: e.reference || '',
+          chapter: ch.title || `Chapter ${i+1}`,
+          url: ch.reference_url
         });
       });
-    });
-  };
+    } else if (e.reference_url) {
+      list.push({
+        book: e.title,
+        jurisdiction: e.jurisdiction || '',
+        reference: e.reference || '',
+        chapter: '-',           // single file
+        url: e.reference_url
+      });
+    }
+    return list;
+  }
 
-  const renderSidebar = (items) => {
+  async function fetchJSONWithFallback(paths) {
+    let lastErr;
+    for (const p of paths) {
+      try {
+        const res = await fetch(p, { cache:'no-store' });
+        if (!res.ok) throw new Error(`${p} → ${res.status}`);
+        const data = await res.json();
+        status(`Loaded: ${p}`);
+        return data;
+      } catch (e) {
+        lastErr = e;
+      }
+    }
+    throw lastErr || new Error('Failed to load registry.');
+  }
+
+  function renderList() {
     els.itemList.innerHTML = '';
     items.forEach((it, idx) => {
       const li = document.createElement('li');
-      li.textContent = it.label;
-      li.setAttribute('role','option');
-      li.addEventListener('click', () => selectByKey(it.key));
-      if (currentIndex === idx) li.classList.add('active');
+      li.innerHTML = `<div><strong>${escapeHTML(it.book)}</strong>${it.chapter && it.chapter !== '-' ? ` — ${escapeHTML(it.chapter)}` : ''}</div>
+                      <div style="font-size:12px;color:#555">${escapeHTML(it.jurisdiction || '')}</div>`;
+      li.tabIndex = 0;
+      li.addEventListener('click', () => selectItem(idx));
+      li.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') selectItem(idx); });
       els.itemList.appendChild(li);
     });
-  };
+  }
 
-  const applyListFilter = () => {
-    const q = (els.listSearch.value || '').toLowerCase().trim();
-    const filtered = q
-      ? flatList.filter(it => it.label.toLowerCase().includes(q))
-      : flatList.slice();
-    renderSidebar(filtered);
-  };
+  function setActive(index) {
+    [...els.itemList.children].forEach((li, i) => li.classList.toggle('active', i === index));
+  }
 
-  const setMeta = (b, ch) => {
-    els.bookTitle.textContent = b?.title || '—';
-    els.chapterTitle.textContent = ch ? (ch.title || '—') : (b?.chapters?.[0]?.title || '—');
-    els.reference.textContent = b?.reference || '—';
-    els.source.innerHTML = b?.source
-      ? `<a href="${b.source}" target="_blank" rel="noopener">${host(b.source) || b.source}</a>`
-      : '—';
-  };
+  function applyHighlights(term) {
+    if (!term) {
+      els.docText.innerHTML = escapeHTML(rawText);
+      matches = [];
+      matchIndex = -1;
+      return;
+    }
+    const rx = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+    // Escape first, then add marks
+    const marked = escapeHTML(rawText).replace(rx, m => `<mark class="hl">${m}</mark>`);
+    els.docText.innerHTML = marked;
+    matches = els.docText.querySelectorAll('mark.hl');
+    matchIndex = matches.length ? 0 : -1;
+    updateMatchFocus();
+  }
 
-  const loadText = async (url) => {
-    const r = await fetch(url, { cache: 'no-store' });
-    if (!r.ok) throw new Error(`${url} → ${r.status}`);
-    return normText(await r.text());
-  };
+  function updateMatchFocus() {
+    matches.forEach(m => m.classList.remove('hlcurr'));
+    if (matchIndex >= 0 && matches[matchIndex]) {
+      matches[matchIndex].classList.add('hlcurr');
+      // scroll the <pre> container to the current match
+      const container = els.docText;
+      const el = matches[matchIndex];
+      const cRect = container.getBoundingClientRect();
+      const eRect = el.getBoundingClientRect();
+      const offset = (eRect.top - cRect.top) + container.scrollTop - 40; // pad
+      container.scrollTo({ top: offset, behavior: 'smooth' });
+      status(`Match ${matchIndex + 1} of ${matches.length}`);
+    } else {
+      if (els.textSearch.value.trim()) status('No matches');
+      else status('');
+    }
+  }
 
-  const selectByKey = async (key) => {
-    // find index inside current *filtered* sidebar (so keyboard / clicks map correctly)
-    const q = (els.listSearch.value || '').toLowerCase().trim();
-    const filtered = q
-      ? flatList.filter(it => it.label.toLowerCase().includes(q))
-      : flatList.slice();
+  function nextMatch(step) {
+    if (!matches.length) return;
+    matchIndex = (matchIndex + step + matches.length) % matches.length;
+    updateMatchFocus();
+  }
 
-    const idx = filtered.findIndex(it => it.key === key);
-    if (idx === -1) return;
-
-    // map filtered index back to global index
-    const globalIndex = flatList.findIndex(it => it.key === key);
-    currentIndex = globalIndex;
-
-    // visual active state
-    renderSidebar(filtered);
-
-    const it = flatList[currentIndex];
-    setMeta(it.book, it.chapter);
-    els.status.textContent = `Loading: ${it.chapter.text_file}`;
+  async function selectItem(index) {
+    const it = items[index];
+    if (!it) return;
+    setActive(index);
+    els.bookTitle.textContent = it.book || '—';
+    els.chapterTitle.textContent = it.chapter || '—';
+    els.reference.textContent = it.reference || '—';
+    els.source.textContent = it.url || '—';
     els.docText.textContent = 'Loading…';
+    status('');
+
     try {
-      const txt = await loadText(it.chapter.text_file);
-      els.docText.textContent = txt;
-      els.status.textContent = `Loaded: ${it.chapter.text_file}`;
-      clearHighlights();
-      searchHits = [];
-      hitIndex = -1;
+      const res = await fetch(it.url, { cache:'no-store' });
+      if (!res.ok) throw new Error(`${it.url} → ${res.status}`);
+      let txt = await res.text();
+
+      // normalize bullets/squares and NBSPs (cosmetic)
+      txt = txt.replace(/\u00A0/g, ' ')
+               .replace(/[\u25A0\u25A1\u25AA\u25AB\u2022]/g, '•');
+
+      rawText = txt;
+      els.docText.textContent = rawText; // plain first load (no highlights)
+      applyHighlights(els.textSearch.value.trim());
     } catch (e) {
-      els.docText.textContent = `Error loading: ${it.chapter.text_file}\n${e.message}`;
-      els.status.textContent = `Error: ${e.message}`;
+      rawText = '';
+      els.docText.textContent = '';
+      status(`Error loading: ${e.message}`);
     }
-  };
+  }
 
-  // ---------- Search / highlight ----------
-  const clearHighlights = () => {
-    // replace <mark> by text; simplest reset is reassigning textContent
-    els.docText.textContent = els.docText.textContent;
-  };
+  function filterList(q) {
+    const needle = q.trim().toLowerCase();
+    [...els.itemList.children].forEach((li, i) => {
+      const it = items[i];
+      const hay = `${it.book} ${it.chapter} ${it.jurisdiction}`.toLowerCase();
+      li.style.display = hay.includes(needle) ? '' : 'none';
+    });
+  }
 
-  const highlightAll = (needle) => {
-    clearHighlights();
-    if (!needle) { searchHits = []; hitIndex = -1; return; }
-
-    const text = els.docText.textContent;
-    const rx = new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi');
-    let m, parts = [], last = 0, hits = [];
-    while ((m = rx.exec(text)) !== null) {
-      parts.push(text.slice(last, m.index));
-      parts.push(`<mark>${m[0]}</mark>`);
-      hits.push(m.index);
-      last = m.index + m[0].length;
-    }
-    parts.push(text.slice(last));
-    els.docText.innerHTML = parts.join('');
-    searchHits = hits;
-    hitIndex = hits.length ? 0 : -1;
-    scrollToHit();
-  };
-
-  const scrollToHit = () => {
-    if (hitIndex < 0) return;
-    const marks = els.docText.querySelectorAll('mark');
-    const m = marks[hitIndex];
-    if (m) {
-      const parent = els.docText;
-      const top = m.offsetTop - parent.clientHeight * 0.2; // show a bit above
-      parent.scrollTo({ top, behavior: 'smooth' });
-    }
-  };
-
-  const nextHit = () => {
-    if (!searchHits.length) return;
-    hitIndex = (hitIndex + 1) % searchHits.length;
-    scrollToHit();
-  };
-
-  const prevHit = () => {
-    if (!searchHits.length) return;
-    hitIndex = (hitIndex - 1 + searchHits.length) % searchHits.length;
-    scrollToHit();
-  };
-
-  // ---------- Buttons ----------
-  els.textSearch.addEventListener('input', (e) => {
-    const q = (e.target.value || '').trim();
-    highlightAll(q);
-  });
-  els.nextBtn.addEventListener('click', nextHit);
-  els.prevBtn.addEventListener('click', prevHit);
-
-  els.printBtn.addEventListener('click', () => window.print());
-
-  els.exportBtn.addEventListener('click', () => {
-    const blob = new Blob([els.docText.textContent || ''], { type: 'text/plain;charset=utf-8' });
+  function exportCurrent() {
+    const blob = new Blob([rawText || ''], { type: 'text/plain;charset=utf-8' });
     const a = document.createElement('a');
+    const name = (els.bookTitle.textContent || 'book').replace(/[^\w\-]+/g, '_') +
+                 (els.chapterTitle.textContent && els.chapterTitle.textContent !== '—' ? `_${els.chapterTitle.textContent.replace(/[^\w\-]+/g,'_')}` : '');
     a.href = URL.createObjectURL(blob);
-    a.download = `${(els.bookTitle.textContent || 'book').replace(/\W+/g,'-')}` +
-                 `${els.chapterTitle.textContent !== '—' ? '-' + els.chapterTitle.textContent.replace(/\W+/g,'-') : ''}.txt`;
-    document.body.appendChild(a);
+    a.download = `${name || 'textbook'}.txt`;
     a.click();
-    a.remove();
-  });
+    URL.revokeObjectURL(a.href);
+  }
 
-  // ---------- Init ----------
+  function printCurrent() {
+    const w = window.open('', '_blank');
+    if (!w) return;
+    const safe = escapeHTML(rawText || '');
+    w.document.write(`<pre style="white-space:pre-wrap;word-wrap:break-word;font:13px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial">${safe}</pre>`);
+    w.document.close();
+    w.focus(); w.print();
+  }
+
+  // ---------- init ----------
   (async function init() {
     try {
-      els.status.textContent = 'Loading registry…';
-      const raw = await fetchJsonFirst(REGISTRY_PATHS);
-      registry = normalizeRegistry(raw);
-      buildFlatList();
-
-      // Populate sidebar, wire filter
-      renderSidebar(flatList);
-      els.listSearch.addEventListener('input', applyListFilter);
-
-      // Auto-select first item
-      if (flatList.length) selectByKey(flatList[0].key);
-      els.status.textContent = `Loaded registry (${flatList.length} entries)`;
+      const reg = await fetchJSONWithFallback(REGISTRY_PATHS);
+      registry = Array.isArray(reg) ? reg : [];
+      // flatten to items[]
+      items = registry.flatMap(normalizeEntry);
+      if (!items.length) throw new Error('Registry loaded but no entries found.');
+      renderList();
+      // auto-load first visible
+      selectItem(0);
     } catch (e) {
-      els.docText.textContent = `Error loading textbooks registry.\n${e.message}`;
-      els.status.textContent = e.message;
+      status(`Error loading registry: ${e.message}`);
+      els.docText.textContent = '—';
     }
+
+    // events
+    els.listSearch.addEventListener('input', () => filterList(els.listSearch.value));
+    els.textSearch.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Enter') {
+        applyHighlights(els.textSearch.value.trim());
+      }
+    });
+    els.prevBtn.addEventListener('click', () => nextMatch(-1));
+    els.nextBtn.addEventListener('click', () => nextMatch(1));
+    els.exportBtn.addEventListener('click', exportCurrent);
+    els.printBtn.addEventListener('click', printCurrent);
   })();
 })();
