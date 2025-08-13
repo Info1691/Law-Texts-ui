@@ -4,43 +4,52 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Trust Law Textbooks</title>
-  <link rel="stylesheet" href="style.css?v=7"/>
+  <link rel="stylesheet" href="style.css?v=15"/>
 </head>
 <body>
-  <header class="app-header">
+  <header class="app-header" role="banner">
     <img src="logo.png" alt="Logo" class="logo"/>
     <h1 class="title">Trust Law Textbooks</h1>
   </header>
 
-  <main class="wrap">
-    <section class="controls">
-      <label for="bookSelect">Select a Textbook:</label>
-      <select id="bookSelect"><option>Loading…</option></select>
+  <main id="app" role="main" aria-label="Textbook viewer">
+    <!-- Sidebar: selector -->
+    <aside id="sidebar" aria-label="Book/chapter selector">
+      <h2 class="sidebar-title">Select Book / Chapter</h2>
+      <input id="listSearch" type="search" placeholder="Filter list…" aria-label="Filter list"/>
+      <ul id="itemList" class="rule-list" role="listbox" aria-label="Available items"></ul>
+    </aside>
 
-      <label for="chapterSelect" class="chapter-label">Chapter:</label>
-      <select id="chapterSelect" disabled><option>—</option></select>
+    <!-- Viewer -->
+    <section id="viewer" aria-live="polite">
+      <div class="toolbar">
+        <input id="textSearch" type="search" placeholder="Search within text…" aria-label="Search within text"/>
+        <button id="prevBtn" type="button" class="btn">Prev</button>
+        <button id="nextBtn" type="button" class="btn">Next</button>
+      </div>
+
+      <div class="meta">
+        <div><strong>Book:</strong> <span id="bookTitle">—</span></div>
+        <div><strong>Chapter:</strong> <span id="chapterTitle">—</span></div>
+        <div><strong>Source:</strong> <span id="source">—</span></div>
+        <div><strong>Reference:</strong> <span id="reference">—</span></div>
+      </div>
+
+      <pre id="docText" class="text" aria-live="polite">Loading…</pre>
+
+      <div class="actions">
+        <button id="printBtn" class="btn" type="button">Print</button>
+        <button id="exportBtn" class="btn" type="button">Export to TXT</button>
+      </div>
+
+      <p id="status" class="status" aria-live="polite"></p>
+      <p class="footnote">
+        Registry fallbacks: <code>data/books/textbooks.json</code>, <code>data/textbooks.json</code>, <code>textbooks.json</code>.
+        Chapters and single-file books supported. Text files under <code>data/books/</code>.
+      </p>
     </section>
-
-    <section class="meta">
-      <div><strong>Jurisdiction:</strong> <span id="jurisdiction">—</span></div>
-      <div><strong>Reference:</strong> <span id="reference">—</span></div>
-      <div><strong>Source file:</strong> <span id="sourceFile">—</span></div>
-    </section>
-
-    <pre id="chapterText" class="text" aria-live="polite">Select a book…</pre>
-
-    <div class="actions">
-      <button id="printBtn" class="btn">Print</button>
-      <button id="exportBtn" class="btn">Export to TXT</button>
-    </div>
-
-    <p id="status" class="status" aria-live="polite"></p>
   </main>
 
-  <footer class="footer">
-    <small>Reads from <code>textbooks.json</code> and chapter files under <code>data/books/</code>. No file writes.</small>
-  </footer>
-
-  <script src="main.js?v=7"></script>
+  <script src="main.js?v=15"></script>
 </body>
 </html>
