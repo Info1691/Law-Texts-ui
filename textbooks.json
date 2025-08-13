@@ -16,9 +16,9 @@
     "jurisdiction": "uk",
     "reference": "UNDERHILL-20",
     "chapters": [
-      { "title": "Part 1: Concepts",           "reference_url": "data/books/underhill-20-01-concepts.txt" },
-      { "title": "Part 2: Creation of Trusts", "reference_url": "data/books/underhill-20-02-creation-of-trusts.txt" },
-      { "title": "Part 3: Trustees’ Powers",   "reference_url": "data/books/underhill-20-03-trustees-powers.txt" }
+      { "title": "Part 1: Concepts",           "reference_url": "data/textbooks/uk/underhill-20-01-concepts.txt" },
+      { "title": "Part 2: Creation of Trusts", "reference_url": "data/textbooks/uk/underhill-20-02-creation-of-trusts.txt" },
+      { "title": "Part 3: Trustees’ Powers",   "reference_url": "data/textbooks/uk/underhill-20-03-trustees-powers.txt" }
     ]
   }
 ]
