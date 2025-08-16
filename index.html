@@ -4,10 +4,18 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Trust Law Textbooks</title>
+
+  <!-- Existing styles -->
   <link rel="stylesheet" href="style.css?v=12"/>
+
+  <!-- Drawer styles -->
+  <link rel="stylesheet" href="drawer.css"/>
 </head>
 <body>
   <header class="app-header">
+    <!-- Single working trigger for the shared drawer -->
+    <button id="repoBtn" class="btn btn-light" type="button" aria-controls="repo-drawer" aria-expanded="false">Repos</button>
+
     <img src="logo.png" alt="Logo" class="logo"/>
     <h1 class="title">Trust Law Textbooks</h1>
   </header>
@@ -49,6 +57,28 @@
     </section>
   </main>
 
-  <script src="main.js?v=12"></script>
+  <!-- Your existing app logic -->
+  <script src="main.js?v=12" defer></script>
+
+  <!-- Optional: explicitly define the drawer links (omit to use defaults in drawer.js) -->
+  <script>
+    window.REPO_LINKS = [
+      { href: 'https://info1691.github.io/rules-ui/',           label: 'Rules Repository' },
+      { href: 'https://info1691.github.io/laws-ui/',            label: 'Laws Repository' },
+      { href: 'https://info1691.github.io/commentary-ui/',      label: 'Commentary Viewer' },
+      { href: 'https://info1691.github.io/Law-Texts-ui/',       label: 'Trust Law Textbooks' },
+      { href: 'https://info1691.github.io/compliance-ui/',      label: 'Compliance – Citations' },
+      { href: 'https://info1691.github.io/compliance-ui/bulk/', label: 'Citations – Bulk Upload' },
+      { href: 'https://info1691.github.io/breaches-ui/',        label: 'Breaches Manager' }
+    ];
+  </script>
+
+  <!-- Shared drawer logic -->
+  <script src="drawer.js" defer></script>
+  <script defer>
+    window.addEventListener('DOMContentLoaded', () => {
+      RepoDrawer.init('#repoBtn');
+    });
+  </script>
 </body>
 </html>
