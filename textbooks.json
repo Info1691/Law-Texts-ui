@@ -6,14 +6,10 @@
     "reference_url": "data/textbooks/uk/Lewin-on-Trusts.txt"
   },
   {
-    "id": "Litigating Trusts Jersey - Sheedy-Baker 2017",
     "title": "Litigating Trust Disputes in Jersey",
-    "edition": "1st",
-    "year": 2017,
-    "author": "Sheedy & Baker",
     "jurisdiction": "Jersey",
-    "file": "data/textbooks/jersey/litigating-trust-disputes-in-jersey-law.pdf",
-    "license": "All rights reserved – private research use only"
+    "reference": "Sheedy-Baker - Litigating trusts in Jersey"
+    "reference_url": "data/textbooks/jersey/litigating-trust-disputes-in-jersey-law.pdf",
   }
   {
     "title": "Principles of Jersey Trusts",
