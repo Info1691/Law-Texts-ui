@@ -5,40 +5,39 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Law Text Viewer</title>
   <link rel="stylesheet" href="style.css" />
-  <!-- PDF.js (core only, no default viewer UI) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" integrity="sha512-l2D4M6qVjQH5UQbsybuQ1e0UIYV7Y6g9n2/vR9Q9wYB2z3kYy9qkLz3b4C0i1l0t9mJ0q8Z2hItc2U8o2xk3XQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <!-- PDF.js (use the official build path; iPad/Safari friendly) -->
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
 </head>
 <body>
   <header class="header">
     <div class="brand">
-      <!-- Keep your logo with white background intact -->
       <img src="logo.png" alt="Logo" class="logo">
       <h1>Law Text Viewer</h1>
     </div>
 
     <div class="controls">
       <button id="calibrateBtn" class="btn">Calibrate pages</button>
+
       <div class="jump">
         <label for="bookPageInput">Book p.</label>
         <input id="bookPageInput" type="number" inputmode="numeric" placeholder="e.g. 684" />
         <button id="goBtn" class="btn">Go</button>
       </div>
+
       <div id="pageLabel" class="page-label">PDF p.—</div>
     </div>
   </header>
 
   <main class="main">
-    <!-- LEFT: catalogue (optional – loads list from /data/law-texts/catalog.json if present) -->
     <aside class="left">
       <h2>Texts</h2>
       <ul id="catalogList" class="catalog"></ul>
     </aside>
 
-    <!-- CENTER: PDF @ fixed 14 cm -->
     <section class="center">
       <div id="pdfContainer" class="pdf-container">
         <canvas id="pdfCanvas"></canvas>
-        <!-- Text layer for selectable text + highlight overlays -->
         <div id="textLayer" class="text-layer"></div>
         <div id="highlightLayer" class="highlight-layer"></div>
       </div>
@@ -48,7 +47,6 @@
       </div>
     </section>
 
-    <!-- RIGHT: notes list (snippet-anchored) -->
     <aside class="right">
       <div class="notes-header">
         <h2>Notes</h2>
@@ -58,7 +56,6 @@
     </aside>
   </main>
 
-  <!-- Toasts -->
   <div id="toast" class="toast" hidden></div>
 
   <script src="main.js"></script>
