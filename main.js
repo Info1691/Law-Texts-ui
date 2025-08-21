@@ -1,14 +1,14 @@
 // Trust Law Textbooks — PDF + TXT viewer, nested-chapter catalog support,
-// fixed 3-column layout, Repo drawer, search/matches, calibration
+// fixed 3-column UI, Repo drawer, search/matches, PDF calibration & highlights
 document.addEventListener('DOMContentLoaded', () => {
-  // ---------- PDF.js worker ----------
+  // ---- PDF.js worker ----
   if (!window.pdfjsLib) { alert('PDF.js failed to load'); return; }
   pdfjsLib.GlobalWorkerOptions.workerSrc =
     'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
 
-  // ---------- CONFIG ----------
+  // ---- CONFIG ----
   const CATALOG_CANDIDATES = [
-    'data/textbooks/catalog.json',      // your structure
+    'data/textbooks/catalog.json',     // your current location
     'data/texts/catalog.json',
     'texts/catalog.json',
     'data/law-texts/catalog.json'
@@ -18,17 +18,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const STORAGE_PREFIX = 'lawtexts:';
   const MAX_MATCHES = 200;
 
-  // ---------- STATE ----------
+  // ---- STATE ----
   let pdfDoc = null, currentDocUrl = null, currentPage = 1;
   let rendering = false, pendingPage = null, viewportScale = 1;
   const pageTextCache = new Map();
   let searchTerm = '', matches = [];
-  // TXT state
-  let isTextDoc = false;
-  let textDocContent = '';
-  let activeTextMark = null;
 
-  // ---------- DOM ----------
+  // TXT state
+  let isTextDoc = false, textDocContent = '', activeTextMark = null;
+
+  // ---- DOM ----
   const $ = (s) => document.querySelector(s);
   const pdfContainer = $('#pdfContainer');
   const pdfCanvas = $('#pdfCanvas'); const ctx = pdfCanvas.getContext('2d');
@@ -50,13 +49,13 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#nextBtn').addEventListener('click', ()=> { if (!isTextDoc) queueRender(Math.min(pdfDoc?.numPages||1, currentPage+1)); });
   $('#listFilter').addEventListener('input', filterCatalog);
 
-  // Drawer (Repo Hub)
+  // Drawer
   const drawer = $('#drawer');
   $('#drawerToggle').addEventListener('click', ()=> drawer.classList.toggle('open'));
   $('#drawerClose').addEventListener('click', ()=> drawer.classList.remove('open'));
   $('#repoFilter').addEventListener('input', filterRepos);
 
-  // ---------- Storage / utils ----------
+  // ---- utils/storage ----
   const key = (s) => STORAGE_PREFIX + (currentDocUrl || '') + ':' + s;
   const loadCalib = () => JSON.parse(localStorage.getItem(key('calib')) || '{}');
   const saveCalib = (o) => localStorage.setItem(key('calib'), JSON.stringify(o));
@@ -66,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const isPdf = u => /\.pdf(?:[#?].*)?$/i.test(u);
   const isTxt = u => /\.txt(?:[#?].*)?$/i.test(u);
 
-  // ---------- Init ----------
+  // ---- boot ----
   (async function init(){
     await loadRepos();
     await loadCatalog();
@@ -75,28 +74,21 @@ document.addEventListener('DOMContentLoaded', () => {
     if (direct) openDocument(direct, null);
   })();
 
-  // ---------- helpers ----------
   async function fetchFirst(paths){
     for (const p of paths){
-      try{ const r = await fetch(p, {cache:'no-store'}); if (r.ok) return await r.json(); }catch{}
+      try { const r = await fetch(p, {cache:'no-store'}); if (r.ok) return await r.json(); } catch {}
     }
     return null;
   }
   function prettySubtitle(item){
-    const j = item.jurisdiction ? item.jurisdiction : '';
-    const ref = item.reference ? item.reference : '';
     const parts = [];
-    if (j) parts.push(j);
-    if (ref) parts.push(ref);
+    if (item.jurisdiction) parts.push(item.jurisdiction);
+    if (item.reference)    parts.push(item.reference);
     return parts.length ? parts.join(' — ') : '';
   }
-  function pickUrl(node){
-    // prefer reference_url (your schema), then url
-    const u = node?.reference_url || node?.url || '';
-    return u;
-  }
+  const pickUrl = node => (node?.reference_url || node?.url || '').trim();
 
-  // ---------- Repos ----------
+  // ---- repos ----
   async function loadRepos(){
     const data = await fetchFirst(REPOS_CANDIDATES);
     const ul = $('#repoList'); ul.innerHTML = '';
@@ -122,28 +114,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ---------- Catalog (reference_url + chapters[]) ----------
+  // ---- catalog (supports reference_url + chapters[]) ----
   async function loadCatalog(){
     const raw = await fetchFirst(CATALOG_CANDIDATES);
     if (!raw){
-      catalogList.innerHTML = '<li><em>catalog.json not found (tried multiple locations)</em></li>';
-      toast('catalog.json not found');
-      return;
+      catalogList.innerHTML = '<li><em>catalog.json not found</em></li>';
+      toast('catalog.json not found'); return;
     }
 
-    // Build a flat list with parent/child (chapters)
     const items = [];
-    raw.forEach((book, idx) => {
+    raw.forEach((book, i) => {
       items.push({
-        title: book.title || `Book ${idx+1}`,
+        title: book.title || `Book ${i+1}`,
         subtitle: prettySubtitle(book),
         url: pickUrl(book),
         isChild: false
       });
       if (Array.isArray(book.chapters)){
-        book.chapters.forEach((ch, cidx) => {
+        book.chapters.forEach((ch, j) => {
           items.push({
-            title: `• ${ch.title || `Chapter ${cidx+1}`}`,
+            title: `• ${ch.title || `Chapter ${j+1}`}`,
             subtitle: '',
             url: pickUrl(ch),
             isChild: true
@@ -152,74 +142,58 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Render list
     catalogList.innerHTML = '';
     for (const it of items){
       const li = document.createElement('li');
       li.dataset.title = (it.title||'').toLowerCase();
       li.dataset.url = it.url || '';
-      li.className = it.isChild ? 'child' : '';
+      if (it.isChild) li.className = 'child';
       li.innerHTML = `<strong>${it.title||''}</strong>${it.subtitle?`<br><small>${it.subtitle}</small>`:''}`;
       if (it.url){
         li.addEventListener('click', ()=> openDocument(it.url, li));
-      }else{
-        li.style.opacity = '.6';
-        li.style.cursor = 'not-allowed';
-        li.title = 'No file linked';
+      } else {
+        li.style.opacity='.6'; li.style.cursor='not-allowed'; li.title='No file linked';
       }
       catalogList.appendChild(li);
     }
 
-    // Auto-open first item that has a URL
-    const firstWithUrl = items.find(i => i.url);
-    if (firstWithUrl){
-      const node = [...catalogList.children].find(li => li.dataset.url === firstWithUrl.url);
-      openDocument(firstWithUrl.url, node || null);
+    const first = items.find(i => i.url);
+    if (first){
+      const node = [...catalogList.children].find(n => n.dataset.url === first.url);
+      openDocument(first.url, node || null);
     }
   }
-
   function filterCatalog(e){
     const q = e.target.value.toLowerCase();
     [...catalogList.children].forEach(li => li.style.display = li.dataset.title?.includes(q) ? '' : 'none');
   }
 
-  // ========================= OPEN ANY DOCUMENT =========================
+  // ================= OPEN ANY DOCUMENT (PDF or TXT) =================
   async function openDocument(url, li){
     try{
       currentDocUrl = url;
-      // reset state
       pageTextCache.clear(); matches=[]; $('#matchesList').innerHTML=''; $('#matchCount').textContent='';
       $('#searchInput').value=''; searchTerm='';
       textDocContent=''; isTextDoc=false; clearTextViewer();
       showPdfLayers(true);
 
       if (li){ [...catalogList.children].forEach(n=>n.classList.remove('active')); li.classList.add('active'); }
+      const safe = encodeURI(url);
+      console.log('[openDocument] type:', isPdf(safe)?'PDF':(isTxt(safe)?'TXT':'UNKNOWN'), 'url=', safe);
 
-      const safeUrl = encodeURI(url);
-      console.log('[openDocument] url =', safeUrl);
-
-      if (isPdf(safeUrl)) {
-        await openPdf(safeUrl);
-      } else if (isTxt(safeUrl)) {
-        await openText(safeUrl);
-      } else {
-        // default: treat as TXT if no extension (so we never assume PDF)
-        if (!/\.[a-z0-9]+$/i.test(safeUrl)) {
-          await openText(safeUrl);
-        } else {
-          toast('Unsupported file type: ' + safeUrl);
-        }
-      }
-    }catch(e){
-      console.error('Document load error:', e);
+      if (isPdf(safe)) return openPdf(safe);
+      if (isTxt(safe) || !/\.[a-z0-9]+$/i.test(safe)) return openText(safe); // default to TXT if no ext
+      toast('Unsupported file type: ' + safe);
+    }catch(err){
+      console.error('Document load error:', err);
       toast('Error loading document');
     }
   }
 
-  // ============================== TXT ==============================
+  // ================================ TXT ================================
   async function openText(url){
     try{
-      const resp = await fetch(url, { cache: 'no-store' });
+      const resp = await fetch(url, { cache:'no-store' });
       if (!resp.ok) throw new Error(`HTTP ${resp.status} for ${url}`);
       textDocContent = await resp.text();
 
@@ -250,7 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.head.appendChild(style);
       pdfContainer.appendChild(viewer);
     }
-    viewer.style.display = 'block';
+    viewer.style.display='block';
     return viewer;
   }
   function clearTextViewer(){
@@ -267,30 +241,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewer = ensureTextViewer();
     if (activeTextMark){ activeTextMark.remove(); activeTextMark=null; }
     const walker = document.createTreeWalker(viewer, NodeFilter.SHOW_TEXT, null);
-    let offset = 0, startNode=null, startOffset=0, endNode=null, endOffset=0, n;
+    let offset=0, startNode=null, startOffset=0, endNode=null, endOffset=0, n;
     while ((n = walker.nextNode())){
       const next = offset + n.nodeValue.length;
-      if (!startNode && index >= offset && index <= next){ startNode = n; startOffset = index - offset; }
-      if (startNode && (index+length) >= offset && (index+length) <= next){ endNode = n; endOffset = (index + length) - offset; break; }
+      if (!startNode && index >= offset && index <= next){ startNode=n; startOffset=index-offset; }
+      if (startNode && (index+length) >= offset && (index+length) <= next){ endNode=n; endOffset=(index+length)-offset; break; }
       offset = next;
     }
     if (!startNode){ viewer.scrollTop = 0; return; }
     if (!endNode){ endNode = startNode; endOffset = startNode.nodeValue.length; }
-    const range = document.createRange();
-    range.setStart(startNode, startOffset);
-    range.setEnd(endNode, endOffset);
-    const span = document.createElement('span'); span.className='highlight-text';
-    range.surroundContents(span);
+    const range = document.createRange(); range.setStart(startNode,startOffset); range.setEnd(endNode,endOffset);
+    const span = document.createElement('span'); span.className='highlight-text'; range.surroundContents(span);
     activeTextMark = span;
-    const rect = span.getBoundingClientRect();
-    const parentRect = viewer.getBoundingClientRect();
+    const rect = span.getBoundingClientRect(), parentRect = viewer.getBoundingClientRect();
     viewer.scrollTop += (rect.top - parentRect.top) - parentRect.height/3;
   }
 
-  // ============================== PDF ==============================
+  // ================================ PDF ================================
   async function openPdf(url){
     try{
-      // Prefer fetch → ArrayBuffer → {data} (works on iPad/Safari + GH Pages)
+      // ArrayBuffer path (Safari/iPad friendly)
       let source;
       try{
         const resp = await fetch(url, { cache:'no-store' });
@@ -306,7 +276,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const task = pdfjsLib.getDocument(source);
       pdfDoc = await task.promise;
 
-      // Fit to 14cm container
       const cssWidth = pdfContainer.clientWidth;
       const pg1 = await pdfDoc.getPage(1);
       const v = pg1.getViewport({ scale: 1 });
@@ -370,7 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
     currentPage = num; render(num);
   }
 
-  // ---------- Book ↔ PDF mapping ----------
+  // ---- Book ↔ PDF mapping / calibration ----
   function pdfFromBook(book){
     const c = loadCalib();
     if (Array.isArray(c.anchors) && c.anchors.length){
@@ -420,14 +389,15 @@ document.addEventListener('DOMContentLoaded', () => {
     toast(`Book p.${book} → PDF p.${target}`);
   }
 
-  // ========================= SEARCH & MATCHES =========================
+  // ================= SEARCH & MATCHES (PDF + TXT) =================
   async function handleFind(mode){
     const q = $('#searchInput').value.trim();
     if (!q){ $('#matchesList').innerHTML=''; $('#matchCount').textContent=''; return; }
-    if (isTextDoc){ await handleFindText(q, mode); } else { await handleFindPdf(q, mode); }
+    if (isTextDoc) return handleFindText(q, mode);
+    return handleFindPdf(q, mode);
   }
 
-  // ------ PDF search ------
+  // PDF search
   async function handleFindPdf(q, mode){
     if (!pdfDoc) return;
     if (mode==='new' || q!==searchTerm){
@@ -436,13 +406,10 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let p=1;p<=pdfDoc.numPages;p++){
           const tc = pageTextCache.get(p) || await pdfDoc.getPage(p).then(pg=>pg.getTextContent());
           if (!pageTextCache.has(p)) pageTextCache.set(p, tc);
-          const items = tc.items.map(i=>i.str);
-          const joined = items.join(' ');
-          const idxs = findAll(joined.toLowerCase(), q.toLowerCase());
-          for (const idx of idxs){
-            const start=Math.max(0, idx-60), end=Math.min(joined.length, idx+q.length+60);
-            const snippet = joined.slice(start,end).replace(/\s+/g,' ').trim();
-            matches.push({ page:p, snippet, bookPage:bookFromPdf(p) });
+          const joined = tc.items.map(i=>i.str).join(' ');
+          for (const idx of findAll(joined.toLowerCase(), q.toLowerCase())){
+            const s=Math.max(0, idx-60), e=Math.min(joined.length, idx+q.length+60);
+            matches.push({ page:p, snippet:joined.slice(s,e).replace(/\s+/g,' ').trim(), bookPage:bookFromPdf(p) });
             if (matches.length>=MAX_MATCHES) break;
           }
           if (matches.length>=MAX_MATCHES) break;
@@ -455,23 +422,19 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!matches.length) return;
     const i = matches.findIndex(m=>m.page===currentPage);
     const next = (mode==='next') ? (i+1)%matches.length : (i-1+matches.length)%matches.length;
-    const m = matches[next];
-    queueRender(m.page); await delay(180); await highlightSnippetOnCurrentPage(searchTerm);
+    const m = matches[next]; queueRender(m.page); await delay(180); await highlightSnippetOnCurrentPage(searchTerm);
   }
 
-  // ------ TXT search ------
+  // TXT search
   async function handleFindText(q, mode){
     if (!textDocContent) return;
     if (mode==='new' || q!==searchTerm){
       searchTerm=q; matches=[]; $('#matchesList').innerHTML='<li class="muted">Searching…</li>';
-      const hay = textDocContent.toLowerCase();
-      const needle = q.toLowerCase();
+      const hay = textDocContent.toLowerCase(); const needle=q.toLowerCase();
       let idx = hay.indexOf(needle);
       while (idx !== -1 && matches.length < MAX_MATCHES){
-        const start = Math.max(0, idx - 60);
-        const end   = Math.min(textDocContent.length, idx + q.length + 60);
-        const snippet = textDocContent.slice(start, end).replace(/\s+/g,' ').trim();
-        matches.push({ pos: idx, len: q.length, snippet, bookPage: null, page: null });
+        const s=Math.max(0, idx-60), e=Math.min(textDocContent.length, idx+q.length+60);
+        matches.push({ pos:idx, len:q.length, snippet:textDocContent.slice(s,e).replace(/\s+/g,' ').trim(), page:null, bookPage:null });
         idx = hay.indexOf(needle, idx + q.length);
       }
       renderMatches(() => { if (matches.length){ const m=matches[0]; highlightInTextViewer(m.pos, m.len);} });
@@ -488,14 +451,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (n === activeTextMark.firstChild){ break; }
         offset += n.nodeValue.length;
       }
-      i = matches.findIndex(m => m.pos >= offset);
-      if (i === -1) i = 0;
+      i = matches.findIndex(m => m.pos >= offset); if (i === -1) i = 0;
     }
     const next = (mode==='next') ? (i+1)%matches.length : (i-1+matches.length)%matches.length;
     const m = matches[next]; highlightInTextViewer(m.pos, m.len);
   }
 
-  function findAll(hay, needle){ const out=[]; let i=hay.indexOf(needle); while(i!==-1){ out.push(i); i=hay.indexOf(needle, i+needle.length);} return out; }
+  function findAll(h, n){ const out=[]; let i=h.indexOf(n); while(i!==-1){ out.push(i); i=h.indexOf(n, i+n.length);} return out; }
   function renderMatches(onClickHighlight){
     const ul = $('#matchesList'); ul.innerHTML='';
     $('#matchCount').textContent = matches.length ? `${matches.length} result(s)` : 'No results';
@@ -511,45 +473,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // ---------- PDF snippet highlight ----------
+  // ---- PDF highlight ----
   async function highlightSnippetOnCurrentPage(snippet){
     if (!pdfDoc) return false;
     const tc = pageTextCache.get(currentPage) || await pdfDoc.getPage(currentPage).then(p=>p.getTextContent());
     if (!pageTextCache.has(currentPage)) pageTextCache.set(currentPage, tc);
-
-    const items = tc.items.map(i=>i.str);
-    const joined = items.join(' ').toLowerCase();
+    const items = tc.items.map(i=>i.str); const joined = items.join(' ').toLowerCase();
     const needle = snippet.toLowerCase().replace(/\s+/g,' ').trim();
     const startIdx = joined.indexOf(needle);
     if (startIdx === -1){ hlLayer.innerHTML=''; return false; }
 
     let acc=0, startItem=0, startChar=0;
-    for (let i=0;i<items.length;i++){
-      const s=items[i]; if (acc + s.length + 1 > startIdx){ startItem=i; startChar=startIdx-acc; break; }
-      acc += s.length + 1;
-    }
-    const endIdx = startIdx + needle.length;
-    let endItem=startItem, endChar=endIdx-acc;
-    for (let i=startItem;i<items.length;i++){
-      const s=items[i], spanEnd=acc+s.length+1;
-      if (spanEnd >= endIdx){ endItem=i; endChar=endIdx-acc; break; }
-      acc = spanEnd;
-    }
+    for (let i=0;i<items.length;i++){ const s=items[i]; if (acc+s.length+1>startIdx){ startItem=i; startChar=startIdx-acc; break; } acc+=s.length+1; }
+    const endIdx = startIdx + needle.length; let endItem=startItem, endChar=endIdx-acc;
+    for (let i=startItem;i<items.length;i++){ const s=items[i], spanEnd=acc+s.length+1; if (spanEnd>=endIdx){ endItem=i; endChar=endIdx-acc; break; } acc=spanEnd; }
 
     hlLayer.innerHTML='';
-    const page = await pdfDoc.getPage(currentPage);
-    const viewport = page.getViewport({ scale: viewportScale });
-
+    const page = await pdfDoc.getPage(currentPage); const viewport = page.getViewport({ scale: viewportScale });
     for (let i=startItem;i<=endItem;i++){
       const it = tc.items[i];
       const tr = pdfjsLib.Util.transform(pdfjsLib.Util.transform(viewport.transform, it.transform), [1,0,0,-1,0,0]);
-      const [a,b,c,d,e,f] = tr; const fs = Math.hypot(a,b);
-      const widthPerChar = (it.width ? (it.width * viewportScale) : Math.abs(a)) / Math.max(1, it.str.length);
-      let left=e, top=f - fs, wChars=it.str.length;
-      if (i===startItem){ left += widthPerChar * startChar; wChars -= startChar; }
-      if (i===endItem){ wChars = (i===startItem ? (endChar-startChar) : endChar); }
-      const box=document.createElement('div');
-      box.className='highlight';
+      const [a,b,c,d,e,f]=tr; const fs=Math.hypot(a,b);
+      const widthPerChar = (it.width ? (it.width*viewportScale) : Math.abs(a)) / Math.max(1, it.str.length);
+      let left=e, top=f-fs, wChars=it.str.length;
+      if (i===startItem){ left+=widthPerChar*startChar; wChars-=startChar; }
+      if (i===endItem){ wChars=(i===startItem ? (endChar-startChar) : endChar); }
+      const box=document.createElement('div'); box.className='highlight';
       box.style.left=left+'px'; box.style.top=top+'px';
       box.style.width=Math.max(2, widthPerChar*Math.max(0,wChars))+'px';
       box.style.height=Math.max(2, fs*1.1)+'px';
@@ -558,7 +507,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return true;
   }
 
-  // ---------- Export current content ----------
+  // ---- Export current content ----
   async function exportVisibleText(){
     if (isTextDoc){
       if (!textDocContent) return;
