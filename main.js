@@ -1,4 +1,5 @@
-// Law-Texts-ui — clean pre-takeover viewer
+// Law-Texts-ui — clean viewer (fit-to-width, on-page highlights, left drawer, right matches)
+
 (function () {
   // ---- Safe lookup ----
   const $ = (id)=>{ const el=document.getElementById(id); if(!el) throw new Error(`Missing #${id}`); return el; };
