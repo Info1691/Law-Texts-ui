@@ -4,19 +4,19 @@
     "jurisdiction": "uk",
     "reference": "LEWIN-20",
     "reference_url": "data/textbooks/uk/Lewin-on-Trusts.txt"
-  }
+  },
   {
     "title": "Litigating Trust Disputes in Jersey",
-    "jurisdiction": "Jersey",
-    "reference": "Sheedy-Baker - Litigating trusts in Jersey"
-    "reference_url": "data/textbooks/jersey/litigating-trust-disputes-in-jersey-law.pdf",
-  }
+    "jurisdiction": "jersey",
+    "reference": "Sheedy–Baker — Litigating trusts in Jersey",
+    "reference_url": "data/textbooks/jersey/litigating-trust-disputes-in-jersey-law.pdf"
+  },
   {
     "title": "Principles of Jersey Trusts",
     "jurisdiction": "jersey",
     "reference": "PJTL",
     "reference_url": "data/textbooks/jersey/Principles-of-Jersey-Trusts.txt"
-  }
+  },
   {
     "title": "Underhill & Hayton: Law of Trusts (20th ed)",
     "jurisdiction": "uk",
