@@ -3,13 +3,12 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Law Texts UI</title>
+  <title>Trust Law Textbooks</title>
   <link rel="stylesheet" href="style.css"/>
 
-  <!-- PDF.js core -->
+  <!-- PDF.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
-    // Set worker BEFORE any pdfjsLib usage (critical on GitHub Pages)
     if (window.pdfjsLib) {
       pdfjsLib.GlobalWorkerOptions.workerSrc =
         "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -23,23 +22,24 @@
       <h1>Trust Law Textbooks</h1>
     </div>
     <nav class="toolbar">
-      <button id="drawerToggle" class="btn" type="button">Drawer</button>
-      <button id="printBtn" class="btn" type="button">Print</button>
-      <button id="exportBtn" class="btn" type="button">Export to TXT</button>
+      <button id="drawerToggle" class="btn">Drawer</button>
+      <button id="printBtn" class="btn">Print</button>
+      <button id="exportBtn" class="btn">Export to TXT</button>
     </nav>
   </header>
 
-  <!-- LEFT DRAWER (restored; sits below header, not over logo) -->
+  <!-- LEFT DRAWER (restored, does NOT overlay logo) -->
   <aside id="drawer" class="drawer" aria-hidden="true">
     <div class="drawer-head">
       <strong>Drawer</strong>
-      <button id="drawerClose" class="xbtn" type="button" aria-label="Close">✕</button>
+      <button id="drawerClose" class="xbtn" aria-label="Close">✕</button>
     </div>
     <div class="drawer-body">
-      <p>Notes / metadata / controls.</p>
+      <p>Notes / metadata live here. This is the same drawer you had before.</p>
     </div>
   </aside>
 
+  <!-- Three-column layout -->
   <main class="layout3">
     <!-- LEFT: book list -->
     <aside class="sidebar">
@@ -52,8 +52,8 @@
       <div class="content-toolbar">
         <input id="searchInput" class="input" placeholder="Search within text…"/>
         <div class="nav">
-          <button id="prevBtn" class="btn" type="button">Prev</button>
-          <button id="nextBtn" class="btn" type="button">Next</button>
+          <button id="prevBtn" class="btn">Prev</button>
+          <button id="nextBtn" class="btn">Next</button>
         </div>
       </div>
 
@@ -64,7 +64,7 @@
         <div>Reference: <span id="metaRef">—</span></div>
       </div>
 
-      <!-- Single-page viewer: canvas + highlight + text layer (aligned) -->
+      <!-- Single-page viewer: canvas + highlight layer + text layer -->
       <div id="viewer" class="viewer">
         <div id="pageSurface" class="pageSurface">
           <canvas id="pdfCanvas"></canvas>
@@ -77,13 +77,13 @@
       <div id="status" class="status"></div>
     </section>
 
-    <!-- RIGHT: matches list -->
+    <!-- RIGHT: matches -->
     <aside class="results-pane">
       <div class="results-head">Matches</div>
       <div id="results" class="results"></div>
     </aside>
   </main>
 
-  <script src="main.js?v=reset1"></script>
+  <script src="main.js?v=recover1"></script>
 </body>
 </html>
