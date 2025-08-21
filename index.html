@@ -5,12 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Trust Law Textbooks</title>
   <link rel="stylesheet" href="style.css"/>
+  <!-- PDF.js -->
   <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
 </head>
 <body>
   <header class="header">
     <div class="brand">
-      <img src="logo.png" class="logo" alt="Blue Chip Logo"/>
+      <img src="logo.png" class="logo" alt="Logo"/>
       <h1>Trust Law Textbooks</h1>
     </div>
 
@@ -35,14 +36,14 @@
     </div>
   </header>
 
-  <!-- LEFT DRAWER = REPO HUB -->
+  <!-- LEFT DRAWER: Repo Hub (branding: dark) -->
   <aside id="drawer" class="drawer" aria-hidden="true">
     <div class="drawer-head">
       <h2>Repositories</h2>
-      <button id="drawerClose" class="btn btn-dark">Close</button>
+      <button id="drawerClose" class="btn btn-outline">Close</button>
     </div>
     <div class="drawer-section">
-      <input id="repoFilter" class="list-filter" placeholder="Filter repos…"/>
+      <input id="repoFilter" class="drawer-filter" placeholder="Filter repos…"/>
       <ul id="repoList" class="repo-list"></ul>
     </div>
   </aside>
@@ -54,10 +55,10 @@
       <ul id="catalogList" class="catalog"></ul>
     </aside>
 
-    <!-- CENTER: PDF (14cm wide) -->
+    <!-- CENTER: PDF (14 cm width) -->
     <section class="center">
       <div class="pdf-wrap">
-        <div id="pdfContainer" class="pdf-container">
+        <div id="pdfContainer" class="pdf-container" aria-label="PDF viewer">
           <canvas id="pdfCanvas"></canvas>
           <div id="textLayer" class="text-layer"></div>
           <div id="highlightLayer" class="highlight-layer"></div>
