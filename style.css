@@ -17,9 +17,7 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,
   height: calc(100vh - 64px);
   padding:12px;
 }
-@media (max-width: 980px){
-  .layout3 { grid-template-columns: 220px 1fr 260px; }
-}
+@media (max-width: 980px){ .layout3 { grid-template-columns: 220px 1fr 260px; } }
 @media (max-width: 760px){
   .layout3 { grid-template-columns: 1fr; }
   .results-pane { order:3; height: 30vh; }
@@ -33,7 +31,7 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,
 .list li.active { outline:2px solid var(--blue); }
 
 /* Center content */
-.content { display:flex; flex-direction:column; gap:8px; min-width:0; } /* min-width to allow canvas to scale */
+.content { display:flex; flex-direction:column; gap:8px; min-width:0; }
 .content-toolbar { display:flex; gap:8px; align-items:center; }
 .nav { margin-left:auto; display:flex; gap:6px; }
 .btn { padding:8px 12px; border:1px solid var(--border); background:#fff; border-radius:6px; cursor:pointer; }
@@ -47,11 +45,20 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,
   background:#fff;
   height: calc(100% - 118px); /* fill remaining vertical space in the center column */
   min-height: 60vh;
-  overflow:hidden; /* one page at a time */
-  position:relative;
-  padding:0;
+  overflow: auto;             /* allow scrolling when page is taller */
+  position: relative;
+  padding: 8px;
 }
-.placeholder { padding:16px; color:#666; }
+.pageWrap { position:relative; width:100%; margin:0 auto; display:flex; justify-content:center; align-items:flex-start; }
+#pdfCanvas { display:block; width:100%; height:auto; background:#fff; }
+
+/* Layers */
+.hlayer { position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none; z-index:2; }
+.textLayer { position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none; z-index:3; color:transparent; }
+.textLayer > span, .textLayer > div { position:absolute; transform-origin:0 0; white-space:pre; }
+
+/* highlight rectangles */
+.hlayer .hl { position:absolute; background: rgba(255,235,59,0.55); border-radius:2px; }
 
 /* Right results pane */
 .results-pane {
@@ -71,8 +78,3 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,
 
 .status { font-size:12px; color:#555; margin-top:4px; }
 .error { color:#b00020; }
-
-/* Text layer for highlights */
-.textLayer { position:absolute; left:0; top:0; right:0; bottom:0; z-index:2; pointer-events:none; color:transparent; }
-.textLayer > span, .textLayer > div { position:absolute; transform-origin:0 0; white-space:pre; }
-.textLayer mark.hl { background: rgba(255,235,59,0.55); color:transparent; border-radius:2px; padding:0 .02em; }
