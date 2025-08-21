@@ -11,12 +11,12 @@ let current = {
   isPdf: false,
   pdf: null,
   totalPages: 0,
-  page: 1,
-  scale: 1.2,         // CSS scale; recalculated per viewport
-  textIndex: {},      // page -> plain text
-  hits: [],           // [{ page, snippet }]
-  hitCursor: -1,
-  lastQuery: ""       // used for drawing highlights
+  page: 1,             // currently rendered page
+  scale: 1,            // computed per page to fit viewer width
+  textIndex: {},       // page -> plain text
+  hits: [],            // [{ page, snippet }]
+  lastQuery: "",       // used for drawing highlights
+  hitCursor: -1
 };
 
 // ----- DOM -----
@@ -90,8 +90,7 @@ async function selectBook(book, liEl){
   current.book = book;
   current.isPdf = isPDF(book.reference_url);
   current.pdf = null; current.totalPages = 0; current.page = 1;
-  current.textIndex = {}; current.hits = []; current.hitCursor = -1;
-  current.lastQuery = "";
+  current.textIndex = {}; current.hits = []; current.hitCursor = -1; current.lastQuery = "";
 
   els.results.innerHTML = "";
   els.viewer.innerHTML = `<div class="placeholder">Loading…</div>`;
@@ -106,11 +105,11 @@ async function selectBook(book, liEl){
   try {
     if (current.isPdf){
       await openPdf(url);
+      // Build the pager surface (canvas + page counter)
       els.viewer.innerHTML = `
         <canvas id="pdfCanvas" style="display:block; width:100%; background:#fff;"></canvas>
-        <div class="hint">Tip: Use the search box or Prev/Next. Pages: <span id="pageInfo"></span></div>
+        <div class="hint">Pages: <span id="pageInfo"></span> — Use Prev/Next to turn pages. Search highlights will be shown on the page.</div>
       `;
-      autoScaleForWidth();
       await renderPage(current.page);
       setStatus(`PDF loaded (${current.totalPages} pages).`);
     } else {
@@ -126,7 +125,7 @@ async function selectBook(book, liEl){
   }
 }
 
-// ----- PDF.js helpers (canvas, crisp using devicePixelRatio) -----
+// ----- PDF.js helpers (page-by-page; crisp; readable size) -----
 async function openPdf(url){
   if (!window.pdfjsLib) throw new Error("PDF.js not available");
   const pdf = await pdfjsLib.getDocument({ url }).promise;
@@ -134,13 +133,15 @@ async function openPdf(url){
   current.totalPages = pdf.numPages;
 }
 
-function autoScaleForWidth(){
-  // Bigger by default for readability
-  const containerWidth = Math.max(els.viewer.clientWidth, 700);
-  // base width ~816px (~8.5in @ 96dpi); 1.8x for comfortable reading
-  current.scale = (containerWidth / 816) * 1.8;
-  // cap to avoid huge zoom on very wide screens
-  current.scale = Math.min(current.scale, 2.6);
+/**
+ * Compute a scale that makes text readable (like body text),
+ * by fitting to viewer width and nudging slightly larger.
+ */
+function computeScaleForPage(unscaledWidth){
+  const viewerWidth = Math.max(els.viewer.clientWidth, 720); // ensure decent min
+  const targetCssWidth = Math.min(viewerWidth - 24, 980);    // cap CSS width for comfy reading
+  const scale = (targetCssWidth / unscaledWidth) * 1.10;     // 10% boost for readability
+  return Math.min(scale, 3.0);                                // safety cap
 }
 
 async function renderPage(pageNum){
@@ -148,26 +149,33 @@ async function renderPage(pageNum){
   current.page = Math.min(Math.max(1, pageNum), current.totalPages);
   const page = await current.pdf.getPage(current.page);
 
+  // work out scale for readable CSS width
+  const unscaled = page.getViewport({ scale: 1 });
+  current.scale = computeScaleForPage(unscaled.width);
+
   const viewportCSS = page.getViewport({ scale: current.scale });
   const canvas = document.getElementById("pdfCanvas");
   const ctx = canvas.getContext("2d");
 
-  // crisp rendering at device pixel ratio
+  // crisp drawing at devicePixelRatio
   const dpr = window.devicePixelRatio || 1;
-  canvas.style.width = viewportCSS.width + "px";
-  canvas.style.height = viewportCSS.height + "px";
+  canvas.style.width = Math.round(viewportCSS.width) + "px";
+  canvas.style.height = Math.round(viewportCSS.height) + "px";
   canvas.width  = Math.floor(viewportCSS.width  * dpr);
   canvas.height = Math.floor(viewportCSS.height * dpr);
 
+  // PDF.js transform for DPR
   const transform = dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null;
   const viewportDevice = page.getViewport({ scale: current.scale, transform });
 
+  // render page
   await page.render({ canvasContext: ctx, viewport: viewportDevice }).promise;
 
+  // page counter
   const info = document.getElementById("pageInfo");
   if (info) info.textContent = `${current.page} / ${current.totalPages}`;
 
-  // draw highlight for current query (if any)
+  // draw highlight for the current query, if any
   const q = clean(current.lastQuery);
   if (q) await highlightMatchesOnCanvas(page, ctx, viewportDevice, q, dpr);
 }
@@ -181,13 +189,12 @@ async function getPageText(pageNumber){
   return text;
 }
 
-// ----- Highlight logic (handles splits across adjacent items) -----
+// ----- Highlighter (covers same-item and split-across-two-items) -----
 async function highlightMatchesOnCanvas(page, ctx, viewport, q, dpr){
   try {
     const content = await page.getTextContent();
     const needle = q.toLowerCase();
 
-    // Precompute item metrics
     const items = content.items.map((it) => {
       const m = pdfjsLib.Util.transform(viewport.transform, it.transform);
       const x = m[4];
@@ -206,8 +213,6 @@ async function highlightMatchesOnCanvas(page, ctx, viewport, q, dpr){
     ctx.save();
     ctx.globalAlpha = 0.35;
     ctx.fillStyle = "#ffeb3b";
-
-    // helper to draw a box (CSS px -> device px)
     const fillBox = (x, yTop, w, h) => {
       const pad = Math.max(1, h * 0.15);
       const yy = yTop - h - pad;
@@ -218,7 +223,7 @@ async function highlightMatchesOnCanvas(page, ctx, viewport, q, dpr){
       const a = items[i];
       if (!a.text) continue;
 
-      // (1) matches fully inside this item
+      // inside one item
       let from = 0, pos;
       while ((pos = a.lower.indexOf(needle, from)) !== -1){
         const x = a.x + pos * a.avgChar;
@@ -227,7 +232,7 @@ async function highlightMatchesOnCanvas(page, ctx, viewport, q, dpr){
         from = pos + needle.length;
       }
 
-      // (2) match split across this item + next item (e.g., "Dol" + "lar")
+      // across a and b
       if (i + 1 < items.length){
         const b = items[i+1];
         const joined = a.lower + b.lower;
@@ -249,10 +254,9 @@ async function highlightMatchesOnCanvas(page, ctx, viewport, q, dpr){
         }
       }
     }
-
     ctx.restore();
-  } catch(e){
-    // If metrics aren't available, skip highlighting without breaking render.
+  } catch {
+    // fail-quietly: if metrics are missing we just skip highlight
   }
 }
 
@@ -314,8 +318,7 @@ async function runSearch(){
 async function gotoHit(idx){
   if (!current.hits[idx]) return;
   current.hitCursor = idx;
-  const page = current.hits[idx].page;
-  await renderPage(page); // also draws highlight for current.lastQuery
+  await renderPage(current.hits[idx].page); // draws highlight for current.lastQuery
 
   // focus selected result row
   const rows = els.results.querySelectorAll(".result");
@@ -324,18 +327,12 @@ async function gotoHit(idx){
   if (row){ row.style.background = "var(--light)"; row.scrollIntoView({ block: "nearest" }); }
 }
 
-// ----- Prev/Next: hits if present, else page nav -----
-function navHit(step){
-  if (current.hits.length){
-    let idx = current.hitCursor + step;
-    if (idx < 0) idx = current.hits.length - 1;
-    if (idx >= current.hits.length) idx = 0;
-    gotoHit(idx);
-    return;
-  }
-  if (current.isPdf && current.pdf){
-    renderPage(current.page + (step < 0 ? -1 : 1));
-  }
+// ----- Prev/Next: ALWAYS page navigation (simple & predictable) -----
+function navPage(step){
+  if (!current.isPdf || !current.pdf) return;
+  const wanted = current.page + (step < 0 ? -1 : 1);
+  if (wanted < 1 || wanted > current.totalPages) return;
+  renderPage(wanted);
 }
 
 // ----- Events -----
@@ -351,8 +348,16 @@ function wireEvents(){
   });
 
   els.search.addEventListener("keydown", e => { if (e.key === "Enter") runSearch(); });
-  els.prev.addEventListener("click", () => navHit(-1));
-  els.next.addEventListener("click", () => navHit(1));
+
+  // Prev/Next = page navigation (always)
+  els.prev.addEventListener("click", () => navPage(-1));
+  els.next.addEventListener("click", () => navPage(1));
+
+  // Arrow keys for page nav
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowLeft")  navPage(-1);
+    if (e.key === "ArrowRight") navPage(1);
+  });
 
   els.printBtn.addEventListener("click", () => window.print());
 
@@ -368,10 +373,9 @@ function wireEvents(){
     URL.revokeObjectURL(a.href);
   });
 
-  // Keep fit-to-width on rotation/resize
+  // Keep readable fit on rotation/resize
   window.addEventListener("resize", async () => {
     if (!current.isPdf || !current.pdf) return;
-    autoScaleForWidth();
     await renderPage(current.page);
   }, { passive:true });
 }
