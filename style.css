@@ -1,78 +1,72 @@
-:root{
-  --blue:#0e4b8c; --blue-dark:#07386a;
-  --bg:#ffffff; --panel:#f6f8fb; --border:#e0e6ef; --text:#17223b;
-  --hl:#ffd54d; --shadow:0 10px 30px rgba(0,0,0,.18);
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f9f9f9;
+  color: #222;
 }
 
-*{box-sizing:border-box}
-html,body{height:100%;margin:0;background:var(--bg);color:var(--text);
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
-
-.header{display:flex;align-items:center;justify-content:space-between;gap:16px;
-  padding:10px 12px;background:var(--blue);color:#fff}
-.brand{display:flex;align-items:center;gap:10px}
-.logo{height:40px;background:#fff;padding:4px;border-radius:4px}
-h1{font-size:18px;margin:0;font-weight:700}
-
-.toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.page-label{background:var(--blue-dark);padding:6px 10px;border-radius:6px;font-weight:700}
-.search{min-width:240px;border:1px solid var(--border);border-radius:6px;padding:6px;background:#fff}
-.jump-inline{display:flex;align-items:center;gap:6px}
-.jump-inline input{width:90px;border:1px solid var(--border);border-radius:6px;padding:6px;background:#fff}
-
-.btn{border:1px solid #0b3f78;background:#125fab;color:#fff;border-radius:6px;padding:6px 10px;font-weight:600;cursor:pointer}
-.btn:hover{filter:brightness(1.05)}
-.btn-lite{background:#2b6db3}
-.btn-dark{background:#0c3c72;border-color:#062b51}
-.btn-outline{background:transparent;border:1px solid #cbd8ee;color:#cbd8ee}
-
-/* >>> lock 3-column layout at all widths <<< */
-.layout{
-  display:grid;
-  grid-template-columns:320px minmax(400px,1fr) 360px;
-  gap:12px; padding:12px;
-  height:calc(100vh - 64px);
-}
-.left,.right{
-  background:var(--panel);border:1px solid var(--border);border-radius:10px;
-  padding:10px;overflow:auto
+.header {
+  display: flex;
+  align-items: center;
+  background: #003366;
+  color: #fff;
+  padding: 10px;
 }
 
-.list-filter{width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;background:#fff}
-.catalog{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
-.catalog li{background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px;cursor:pointer}
-.catalog li.active{outline:2px solid #125fab}
-.catalog small{color:#555}
-
-.center{display:flex;flex-direction:column;align-items:center;gap:10px}
-.pdf-wrap{display:flex;justify-content:center;width:100%}
-.pdf-container{
-  position:relative;width:14cm;min-height:65vh;background:#fff;border:1px solid var(--border);
-  border-radius:10px;display:flex;align-items:center;justify-content:center;overflow:hidden
+.logo {
+  height: 40px;
+  margin-right: 10px;
+  background: #fff;
+  padding: 2px;
 }
-#pdfCanvas{display:block;max-width:100%}
-.text-layer,.highlight-layer{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none}
-.highlight{position:absolute;background:var(--hl);opacity:.35;border-radius:2px}
-.pager{display:flex;gap:8px}
 
-/* Repo drawer (kept) */
-.drawer{
-  position:fixed;left:0;top:64px;bottom:0;width:360px;background:#0b2850;color:#e6eefb;
-  border-right:1px solid #061832;transform:translateX(-100%);transition:transform .25s ease;
-  z-index:1000;box-shadow:var(--shadow);overflow:auto
+.toolbar {
+  background: #e9e9e9;
+  padding: 5px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
-.drawer.open{transform:translateX(0)}
-.drawer-head{display:flex;align-items:center;justify-content:space-between;padding:12px;border-bottom:1px solid #173663;background:#092141}
-.drawer-section{padding:12px}
-.drawer-filter{width:100%;padding:8px;border:1px solid #254a85;border-radius:8px;background:#071a34;color:#e6eefb;margin-bottom:10px}
-.repo-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
-.repo-item{background:#0c2b56;border:1px solid #1e4175;border-radius:8px;padding:10px;display:flex;justify-content:space-between;align-items:center;color:#e6eefb}
-.repo-item .meta{display:flex;flex-direction:column}
-.repo-item small{color:#9fb8e8}
-.repo-actions{display:flex;gap:8px}
 
-/* Toast */
-.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#111;color:#fff;
-  padding:10px 14px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.25);font-weight:700;z-index:1500}
+.main {
+  display: flex;
+}
 
-/* IMPORTANT: remove all responsive collapse rules — always 3 columns */
+.sidebar {
+  width: 220px;
+  background: #f4f4f4;
+  padding: 10px;
+  border-right: 1px solid #ccc;
+}
+
+.sidebar input {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.viewer {
+  flex: 1;
+  padding: 10px;
+  background: #fff;
+  overflow: auto;
+}
+
+.pdf-viewer {
+  border: 1px solid #ccc;
+  background: #fff;
+  min-height: 500px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.text-doc {
+  white-space: pre-wrap;
+  font-family: monospace;
+  font-size: 14px;
+}
+
+.matches {
+  margin-top: 10px;
+  font-size: 13px;
+}
