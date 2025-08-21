@@ -1,93 +1,84 @@
-:root { --blue:#103a5c; --light:#f5f7fa; --border:#e2e6ea; }
-* { box-sizing:border-box; }
-html, body { height:100%; }
-body { margin:0; font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
-
-/* Header */
-.topbar {
-  display:flex; justify-content:space-between; align-items:center;
-  background:var(--blue); color:#fff; padding:12px 16px;
-}
-.brand { display:flex; align-items:center; gap:12px; }
-.logo { height:36px; background:#fff; padding:4px; border-radius:4px; }
-.toolbar .btn { margin-left:8px; }
-
-/* Drawer (left, not overlaying logo; toggled via class on #drawer) */
-.drawer {
-  position: fixed; left: -300px; top: 64px; /* starts just under header */
-  width: 300px; height: calc(100vh - 64px);
-  background:#fff; border-right:1px solid var(--border);
-  transition:left .25s ease; z-index: 50;
-  display:flex; flex-direction:column;
-}
-.drawer.open { left: 0; }
-.drawer-head { padding:10px 12px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
-.drawer-body { padding:12px; overflow:auto; }
-.xbtn { border:1px solid var(--border); background:#fff; border-radius:6px; padding:4px 8px; cursor:pointer; }
-
-/* 3-column main layout */
-.layout3 {
-  display:grid; grid-template-columns: 260px 1fr 340px; gap:12px;
-  height: calc(100vh - 64px); padding:12px;
-}
-@media (max-width: 980px){ .layout3 { grid-template-columns: 220px 1fr 280px; } }
-@media (max-width: 760px){
-  .layout3 { grid-template-columns: 1fr; }
-  .results-pane { order:3; height: 30vh; }
+:root{
+  --blue:#0e4b8c;
+  --bg:#ffffff;
+  --panel:#f6f8fb;
+  --border:#e0e6ef;
+  --text:#17223b;
+  --accent:#ffd54d; /* highlight boxes */
 }
 
-/* Left book list */
-.sidebar { border:1px solid var(--border); border-radius:8px; padding:10px; background:#fff; overflow:auto; }
-.input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:6px; }
-.list { list-style:none; margin:8px 0 0; padding:0; }
-.list li { padding:10px; border:1px solid var(--border); border-radius:6px; margin-bottom:8px; cursor:pointer; }
-.list li.active { outline:2px solid var(--blue); }
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
 
-/* Center content + viewer */
-.content { display:flex; flex-direction:column; gap:8px; min-width:0; }
-.content-toolbar { display:flex; gap:8px; align-items:center; }
-.nav { margin-left:auto; display:flex; gap:6px; align-items:center; }
-.btn { padding:8px 12px; border:1px solid var(--border); background:#fff; border-radius:6px; cursor:pointer; }
-.btn:active { transform: translateY(1px); }
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;background:var(--blue);color:#fff;gap:12px;
+}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{height:40px;background:#fff;padding:4px;border-radius:4px}
+.header h1{font-size:18px;margin:0;font-weight:600}
+.controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.page-label{font-weight:600;background:#07386a;border-radius:6px;padding:6px 10px}
 
-.meta { display:grid; grid-template-columns: repeat(4,1fr); gap:8px; font-size:14px; color:#333; }
+.btn{
+  border:1px solid #0b3f78;background:#125fab;color:#fff;border-radius:6px;
+  padding:6px 10px;font-weight:600;cursor:pointer
+}
+.btn:hover{filter:brightness(1.05)}
+.btn-secondary{background:#4b4b4b;border-color:#333}
 
-.viewer {
-  border:1px solid var(--border); border-radius:8px; background:#fff;
-  height: calc(100% - 118px); min-height: 60vh;
-  overflow: auto; position: relative; padding: 8px;
+.jump{display:flex;align-items:center;gap:6px}
+.jump input{
+  width:90px;border:1px solid var(--border);border-radius:6px;padding:6px;background:#fff;color:var(--text)
 }
 
-/* The pageSurface has the exact CSS size of the page; canvas + overlays = 100% of it */
-.pageSurface {
-  position: relative;
-  width: 100%;          /* critical: makes the page fill the center pane width */
-  height: auto;         /* set per page by JS */
-  margin: 0 auto;       /* keep it centered */
+.main{
+  display:grid;grid-template-columns:280px 1fr 360px;gap:12px;padding:12px;height:calc(100vh - 64px);
 }
-#pdfCanvas { display:block; width:100%; height:auto; background:#fff; }
-
-/* Overlay layers (aligned with canvas) */
-.hlayer, .textLayer {
-  position:absolute; left:0; top:0; width:100%; height:100%;
-  pointer-events:none;
+.left,.right{
+  background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px;overflow:auto
 }
-.hlayer { z-index:3; }
-.textLayer { z-index:2; color:transparent; }
-.textLayer > span, .textLayer > div { position:absolute; transform-origin:0 0; white-space:pre; }
+.left h2,.right h2{margin:6px 0 10px 0;font-size:16px}
+.catalog{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.catalog li{background:#fff;border:1px solid var(--border);border-radius:8px;padding:8px;cursor:pointer}
+.catalog li.active{outline:2px solid #125fab}
 
-/* Highlight rectangles */
-.hlayer .hl { background: rgba(255,235,59,0.55); border-radius:2px; position:absolute; }
+.center{
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+}
+.pdf-container{
+  position:relative;
+  width:14cm;       /* fixed display width as requested */
+  margin:0 auto;
+  background:#fff;border:1px solid var(--border);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+  min-height:60vh;
+}
+#pdfCanvas{display:block;max-width:100%}
+.text-layer,.highlight-layer{
+  position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none
+}
+.highlight{
+  position:absolute;background:var(--accent);opacity:.35;border-radius:2px
+}
+.center-controls{display:flex;gap:8px;align-items:center;justify-content:center}
 
-/* Right results pane */
-.results-pane { border:1px solid var(--border); border-radius:8px; background:#fff; display:flex; flex-direction:column; overflow:hidden; }
-.results-head { padding:10px 12px; border-bottom:1px solid var(--border); font-weight:600; }
-.results { overflow:auto; padding:8px; height: 100%; }
-.result { padding:8px 10px; border-bottom:1px solid var(--border); cursor:pointer; }
-.result:last-child { border-bottom:none; }
-.result em { background:#ffeb3b; }
-.result.active { background: var(--light); }
+.notes{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.note{
+  background:#fff;border:1px solid var(--border);border-radius:8px;padding:8px;cursor:pointer
+}
+.note small{color:#555}
 
-/* Status */
-.status { font-size:12px; color:#555; margin-top:4px; }
-.status.error { color:#b00020; }
+.toast{
+  position:fixed;left:50%;bottom:22px;transform:translateX(-50%);
+  background:#111;color:#fff;padding:10px 14px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.25);
+  font-weight:600;z-index:999
+}
+
+/* iPad friendly tweaks */
+@media (max-width: 1100px){
+  .main{grid-template-columns:1fr;grid-auto-rows:auto;height:auto}
+  .left,.right{max-height:35vh}
+  .center{order:-1}
+}
