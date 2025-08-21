@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Trust Law Textbooks</title>
   <link rel="stylesheet" href="style.css"/>
@@ -29,36 +29,30 @@
 
   <main class="layout">
     <aside class="sidebar">
-      <input id="filterInput" class="input" placeholder="Filter list…"/>
-      <ul id="bookList" class="list"></ul>
+      <input id="filterInput" class="input" placeholder="Filter list..."/>
+      <ul id="bookList"></ul>
     </aside>
 
     <section class="content">
-      <div class="content-toolbar">
-        <input id="searchInput" class="input" placeholder="Search within text…"/>
-        <div class="nav">
-          <button id="prevBtn" class="btn">Prev</button>
-          <button id="nextBtn" class="btn">Next</button>
-        </div>
+      <div class="book-meta">
+        <span id="bookTitle">Book: —</span>
+        <span id="chapter">Chapter: —</span>
+        <span id="source">Source: —</span>
+        <span id="reference">Reference: —</span>
       </div>
-
-      <div class="meta">
-        <div>Book: <span id="metaBook">—</span></div>
-        <div>Chapter: <span id="metaChapter">—</span></div>
-        <div>Source: <span id="metaSource">—</span></div>
-        <div>Reference: <span id="metaRef">—</span></div>
+      <div id="pdfContainer">
+        <canvas id="pdfCanvas"></canvas>
       </div>
-
-      <div id="viewer" class="viewer">
-        <div class="placeholder">Select a book on the left.</div>
+      <div class="controls">
+        <input id="searchBox" class="input" placeholder="Search text..."/>
+        <button id="prevMatch" class="btn">Prev</button>
+        <button id="nextMatch" class="btn">Next</button>
       </div>
-
-      <div id="results" class="results"></div>
-      <div id="status" class="status"></div>
+      <div id="searchResults"></div>
     </section>
   </main>
 
-  <script src="main.js"></script>
-  <script src="drawer.js"></script>
+  <!-- ✅ Note the version query to break cache -->
+  <script src="main.js?v=canvas2"></script>
 </body>
 </html>
