@@ -1,56 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Law Text Viewer</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Trust Law Textbooks</title>
+  <link rel="stylesheet" href="style.css"/>
 
-  <!-- PDF.js (use the official build path; iPad/Safari friendly) -->
+  <!-- PDF.js (GitHub Pages/iPad safe) -->
   <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
 </head>
 <body>
   <header class="header">
     <div class="brand">
-      <img src="logo.png" alt="Logo" class="logo">
-      <h1>Law Text Viewer</h1>
+      <img src="logo.png" class="logo" alt="Blue Chip Logo"/>
+      <h1>Trust Law Textbooks</h1>
     </div>
 
-    <div class="controls">
+    <div class="toolbar">
       <button id="calibrateBtn" class="btn">Calibrate pages</button>
 
       <div class="jump">
         <label for="bookPageInput">Book p.</label>
-        <input id="bookPageInput" type="number" inputmode="numeric" placeholder="e.g. 684" />
+        <input id="bookPageInput" type="number" inputmode="numeric" placeholder="684"/>
         <button id="goBtn" class="btn">Go</button>
       </div>
 
+      <input id="searchInput" class="search" placeholder="Search within text…"/>
+      <button id="findPrevBtn" class="btn btn-lite">Prev</button>
+      <button id="findNextBtn" class="btn btn-lite">Next</button>
+
       <div id="pageLabel" class="page-label">PDF p.—</div>
+
+      <button id="printBtn" class="btn btn-lite">Print</button>
+      <button id="exportTxtBtn" class="btn btn-lite">Export to TXT</button>
     </div>
   </header>
 
-  <main class="main">
+  <main class="layout">
+    <!-- LEFT: list of books -->
     <aside class="left">
-      <h2>Texts</h2>
+      <input id="listFilter" class="list-filter" placeholder="Filter list…"/>
       <ul id="catalogList" class="catalog"></ul>
     </aside>
 
+    <!-- CENTER: PDF (14cm wide) -->
     <section class="center">
-      <div id="pdfContainer" class="pdf-container">
-        <canvas id="pdfCanvas"></canvas>
-        <div id="textLayer" class="text-layer"></div>
-        <div id="highlightLayer" class="highlight-layer"></div>
+      <div class="pdf-wrap">
+        <div id="pdfContainer" class="pdf-container">
+          <canvas id="pdfCanvas"></canvas>
+          <div id="textLayer" class="text-layer"></div>
+          <div id="highlightLayer" class="highlight-layer"></div>
+        </div>
       </div>
-      <div class="center-controls">
+      <div class="pager">
         <button id="prevBtn" class="btn">Prev</button>
         <button id="nextBtn" class="btn">Next</button>
       </div>
+      <div id="tip" class="tip">Tip: use the search box or Safari’s “Find on Page”.</div>
     </section>
 
+    <!-- RIGHT: notes -->
     <aside class="right">
-      <div class="notes-header">
+      <div class="notes-head">
         <h2>Notes</h2>
-        <button id="addNoteBtn" class="btn btn-secondary">Add note</button>
+        <button id="addNoteBtn" class="btn btn-dark">Add note</button>
       </div>
       <ul id="notesList" class="notes"></ul>
     </aside>
