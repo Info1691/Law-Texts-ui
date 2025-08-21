@@ -1,6 +1,32 @@
 [
-  { "title": "Lewin on Trusts (20th ed)", "subtitle": "uk — LEWIN-20", "url": "data/textbooks/uk/Lewin-on-Trusts.txt" },
-  { "title": "Litigating Trust Disputes in Jersey", "subtitle": "jersey — Sheedy–Baker", "url": "data/textbooks/jersey/Litigating-Trust-Disputes-in-Jersey.pdf" },
-  { "title": "Principles of Jersey Trusts", "subtitle": "jersey — PJTL", "url": "data/textbooks/jersey/Principles-of-Jersey-Trusts.txt" },
-  { "title": "Underhill & Hayton: Law of Trusts (20th ed)", "subtitle": "uk — UNDERHILL-20", "url": "data/textbooks/uk/underhill-20.txt" }
+  {
+    "title": "Lewin on Trusts (20th ed)",
+    "subtitle": "uk — LEWIN-20",
+    "url": "data/textbooks/uk/Lewin-on-Trusts.txt"
+  },
+  {
+    "title": "Litigating Trust Disputes in Jersey",
+    "subtitle": "jersey — Sheedy–Baker",
+    "url": "data/textbooks/jersey/litigating-trust-disputes-in-jersey-law.pdf"
+  },
+  {
+    "title": "Principles of Jersey Trusts",
+    "subtitle": "jersey — PJTL",
+    "url": "data/textbooks/jersey/Principles-of-Jersey-Trusts.txt"
+  },
+  {
+    "title": "Underhill & Hayton: Law of Trusts (20th ed) — Part 1: Concepts",
+    "subtitle": "uk — UNDERHILL-20",
+    "url": "data/textbooks/uk/underhill-20-01-concepts.txt"
+  },
+  {
+    "title": "Underhill & Hayton: Law of Trusts (20th ed) — Part 2: Creation of Trusts",
+    "subtitle": "uk — UNDERHILL-20",
+    "url": "data/textbooks/uk/underhill-20-02-creation-of-trusts.txt"
+  },
+  {
+    "title": "Underhill & Hayton: Law of Trusts (20th ed) — Part 3: Trustees' Powers",
+    "subtitle": "uk — UNDERHILL-20",
+    "url": "data/textbooks/uk/underhill-20-03-trustees-powers.txt"
+  }
 ]
