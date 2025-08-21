@@ -1,87 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Trust Law Textbooks</title>
-  <link rel="stylesheet" href="style.css"/>
-
-  <!-- PDF.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <script>
-    if (window['pdfjsLib']) {
-      pdfjsLib.GlobalWorkerOptions.workerSrc =
-        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-    }
-  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Law Texts Viewer</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <img src="logo.png" alt="Blue Chip Consultancy Services" class="logo"/>
-      <h1>Trust Law Textbooks</h1>
-    </div>
-    <nav class="toolbar">
-      <button id="printBtn" class="btn">Print</button>
-      <button id="exportBtn" class="btn">Export to TXT</button>
-    </nav>
+  <header class="header">
+    <img src="logo.png" alt="Logo" class="logo">
+    <h1>Law Texts Viewer</h1>
   </header>
 
-  <!-- Left list • Center viewer • Right results -->
-  <main class="layout3">
-    <!-- LEFT -->
-    <aside class="sidebar">
-      <input id="filterInput" class="input" placeholder="Filter list…"/>
-      <ul id="bookList" class="list"></ul>
-    </aside>
+  <!-- Left drawer -->
+  <div id="drawer" class="drawer">
+    <button id="closeDrawer">✖</button>
+    <h2>Controls</h2>
+    <input type="text" id="searchBox" placeholder="Search text…">
+    <button id="searchButton">Search</button>
+  </div>
+  <button id="openDrawer" class="drawer-toggle">☰</button>
 
-    <!-- CENTER -->
-    <section class="content">
-      <div class="content-toolbar">
-        <input id="searchInput" class="input" placeholder="Search within text…"/>
-        <div class="nav">
-          <button id="zoomOutBtn" class="btn">–</button>
-          <span class="zoomLabel" id="zoomLabel">100%</span>
-          <button id="zoomInBtn" class="btn">+</button>
-          <button id="prevBtn" class="btn">Prev</button>
-          <button id="nextBtn" class="btn">Next</button>
-        </div>
-      </div>
+  <main class="main-container">
+    <!-- Central PDF viewer -->
+    <div class="pdf-container">
+      <canvas id="pdfCanvas"></canvas>
+    </div>
 
-      <div class="meta">
-        <div>Book: <span id="metaBook">—</span></div>
-        <div>Chapter: <span id="metaChapter">—</span></div>
-        <div>Source: <span id="metaSource">—</span></div>
-        <div>Reference: <span id="metaRef">—</span></div>
-      </div>
-
-      <!-- Viewer: canvas + highlight overlay + (invisible) text layer -->
-      <div id="viewer" class="viewer">
-        <div id="pageWrap" class="pageWrap">
-          <canvas id="pdfCanvas"></canvas>
-          <div id="highlightLayer" class="hlayer"></div>
-          <div id="textLayer" class="textLayer"></div>
-        </div>
-        <div class="hint">Pages: <span id="pageInfo">—</span></div>
-
-        <!-- Bottom tray (secondary list of matches) -->
-        <div class="tray">
-          <div class="tray-head">Matches (tray)</div>
-          <div id="resultsBottom" class="tray-body"></div>
-        </div>
-      </div>
-
-      <div id="status" class="status"></div>
-    </section>
-
-    <!-- RIGHT -->
-    <aside class="results-pane">
-      <div class="results-head">Matches</div>
-      <div id="results" class="results"></div>
-    </aside>
+    <!-- Right matches panel -->
+    <div class="matches-panel">
+      <h2>Matches</h2>
+      <ul id="matchesList"></ul>
+    </div>
   </main>
 
-  <script src="main.js?v=restore1"></script>
-  <script src="drawer.js"></script>
+  <!-- Navigation -->
+  <footer class="footer">
+    <button id="prev">Prev</button>
+    <span id="pageInfo"></span>
+    <button id="next">Next</button>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <script src="main.js"></script>
 </body>
 </html>
