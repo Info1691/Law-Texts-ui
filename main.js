@@ -1,19 +1,11 @@
 // ===== Registry paths & state =====
 const REGISTRY_CANDIDATES = [
-  "data/books/textbooks.json",      // legacy fallback
-  "data/textbooks/textbooks.json",  // preferred
-  "textbooks.json"                  // root fallback (your current)
+  "textbooks.json",                 // your actual file in repo root
+  "data/textbooks/textbooks.json"   // optional future location
 ];
 
 let registry = [];
-let current = {
-  book: null,            // selected book object from registry
-  pdf: null,             // pdfjs document
-  totalPages: 0,
-  textIndex: {},         // { pageNumber: "full text of that page" }
-  hits: [],              // [{page, idx, start, end, snippet}]
-  hitCursor: -1
-};
+let current = { book:null, pdf:null, totalPages:0, textIndex:{}, hits:[], hitCursor:-1 };
 
 // ===== DOM =====
 const els = {
@@ -47,87 +39,83 @@ function escapeHtml(s){
 // ===== Load registry =====
 (async function boot() {
   setStatus("Loading registry…");
+  let lastErr = null;
+
   for (const path of REGISTRY_CANDIDATES) {
     try {
       const res = await fetch(path, { cache: "no-store" });
-      if (res.ok) {
-        registry = await res.json();
-        setStatus("");
-        break;
+      if (!res.ok) { lastErr = `HTTP ${res.status} for ${path}`; continue; }
+
+      const raw = await res.text();
+      try {
+        const json = JSON.parse(raw);
+        if (Array.isArray(json) && json.length) {
+          registry = json;
+          setStatus("");
+          break;
+        } else {
+          lastErr = `Registry at ${path} is not an array or is empty.`;
+        }
+      } catch (e) {
+        lastErr = `Invalid JSON at ${path}: ${e.message}`;
       }
-    } catch (e) { /* continue */ }
+    } catch (e) {
+      lastErr = `Fetch failed for ${path}: ${e.message}`;
+    }
   }
+
   if (!Array.isArray(registry) || registry.length === 0) {
-    setStatus("Error loading registry: The string did not match the expected pattern. Registry fallbacks: data/books/textbooks.json, data/textbooks/textbooks.json, textbooks.json. Chapters and single-file books supported. Text files live under /data/books/.", true);
+    setStatus(
+      `Error loading registry. ${lastErr || "No candidates worked."} Tried: ${REGISTRY_CANDIDATES.join(", ")}.`,
+      true
+    );
     return;
   }
+
   renderList(registry);
   wireEvents();
 })();
 
-// ===== Render list & filter =====
+// ===== Render book list =====
 function renderList(items) {
   els.list.innerHTML = "";
   items.forEach((b, i) => {
     const li = document.createElement("li");
     li.innerHTML = `<strong>${escapeHtml(b.title || "Untitled")}</strong><br>
       <small>${escapeHtml(b.jurisdiction || "")}${b.reference ? " — " + escapeHtml(b.reference) : ""}</small>`;
-    li.addEventListener("click", () => selectBook(i, li));
+    li.addEventListener("click", () => selectBook(b, li));
     els.list.appendChild(li);
   });
 }
 
-els.filter.addEventListener("input", () => {
-  const q = els.filter.value.toLowerCase();
-  const filtered = registry.filter(b =>
-    (b.title||"").toLowerCase().includes(q) ||
-    (b.jurisdiction||"").toLowerCase().includes(q) ||
-    (b.reference||"").toLowerCase().includes(q)
-  );
-  renderList(filtered);
-});
-
 // ===== Select book =====
-async function selectBook(idx, liEl) {
-  // Clear active state
+async function selectBook(book, liEl) {
   Array.from(els.list.children).forEach(li => li.classList.remove("active"));
   if (liEl) liEl.classList.add("active");
 
-  // Find the book inside current rendered list
-  const title = liEl?.querySelector("strong")?.textContent || "";
-  const match = registry.find(b => (b.title||"") === title) || registry[idx];
-  current.book = match || null;
-
-  // Reset UI pieces
+  current.book = book;
   els.viewer.innerHTML = `<div class="placeholder">Loading…</div>`;
   els.results.innerHTML = "";
-  current.pdf = null;
-  current.totalPages = 0;
-  current.textIndex = {};
-  current.hits = [];
-  current.hitCursor = -1;
+  current.pdf = null; current.totalPages = 0; current.textIndex={}; current.hits=[]; current.hitCursor=-1;
 
-  // Meta
-  els.metaBook.textContent = clean(current.book?.title) || "—";
+  els.metaBook.textContent = clean(book.title);
   els.metaChapter.textContent = "—";
-  els.metaSource.textContent = clean(current.book?.jurisdiction) || "—";
-  els.metaRef.textContent = clean(current.book?.reference) || "—";
+  els.metaSource.textContent = clean(book.jurisdiction);
+  els.metaRef.textContent = clean(book.reference);
 
-  const url = clean(current.book?.reference_url);
+  const url = clean(book.reference_url);
   if (!url) { setStatus("No reference_url for this entry.", true); return; }
 
   try {
     if (isPDF(url)) {
-      // Show PDF in viewer (searchable via our search box + page links)
       els.viewer.innerHTML = `
-        <iframe id="pdfFrame" src="${url}#toolbar=1&navpanes=0&view=FitH" title="${escapeHtml(current.book.title || 'PDF')}"></iframe>
-        <div class="hint">Tip: Use this search box for precise matches. You can also use Safari’s “Find on Page”.</div>
+        <iframe id="pdfFrame" src="${url}#toolbar=1&navpanes=0&view=FitH"></iframe>
+        <div class="hint">Tip: Use search box or Safari’s “Find on Page”.</div>
       `;
       setStatus("Opening PDF…");
       await openPdf(url);
       setStatus(`PDF loaded (${current.totalPages} pages).`);
     } else {
-      // Load as plain text
       const res = await fetch(url, { cache:"no-store" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const text = await res.text();
@@ -140,16 +128,15 @@ async function selectBook(idx, liEl) {
   }
 }
 
-// ===== PDF.js open & page text cache =====
+// ===== PDF helpers =====
 async function openPdf(url){
   if (!window.pdfjsLib) throw new Error("PDF.js not available");
-  const pdf = await pdfjsLib.getDocument({ url, disableRange: false }).promise;
+  const pdf = await pdfjsLib.getDocument({ url }).promise;
   current.pdf = pdf;
   current.totalPages = pdf.numPages;
-  current.textIndex = {}; // lazy cache
+  current.textIndex = {};
 }
 
-// Fetch text of a page (cached)
 async function getPageText(pageNumber) {
   if (current.textIndex[pageNumber]) return current.textIndex[pageNumber];
   const page = await current.pdf.getPage(pageNumber);
@@ -160,146 +147,74 @@ async function getPageText(pageNumber) {
   return text;
 }
 
-// ===== Search within (TXT or PDF) =====
+// ===== Search =====
 async function runSearch() {
   const q = clean(els.search.value);
-  els.results.innerHTML = "";
-  current.hits = [];
-  current.hitCursor = -1;
-
+  els.results.innerHTML = ""; current.hits=[]; current.hitCursor=-1;
   const url = clean(current.book?.reference_url);
-  if (!url || q.length === 0) { setStatus(""); return; }
+  if (!url || q.length===0) return;
 
-  // TXT search (simple)
   if (!isPDF(url)) {
-    const text = (els.viewer.querySelector("pre")?.textContent) || "";
+    const text = (els.viewer.querySelector("pre")?.textContent)||"";
     const ix = text.toLowerCase().indexOf(q.toLowerCase());
-    if (ix === -1) { setStatus("No matches."); return; }
-    // Scroll to approximate area
-    setStatus("Match found (text page). Use native find for more navigation.");
-    // highlight naive (small scope)
-    const before = text.slice(Math.max(0, ix-120), ix);
-    const hit = text.slice(ix, ix+q.length);
-    const after = text.slice(ix+q.length, ix+q.length+120);
-    els.results.innerHTML = `<div class="result">…${escapeHtml(before)}<em>${escapeHtml(hit)}</em>${escapeHtml(after)}…</div>`;
+    if (ix===-1) { setStatus("No matches."); return; }
+    setStatus("Match found in text file.");
+    els.results.innerHTML = `<div class="result">…${escapeHtml(text.slice(ix-80,ix))}<em>${escapeHtml(text.slice(ix,ix+q.length))}</em>${escapeHtml(text.slice(ix+q.length,ix+q.length+80))}…</div>`;
     return;
   }
 
-  // PDF search (lazy, page by page). To protect iPad memory, scan in batches.
   setStatus("Searching PDF…");
-  const maxResults = 50;   // cap for UI
-  const batch = 20;        // pages per batch (tune for iPad)
-  let pageStart = 1;
-
-  while (pageStart <= current.totalPages && current.hits.length < maxResults) {
-    const pageEnd = Math.min(current.totalPages, pageStart + batch - 1);
-    const tasks = [];
-    for (let p = pageStart; p <= pageEnd; p++) tasks.push(getPageText(p));
-    const texts = await Promise.all(tasks);
-    texts.forEach((t, idx) => {
-      const pageNo = pageStart + idx;
-      const lower = t.toLowerCase();
-      let from = 0, pos;
-      while ((pos = lower.indexOf(q.toLowerCase(), from)) !== -1) {
-        const start = Math.max(0, pos - 80);
-        const end = Math.min(t.length, pos + q.length + 80);
-        const snippet = t.slice(start, end);
-        current.hits.push({ page: pageNo, start: pos, end: pos+q.length, snippet });
-        if (current.hits.length >= maxResults) break;
-        from = pos + q.length;
-      }
-    });
-
-    if (current.hits.length >= maxResults) break;
-    pageStart = pageEnd + 1;
-    // Yield UI
-    await new Promise(r => setTimeout(r, 0));
+  for (let p=1;p<=current.totalPages;p++) {
+    const t = await getPageText(p);
+    const lower = t.toLowerCase(); let pos=0;
+    while ((pos = lower.indexOf(q.toLowerCase(), pos))!==-1) {
+      const snippet = t.slice(Math.max(0,pos-60),pos+q.length+60);
+      current.hits.push({page:p,snippet});
+      pos+=q.length;
+    }
   }
 
-  if (current.hits.length === 0) {
-    setStatus("No matches.");
-    return;
-  }
-
-  // Render results
+  if (!current.hits.length) { setStatus("No matches."); return; }
   const frag = document.createDocumentFragment();
-  current.hits.forEach((h, i) => {
-    const div = document.createElement("div");
-    const safe = escapeHtml(h.snippet);
-    // crude highlight
-    const highlighted = safe.replace(new RegExp(escapeReg(clean(els.search.value)), "gi"), m => `<em>${escapeHtml(m)}</em>`);
-    div.className = "result";
-    div.innerHTML = `p.${h.page}: … ${highlighted} …`;
-    div.addEventListener("click", () => gotoHit(i));
+  current.hits.forEach((h,i)=>{
+    const div=document.createElement("div");
+    div.className="result";
+    div.innerHTML=`p.${h.page}: … ${escapeHtml(h.snippet).replace(new RegExp(q,"gi"),m=>`<em>${escapeHtml(m)}</em>`)} …`;
+    div.addEventListener("click",()=>gotoHit(i));
     frag.appendChild(div);
   });
-  els.results.innerHTML = "";
   els.results.appendChild(frag);
-  current.hitCursor = 0;
   gotoHit(0);
   setStatus(`Found ${current.hits.length} match(es).`);
 }
 
-function escapeReg(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
-
-// Navigate to a specific hit (PDF)
 function gotoHit(idx){
   if (!current.hits[idx]) return;
-  current.hitCursor = idx;
-  const page = current.hits[idx].page;
-  // Scroll PDF iframe to page (via hash)
-  const iframe = document.getElementById("pdfFrame");
-  if (iframe) iframe.src = clean(current.book.reference_url) + `#page=${page}&view=FitH`;
-
-  // focus selected result
-  const nodes = els.results.querySelectorAll(".result");
-  nodes.forEach(n => n.style.background = "");
-  const node = nodes[idx];
-  if (node) {
-    node.style.background = "var(--light)";
-    node.scrollIntoView({ block: "nearest" });
-  }
+  current.hitCursor=idx;
+  const page=current.hits[idx].page;
+  const iframe=document.getElementById("pdfFrame");
+  if (iframe) iframe.src=current.book.reference_url+`#page=${page}&view=FitH`;
 }
 
-// Prev/Next in hits
 function navHit(step){
-  if (current.hits.length === 0) return;
-  let idx = current.hitCursor + step;
-  if (idx < 0) idx = current.hits.length - 1;
-  if (idx >= current.hits.length) idx = 0;
+  if (!current.hits.length) return;
+  let idx=current.hitCursor+step;
+  if (idx<0) idx=current.hits.length-1;
+  if (idx>=current.hits.length) idx=0;
   gotoHit(idx);
 }
 
 // ===== Wire events =====
 function wireEvents(){
-  els.search.addEventListener("keydown", e => { if (e.key === "Enter") runSearch(); });
-  els.prev.addEventListener("click", () => navHit(-1));
-  els.next.addEventListener("click", () => navHit(1));
-
-  els.printBtn.addEventListener("click", () => {
-    // For PDFs: print iframe; for TXT: print the viewer
-    const iframe = document.getElementById("pdfFrame");
-    if (iframe && iframe.contentWindow) iframe.contentWindow.focus(), iframe.contentWindow.print();
-    else window.print();
-  });
-
-  els.exportBtn.addEventListener("click", async () => {
-    const url = clean(current.book?.reference_url);
-    if (!url) return;
-    if (isPDF(url)) {
-      setStatus("Export TXT from PDF is not supported here. (Use the search results and print if needed.)");
-      return;
-    }
-    try {
-      const txt = els.viewer.querySelector("pre")?.textContent || "";
-      const blob = new Blob([txt], { type: "text/plain;charset=utf-8" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = (clean(current.book?.title) || "export") + ".txt";
-      a.click();
-      URL.revokeObjectURL(a.href);
-    } catch(e){
-      setStatus("Export failed.", true);
-    }
+  els.search.addEventListener("keydown", e=>{ if (e.key==="Enter") runSearch(); });
+  els.prev.addEventListener("click", ()=>navHit(-1));
+  els.next.addEventListener("click", ()=>navHit(1));
+  els.printBtn.addEventListener("click", ()=>window.print());
+  els.exportBtn.addEventListener("click", ()=>{
+    const url=clean(current.book?.reference_url); if (!url) return;
+    if (isPDF(url)) { setStatus("Export TXT from PDF not supported here."); return; }
+    const txt=els.viewer.querySelector("pre")?.textContent||"";
+    const blob=new Blob([txt],{type:"text/plain"}); const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob); a.download=(current.book?.title||"export")+".txt"; a.click();
   });
 }
