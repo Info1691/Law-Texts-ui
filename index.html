@@ -1,84 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Trust Law Textbooks</title>
+  <link rel="stylesheet" href="style.css"/>
 
-  <!-- Existing styles -->
-  <link rel="stylesheet" href="style.css?v=12"/>
-
-  <!-- Drawer styles -->
-  <link rel="stylesheet" href="drawer.css"/>
+  <!-- PDF.js (CDN) for PDF text search + page linking -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    // Worker path for pdf.js
+    if (window['pdfjsLib']) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+    }
+  </script>
 </head>
 <body>
-  <header class="app-header">
-    <!-- Single working trigger for the shared drawer -->
-    <button id="repoBtn" class="btn btn-light" type="button" aria-controls="repo-drawer" aria-expanded="false">Repos</button>
-
-    <img src="logo.png" alt="Logo" class="logo"/>
-    <h1 class="title">Trust Law Textbooks</h1>
+  <header class="topbar">
+    <div class="brand">
+      <img src="logo.png" alt="Blue Chip Consultancy Services" class="logo"/>
+      <h1>Trust Law Textbooks</h1>
+    </div>
+    <nav class="toolbar">
+      <button id="printBtn" class="btn">Print</button>
+      <button id="exportBtn" class="btn">Export to TXT</button>
+    </nav>
   </header>
 
-  <main id="app" class="wrap" aria-label="Main viewer">
-    <aside id="sidebar" aria-label="Book selector">
-      <h2 class="sr-only">Select Book / Chapter</h2>
-      <input id="listSearch" type="search" placeholder="Filter list…" aria-label="Filter list"/>
-      <ul id="itemList" class="listbox" aria-label="Available items"></ul>
+  <main class="layout">
+    <aside class="sidebar">
+      <input id="filterInput" class="input" placeholder="Filter list…"/>
+      <ul id="bookList" class="list"></ul>
     </aside>
 
-    <section id="viewer" aria-live="polite">
-      <div class="toolbar">
-        <input id="textSearch" type="search" placeholder="Search within text…" aria-label="Search within text"/>
-        <button id="prevBtn" type="button" class="btn">Prev</button>
-        <button id="nextBtn" type="button" class="btn">Next</button>
+    <section class="content">
+      <div class="content-toolbar">
+        <input id="searchInput" class="input" placeholder="Search within text…"/>
+        <div class="nav">
+          <button id="prevBtn" class="btn">Prev</button>
+          <button id="nextBtn" class="btn">Next</button>
+        </div>
       </div>
 
       <div class="meta">
-        <div><strong>Book:</strong> <span id="bookTitle">—</span></div>
-        <div><strong>Chapter:</strong> <span id="chapterTitle">—</span></div>
-        <div><strong>Source:</strong> <span id="source">—</span></div>
-        <div><strong>Reference:</strong> <span id="reference">—</span></div>
+        <div>Book: <span id="metaBook">—</span></div>
+        <div>Chapter: <span id="metaChapter">—</span></div>
+        <div>Source: <span id="metaSource">—</span></div>
+        <div>Reference: <span id="metaRef">—</span></div>
       </div>
 
-      <pre id="docText" class="text" aria-label="Text content">Loading…</pre>
-
-      <div class="actions">
-        <button id="printBtn" type="button" class="btn">Print</button>
-        <button id="exportBtn" type="button" class="btn">Export to TXT</button>
+      <!-- Viewer: renders TXT or PDF -->
+      <div id="viewer" class="viewer">
+        <div class="placeholder">Select a book on the left.</div>
       </div>
 
-      <p id="status" class="status" aria-live="polite"></p>
+      <!-- Search results (for PDFs) -->
+      <div id="results" class="results"></div>
 
-      <p class="footnote">
-        Registry fallbacks: <code>data/books/textbooks.json</code>, <code>data/textbooks.json</code>, <code>textbooks.json</code>.
-        Chapters and single-file books supported. Text files live under <code>data/books/</code>.
-      </p>
+      <!-- Status / errors -->
+      <div id="status" class="status"></div>
     </section>
   </main>
 
-  <!-- Your existing app logic -->
-  <script src="main.js?v=12" defer></script>
-
-  <!-- Optional: explicitly define the drawer links (omit to use defaults in drawer.js) -->
-  <script>
-    window.REPO_LINKS = [
-      { href: 'https://info1691.github.io/rules-ui/',           label: 'Rules Repository' },
-      { href: 'https://info1691.github.io/laws-ui/',            label: 'Laws Repository' },
-      { href: 'https://info1691.github.io/commentary-ui/',      label: 'Commentary Viewer' },
-      { href: 'https://info1691.github.io/Law-Texts-ui/',       label: 'Trust Law Textbooks' },
-      { href: 'https://info1691.github.io/compliance-ui/',      label: 'Compliance – Citations' },
-      { href: 'https://info1691.github.io/compliance-ui/bulk/', label: 'Citations – Bulk Upload' },
-      { href: 'https://info1691.github.io/breaches-ui/',        label: 'Breaches Manager' }
-    ];
-  </script>
-
-  <!-- Shared drawer logic -->
-  <script src="drawer.js" defer></script>
-  <script defer>
-    window.addEventListener('DOMContentLoaded', () => {
-      RepoDrawer.init('#repoBtn');
-    });
-  </script>
+  <script src="main.js"></script>
+  <script src="drawer.js"></script>
 </body>
 </html>
