@@ -8,10 +8,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ---------- CONFIG ----------
   const CATALOG_CANDIDATES = [
-    'data/texts/catalog.json',          // old path
-    'texts/catalog.json',               // alt
-    'data/law-texts/catalog.json',      // alt
-    'data/textbooks/catalog.json'       // your new folder name
+    'data/textbooks/catalog.json',      // your structure
+    'data/texts/catalog.json',
+    'texts/catalog.json',
+    'data/law-texts/catalog.json'
   ];
   const REPOS_CANDIDATES = ['data/repos.json', 'repos.json'];
   const DEFAULT_OFFSET = -83;
@@ -63,6 +63,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const toast = (m, ms=2300) => { const t=$('#toast'); t.textContent=m; t.hidden=false; clearTimeout(t._tm); t._tm=setTimeout(()=>t.hidden=true,ms); };
   const escapeHTML = s => s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   const delay = (ms) => new Promise(r=>setTimeout(r, ms));
+  const isPdf = u => /\.pdf(?:[#?].*)?$/i.test(u);
+  const isTxt = u => /\.txt(?:[#?].*)?$/i.test(u);
 
   // ---------- Init ----------
   (async function init(){
@@ -87,6 +89,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (j) parts.push(j);
     if (ref) parts.push(ref);
     return parts.length ? parts.join(' — ') : '';
+  }
+  function pickUrl(node){
+    // prefer reference_url (your schema), then url
+    const u = node?.reference_url || node?.url || '';
+    return u;
   }
 
   // ---------- Repos ----------
@@ -115,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ---------- Catalog (supports reference_url + chapters[]) ----------
+  // ---------- Catalog (reference_url + chapters[]) ----------
   async function loadCatalog(){
     const raw = await fetchFirst(CATALOG_CANDIDATES);
     if (!raw){
@@ -124,13 +131,13 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Build a flat list with parent/child (chapters) while preserving display
+    // Build a flat list with parent/child (chapters)
     const items = [];
     raw.forEach((book, idx) => {
       items.push({
         title: book.title || `Book ${idx+1}`,
         subtitle: prettySubtitle(book),
-        url: book.url || book.reference_url || null,
+        url: pickUrl(book),
         isChild: false
       });
       if (Array.isArray(book.chapters)){
@@ -138,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
           items.push({
             title: `• ${ch.title || `Chapter ${cidx+1}`}`,
             subtitle: '',
-            url: ch.url || ch.reference_url || null,
+            url: pickUrl(ch),
             isChild: true
           });
         });
@@ -188,13 +195,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (li){ [...catalogList.children].forEach(n=>n.classList.remove('active')); li.classList.add('active'); }
 
-      const lower = url.toLowerCase();
-      if (lower.endsWith('.pdf')) {
-        await openPdf(url);
-      } else if (lower.endsWith('.txt')) {
-        await openText(url);
+      const safeUrl = encodeURI(url);
+      console.log('[openDocument] url =', safeUrl);
+
+      if (isPdf(safeUrl)) {
+        await openPdf(safeUrl);
+      } else if (isTxt(safeUrl)) {
+        await openText(safeUrl);
       } else {
-        toast('Unsupported file type: ' + url);
+        // default: treat as TXT if no extension (so we never assume PDF)
+        if (!/\.[a-z0-9]+$/i.test(safeUrl)) {
+          await openText(safeUrl);
+        } else {
+          toast('Unsupported file type: ' + safeUrl);
+        }
       }
     }catch(e){
       console.error('Document load error:', e);
@@ -205,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ============================== TXT ==============================
   async function openText(url){
     try{
-      const resp = await fetch(encodeURI(url), { cache: 'no-store' });
+      const resp = await fetch(url, { cache: 'no-store' });
       if (!resp.ok) throw new Error(`HTTP ${resp.status} for ${url}`);
       textDocContent = await resp.text();
 
@@ -238,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     viewer.style.display = 'block';
     return viewer;
-    }
+  }
   function clearTextViewer(){
     const viewer = document.getElementById('textViewer');
     if (viewer){ viewer.textContent=''; viewer.style.display='none'; }
@@ -276,18 +290,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // ============================== PDF ==============================
   async function openPdf(url){
     try{
-      const safeUrl = encodeURI(url);
-      // Prefer fetch → ArrayBuffer → {data} (works best on iPad/Safari + GH Pages)
+      // Prefer fetch → ArrayBuffer → {data} (works on iPad/Safari + GH Pages)
       let source;
       try{
-        const resp = await fetch(safeUrl, { cache:'no-store' });
-        if (!resp.ok) throw new Error(`HTTP ${resp.status} for ${safeUrl}`);
+        const resp = await fetch(url, { cache:'no-store' });
+        if (!resp.ok) throw new Error(`HTTP ${resp.status} for ${url}`);
         const ab = await resp.arrayBuffer();
         source = { data: ab };
-        console.log('Loaded via ArrayBuffer:', safeUrl, ab.byteLength, 'bytes');
+        console.log('Loaded via ArrayBuffer:', url, ab.byteLength, 'bytes');
       }catch(e){
         console.warn('ArrayBuffer fetch failed, falling back to URL mode:', e);
-        source = { url: safeUrl };
+        source = { url };
       }
 
       const task = pdfjsLib.getDocument(source);
