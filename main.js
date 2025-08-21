@@ -1,12 +1,12 @@
 // =====================
-// Law-Texts-ui / main.js (finalfix1)
+// Law-Texts-ui / main.js (restore1)
 // =====================
 
 (function () {
-  // ---------- Safe element lookup ----------
-  function $(id) { const el = document.getElementById(id); if (!el) throw new Error(`Missing #${id}`); return el; }
+  // Safe lookup
+  const $ = (id) => { const el = document.getElementById(id); if (!el) throw new Error(`Missing #${id}`); return el; };
 
-  // ---------- DOM ----------
+  // DOM
   const els = {
     list: $("bookList"),
     filter: $("filterInput"),
@@ -33,14 +33,15 @@
     exportBtn: $("exportBtn"),
   };
 
-  // ---------- Utils ----------
+  // Utils
   const REGISTRY = ["textbooks.json"];
   const isPDF = (u) => /\.pdf(\?|#|$)/i.test((u || "").trim());
   const clean = (s) => (s || "").toString().trim();
   const esc = (s) => (s || "").replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
-  function setStatus(msg, err=false){ els.status.textContent = msg||""; els.status.className = "status" + (err?" error":""); }
+  const rxEsc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const setStatus = (m, bad=false)=>{ els.status.textContent=m||""; els.status.className="status"+(bad?" error":""); };
 
-  // ---------- State ----------
+  // State
   const st = {
     registry: [],
     book: null,
@@ -49,14 +50,14 @@
     page: 1,
     total: 0,
     scale: 1,
-    zoomFactor: 1.35,           // default boost over "fit width"
+    zoomFactor: 1.35,     // room to boost beyond fit-to-width
     query: "",
     hits: [],
     hitIdx: -1,
     pageTextCache: {}
   };
 
-  // ---------- Boot ----------
+  // Boot
   (async function boot(){
     try{
       setStatus("Loading registry…");
@@ -69,12 +70,12 @@
       }
       if (!st.registry.length) throw new Error("Could not load textbooks.json");
       renderList(st.registry);
-      wireEvents();
+      wire();
       setStatus("");
     }catch(e){ setStatus("Failed to load list: "+(e.message||e), true); }
   })();
 
-  // ---------- List ----------
+  // List
   function renderList(items){
     els.list.innerHTML = "";
     items.forEach(b=>{
@@ -87,7 +88,7 @@
     });
   }
 
-  // ---------- Select book ----------
+  // Select
   async function selectBook(book, li){
     Array.from(els.list.children).forEach(n=>n.classList.remove("active"));
     if (li) li.classList.add("active");
@@ -95,8 +96,8 @@
     st.book = book;
     st.isPdf = isPDF(book.reference_url);
     st.pdf = null; st.page=1; st.total=0;
-    st.scale = 1; st.zoomFactor = 1.35;
-    st.query = ""; st.hits=[]; st.hitIdx=-1; st.pageTextCache={};
+    st.scale=1; st.zoomFactor=1.35;
+    st.query=""; st.hits=[]; st.hitIdx=-1; st.pageTextCache={};
     els.results.innerHTML = ""; els.resultsBottom.innerHTML = "";
     updateZoomLabel();
 
@@ -110,7 +111,6 @@
 
     try{
       if (!st.isPdf){
-        setStatus("Loading text…");
         const r = await fetch(url,{cache:"no-store"});
         if (!r.ok) throw new Error("HTTP "+r.status);
         const txt = await r.text();
@@ -131,12 +131,10 @@
     }catch(e){ setStatus("Load error: "+(e.message||e), true); }
   }
 
-  // ---------- Rendering ----------
-  function updateZoomLabel(){ els.zoomLabel.textContent = Math.round(st.zoomFactor*100) + "%"; }
-
-  // Fit to centre width, then multiply by user zoomFactor
+  // Rendering: fit to full width + zoom factor
+  function updateZoomLabel(){ els.zoomLabel.textContent = Math.round(st.zoomFactor*100)+"%"; }
   function computeScale(unscaledWidth){
-    const inner = Math.max(els.viewer.clientWidth - 16, 600); // padding accounted
+    const inner = Math.max(els.viewer.clientWidth - 16, 600); // fit width of centre pane
     return Math.min((inner / unscaledWidth) * st.zoomFactor, 3.0);
   }
 
@@ -158,16 +156,16 @@
     els.hlayer.style.width  = els.textLayer.style.width  = els.canvas.style.width;
     els.hlayer.style.height = els.textLayer.style.height = els.canvas.style.height;
 
-    // device pixels for crispness
+    // device pixels (crisp)
     els.canvas.width  = Math.floor(vpCSS.width  * dpr);
     els.canvas.height = Math.floor(vpCSS.height * dpr);
 
-    // render page
+    // render
     const transform = dpr!==1 ? [dpr,0,0,dpr,0,0] : null;
     const vpDevice = page.getViewport({scale: st.scale, transform});
     await page.render({canvasContext: ctx, viewport: vpDevice}).promise;
 
-    // invisible text layer (kept for selection/anchor if needed)
+    // text layer (invisible; used for accurate geometry if needed)
     els.textLayer.innerHTML = "";
     await pdfjsLib.renderTextLayer({
       textContent: await page.getTextContent(),
@@ -177,10 +175,9 @@
     }).promise;
     els.textLayer.style.color = "transparent";
 
-    // highlights
+    // draw highlights for current query
     await drawHighlights(page, vpCSS);
 
-    // page counter
     els.pageInfo.textContent = `${st.page} / ${st.total}`;
   }
 
@@ -192,7 +189,7 @@
     const content = await page.getTextContent();
     const needle = q.toLowerCase();
 
-    // pass 1 — matches inside a single item
+    // single-item matches
     for (const it of content.items){
       const text = it.str || "";
       const low  = text.toLowerCase();
@@ -204,14 +201,14 @@
       const wPx = it.width * vpCSS.scale;  // CSS px
       const avg = wPx / Math.max(1, text.length);
 
-      let from = 0, pos;
+      let from=0, pos;
       while ((pos = low.indexOf(needle, from)) !== -1){
         addHL(x + pos*avg, yTop - h*1.15, Math.max(2, avg*needle.length), h*1.3);
         from = pos + needle.length;
       }
     }
 
-    // pass 2 — split across adjacent items
+    // split across adjacent items
     const items = content.items;
     for (let i=0; i+1<items.length; i++){
       const A = items[i], B = items[i+1];
@@ -219,19 +216,19 @@
       const bText = (B.str||"").toLowerCase();
       for (let k=1; k<needle.length; k++){
         if (aText.endsWith(needle.slice(0,k)) && bText.startsWith(needle.slice(k))){
-          boxFor(A, k); boxForB(B, needle.length-k); break;
+          box(A,k); boxB(B, needle.length-k); break;
         }
       }
     }
 
-    function boxFor(item, chars){
+    function box(item, chars){
       const m = pdfjsLib.Util.transform(vpCSS.transform, item.transform);
       const x = m[4], yTop = m[5], h = Math.hypot(m[2], m[3]);
       const wPx = item.width * vpCSS.scale;
       const avg = wPx / Math.max(1, (item.str||"").length);
       addHL(x + (((item.str||"").length) - chars)*avg, yTop - h*1.15, Math.max(2, avg*chars), h*1.3);
     }
-    function boxForB(item, chars){
+    function boxB(item, chars){
       const m = pdfjsLib.Util.transform(vpCSS.transform, item.transform);
       const x = m[4], yTop = m[5], h = Math.hypot(m[2], m[3]);
       const wPx = item.width * vpCSS.scale;
@@ -246,7 +243,7 @@
     }
   }
 
-  // ---------- Search ----------
+  // Search
   async function getPageText(p){
     if (st.pageTextCache[p]) return st.pageTextCache[p];
     const page = await st.pdf.getPage(p);
@@ -263,16 +260,16 @@
 
     if (!st.query){
       setStatus("");
-      await renderPage(st.page); // clears highlights
+      await renderPage(st.page); // clears on-page highlights
       return;
     }
     if (!st.pdf){ setStatus("Open a PDF first.", true); return; }
 
     setStatus("Searching…");
     const needle = st.query.toLowerCase();
-    const rx = new RegExp(st.query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
+    const rx = new RegExp(rxEsc(st.query), "gi");
 
-    for (let p=1; p<=st.total && st.hits.length<300; p++){
+    for (let p=1; p<=st.total && st.hits.length<400; p++){
       const txt = await getPageText(p);
       const low = txt.toLowerCase();
       let from=0, pos;
@@ -284,23 +281,21 @@
       await new Promise(r=>setTimeout(r,0));
     }
 
-    if (!st.hits.length){
-      setStatus("No matches.");
-      await renderPage(st.page);
-      return;
-    }
+    if (!st.hits.length){ setStatus("No matches."); await renderPage(st.page); return; }
 
-    // Build right pane + bottom tray with snippets (highlighted)
-    const fragRight = document.createDocumentFragment();
-    const fragTray  = document.createDocumentFragment();
-    st.hits.forEach((h,i)=>{
-      const html = `p.${h.page}: … ${esc(h.snippet).replace(rx, m=>`<em>${esc(m)}</em>`)} …`;
-      const mk = (cls)=>{ const d=document.createElement("div"); d.className=cls; d.innerHTML=html; d.addEventListener("click",()=>gotoHit(i)); return d; };
-      fragRight.appendChild(mk("result"));
-      fragTray.appendChild(mk("result"));
-    });
-    els.results.appendChild(fragRight);
-    els.resultsBottom.appendChild(fragTray);
+    // Right pane and bottom tray with snippets
+    const makeRow = (i,h) => {
+      const d = document.createElement("div");
+      d.className = "result";
+      d.innerHTML = `p.${h.page}: … ${esc(h.snippet).replace(rx, m=>`<em>${esc(m)}</em>`)} …`;
+      d.addEventListener("click", ()=>gotoHit(i));
+      return d;
+    };
+    const fragR = document.createDocumentFragment();
+    const fragB = document.createDocumentFragment();
+    st.hits.forEach((h,i)=>{ fragR.appendChild(makeRow(i,h)); fragB.appendChild(makeRow(i,h)); });
+    els.results.appendChild(fragR);
+    els.resultsBottom.appendChild(fragB);
 
     st.hitIdx = 0;
     await gotoHit(0);
@@ -310,11 +305,11 @@
   async function gotoHit(i){
     if (!st.hits[i]) return;
     st.hitIdx = i;
-    await renderPage(st.hits[i].page); // draws highlight for current query
+    await renderPage(st.hits[i].page); // on-page highlights for st.query
 
-    // mark active row (right + tray) and autoscroll
-    const mark = (container)=>{
-      const rows = container.querySelectorAll(".result");
+    // mark active in both lists
+    const mark = (root)=>{
+      const rows = root.querySelectorAll(".result");
       rows.forEach(n=>n.classList.remove("active"));
       const row = rows[i]; if (row){ row.classList.add("active"); row.scrollIntoView({block:"nearest"}); }
     };
@@ -322,7 +317,7 @@
     mark(els.resultsBottom);
   }
 
-  // ---------- Navigation & Zoom ----------
+  // Navigation & Zoom
   function nav(step){
     if (st.hits.length){
       let i = st.hitIdx + step;
@@ -334,15 +329,14 @@
       if (want>=1 && want<=st.total) renderPage(want);
     }
   }
-
   function zoom(delta){
     st.zoomFactor = Math.max(0.5, Math.min(2.5, st.zoomFactor + delta));
     updateZoomLabel();
     if (st.pdf) renderPage(st.page);
   }
 
-  // ---------- Events ----------
-  function wireEvents(){
+  // Events
+  function wire(){
     els.filter.addEventListener("input", ()=>{
       const q = els.filter.value.toLowerCase();
       const list = st.registry.filter(b =>
@@ -353,7 +347,7 @@
       renderList(list);
     });
 
-    // search: Enter or debounced as-you-type
+    // search: Enter or as-you-type (debounced)
     els.search.addEventListener("keydown", e=>{ if (e.key==="Enter") runSearch(); });
     let timer=null;
     els.search.addEventListener("input", ()=>{ clearTimeout(timer); timer=setTimeout(runSearch, 300); });
@@ -373,7 +367,6 @@
     els.printBtn.addEventListener("click", ()=>window.print());
     els.exportBtn.addEventListener("click", ()=>setStatus("Export to TXT is available for .txt sources only.", true));
 
-    // Re-fit on resize/rotation
     window.addEventListener("resize", ()=>{ if (st.pdf) renderPage(st.page); }, {passive:true});
   }
 })();
