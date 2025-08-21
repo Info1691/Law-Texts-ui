@@ -1,76 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Trust Law Textbooks</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Law Texts UI</title>
   <link rel="stylesheet" href="style.css"/>
 
-  <!-- PDF.js (GitHub Pages/iPad safe) -->
-  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+  <!-- PDF.js core -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    // Set worker BEFORE any pdfjsLib usage (critical on GitHub Pages)
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+    }
+  </script>
 </head>
 <body>
-  <header class="header">
+  <header class="topbar">
     <div class="brand">
-      <img src="logo.png" class="logo" alt="Blue Chip Logo"/>
+      <img src="logo.png" alt="Blue Chip Consultancy Services" class="logo"/>
       <h1>Trust Law Textbooks</h1>
     </div>
-
-    <div class="toolbar">
-      <button id="calibrateBtn" class="btn">Calibrate pages</button>
-
-      <div class="jump">
-        <label for="bookPageInput">Book p.</label>
-        <input id="bookPageInput" type="number" inputmode="numeric" placeholder="684"/>
-        <button id="goBtn" class="btn">Go</button>
-      </div>
-
-      <input id="searchInput" class="search" placeholder="Search within text…"/>
-      <button id="findPrevBtn" class="btn btn-lite">Prev</button>
-      <button id="findNextBtn" class="btn btn-lite">Next</button>
-
-      <div id="pageLabel" class="page-label">PDF p.—</div>
-
-      <button id="printBtn" class="btn btn-lite">Print</button>
-      <button id="exportTxtBtn" class="btn btn-lite">Export to TXT</button>
-    </div>
+    <nav class="toolbar">
+      <button id="drawerToggle" class="btn" type="button">Drawer</button>
+      <button id="printBtn" class="btn" type="button">Print</button>
+      <button id="exportBtn" class="btn" type="button">Export to TXT</button>
+    </nav>
   </header>
 
-  <main class="layout">
-    <!-- LEFT: list of books -->
-    <aside class="left">
-      <input id="listFilter" class="list-filter" placeholder="Filter list…"/>
-      <ul id="catalogList" class="catalog"></ul>
+  <!-- LEFT DRAWER (restored; sits below header, not over logo) -->
+  <aside id="drawer" class="drawer" aria-hidden="true">
+    <div class="drawer-head">
+      <strong>Drawer</strong>
+      <button id="drawerClose" class="xbtn" type="button" aria-label="Close">✕</button>
+    </div>
+    <div class="drawer-body">
+      <p>Notes / metadata / controls.</p>
+    </div>
+  </aside>
+
+  <main class="layout3">
+    <!-- LEFT: book list -->
+    <aside class="sidebar">
+      <input id="filterInput" class="input" placeholder="Filter list…"/>
+      <ul id="bookList" class="list"></ul>
     </aside>
 
-    <!-- CENTER: PDF (14cm wide) -->
-    <section class="center">
-      <div class="pdf-wrap">
-        <div id="pdfContainer" class="pdf-container">
-          <canvas id="pdfCanvas"></canvas>
-          <div id="textLayer" class="text-layer"></div>
-          <div id="highlightLayer" class="highlight-layer"></div>
+    <!-- CENTER: viewer -->
+    <section class="content">
+      <div class="content-toolbar">
+        <input id="searchInput" class="input" placeholder="Search within text…"/>
+        <div class="nav">
+          <button id="prevBtn" class="btn" type="button">Prev</button>
+          <button id="nextBtn" class="btn" type="button">Next</button>
         </div>
       </div>
-      <div class="pager">
-        <button id="prevBtn" class="btn">Prev</button>
-        <button id="nextBtn" class="btn">Next</button>
+
+      <div class="meta">
+        <div>Book: <span id="metaBook">—</span></div>
+        <div>Chapter: <span id="metaChapter">—</span></div>
+        <div>Source: <span id="metaSource">—</span></div>
+        <div>Reference: <span id="metaRef">—</span></div>
       </div>
-      <div id="tip" class="tip">Tip: use the search box or Safari’s “Find on Page”.</div>
+
+      <!-- Single-page viewer: canvas + highlight + text layer (aligned) -->
+      <div id="viewer" class="viewer">
+        <div id="pageSurface" class="pageSurface">
+          <canvas id="pdfCanvas"></canvas>
+          <div id="highlightLayer" class="hlayer"></div>
+          <div id="textLayer" class="textLayer"></div>
+        </div>
+        <div class="hint">Pages: <span id="pageInfo">—</span></div>
+      </div>
+
+      <div id="status" class="status"></div>
     </section>
 
-    <!-- RIGHT: notes -->
-    <aside class="right">
-      <div class="notes-head">
-        <h2>Notes</h2>
-        <button id="addNoteBtn" class="btn btn-dark">Add note</button>
-      </div>
-      <ul id="notesList" class="notes"></ul>
+    <!-- RIGHT: matches list -->
+    <aside class="results-pane">
+      <div class="results-head">Matches</div>
+      <div id="results" class="results"></div>
     </aside>
   </main>
 
-  <div id="toast" class="toast" hidden></div>
-
-  <script src="main.js"></script>
+  <script src="main.js?v=reset1"></script>
 </body>
 </html>
