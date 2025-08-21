@@ -29,15 +29,20 @@
 
   <!-- Left list • Center viewer • Right results -->
   <main class="layout3">
+    <!-- LEFT: book list -->
     <aside class="sidebar">
       <input id="filterInput" class="input" placeholder="Filter list…"/>
       <ul id="bookList" class="list"></ul>
     </aside>
 
+    <!-- CENTER: controls + page viewer + bottom tray -->
     <section class="content">
       <div class="content-toolbar">
         <input id="searchInput" class="input" placeholder="Search within text…"/>
         <div class="nav">
+          <button id="zoomOutBtn" class="btn">–</button>
+          <button id="zoomInBtn" class="btn">+</button>
+          <span class="zoomLabel" id="zoomLabel">100%</span>
           <button id="prevBtn" class="btn">Prev</button>
           <button id="nextBtn" class="btn">Next</button>
         </div>
@@ -50,7 +55,7 @@
         <div>Reference: <span id="metaRef">—</span></div>
       </div>
 
-      <!-- Viewer: single page + text + highlight layers -->
+      <!-- Viewer: single page with highlight + text layers -->
       <div id="viewer" class="viewer">
         <div id="pageWrap" class="pageWrap">
           <canvas id="pdfCanvas"></canvas>
@@ -58,19 +63,25 @@
           <div id="textLayer" class="textLayer"></div>
         </div>
         <div class="hint">Pages: <span id="pageInfo">—</span></div>
+
+        <!-- Bottom tray (restored) -->
+        <div class="tray">
+          <div class="tray-head">Matches (tray)</div>
+          <div id="resultsBottom" class="tray-body"></div>
+        </div>
       </div>
 
       <div id="status" class="status"></div>
     </section>
 
+    <!-- RIGHT: matches pane -->
     <aside class="results-pane">
       <div class="results-head">Matches</div>
       <div id="results" class="results"></div>
     </aside>
   </main>
 
-  <!-- cache-bust -->
-  <script src="main.js?v=rhs2"></script>
+  <script src="main.js?v=finalfix1"></script>
   <script src="drawer.js"></script>
 </body>
 </html>
