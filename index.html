@@ -6,10 +6,9 @@
   <title>Trust Law Textbooks</title>
   <link rel="stylesheet" href="style.css"/>
 
-  <!-- PDF.js (CDN) for PDF text search + page linking -->
+  <!-- PDF.js from CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
-    // Worker path for pdf.js
     if (window['pdfjsLib']) {
       pdfjsLib.GlobalWorkerOptions.workerSrc =
         "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -50,15 +49,11 @@
         <div>Reference: <span id="metaRef">—</span></div>
       </div>
 
-      <!-- Viewer: renders TXT or PDF -->
       <div id="viewer" class="viewer">
         <div class="placeholder">Select a book on the left.</div>
       </div>
 
-      <!-- Search results (for PDFs) -->
       <div id="results" class="results"></div>
-
-      <!-- Status / errors -->
       <div id="status" class="status"></div>
     </section>
   </main>
