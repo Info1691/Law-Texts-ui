@@ -26,10 +26,11 @@ h1{font-size:18px;margin:0;font-weight:700}
 .btn-dark{background:#0c3c72;border-color:#062b51}
 .btn-outline{background:transparent;border:1px solid #cbd8ee;color:#cbd8ee}
 
+/* >>> lock 3-column layout at all widths <<< */
 .layout{
   display:grid;
-  grid-template-columns:320px 1fr 360px;  /* <- left list firmly on the left */
-  gap:12px;padding:12px;
+  grid-template-columns:320px minmax(400px,1fr) 360px;
+  gap:12px; padding:12px;
   height:calc(100vh - 64px);
 }
 .left,.right{
@@ -54,17 +55,11 @@ h1{font-size:18px;margin:0;font-weight:700}
 .highlight{position:absolute;background:var(--hl);opacity:.35;border-radius:2px}
 .pager{display:flex;gap:8px}
 
-/* Matches */
-.matches{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
-.match{background:#fff;border:1px solid var(--border);border-radius:8px;padding:8px;cursor:pointer}
-.match .meta{font-weight:700}
-.muted{opacity:.7}
-
-/* Drawer (Repo Hub) — dark branding */
+/* Repo drawer (kept) */
 .drawer{
   position:fixed;left:0;top:64px;bottom:0;width:360px;background:#0b2850;color:#e6eefb;
-  border-right:1px solid #061832;
-  transform:translateX(-100%);transition:transform .25s ease;z-index:1000;box-shadow:var(--shadow);overflow:auto
+  border-right:1px solid #061832;transform:translateX(-100%);transition:transform .25s ease;
+  z-index:1000;box-shadow:var(--shadow);overflow:auto
 }
 .drawer.open{transform:translateX(0)}
 .drawer-head{display:flex;align-items:center;justify-content:space-between;padding:12px;border-bottom:1px solid #173663;background:#092141}
@@ -80,9 +75,4 @@ h1{font-size:18px;margin:0;font-weight:700}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#111;color:#fff;
   padding:10px 14px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.25);font-weight:700;z-index:1500}
 
-/* iPad responsive: keep 3 columns until it’s really narrow */
-@media (max-width: 900px){
-  .layout{grid-template-columns:1fr;grid-auto-rows:auto;height:auto}
-  .left,.right{max-height:35vh}
-  .center{order:-1}
-}
+/* IMPORTANT: remove all responsive collapse rules — always 3 columns */
