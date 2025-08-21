@@ -1,86 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Trust Law Textbooks</title>
-  <link rel="stylesheet" href="style.css"/>
-  <!-- PDF.js -->
-  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 </head>
 <body>
-  <header class="header">
-    <div class="brand">
-      <img src="logo.png" class="logo" alt="Logo"/>
+  <div class="container">
+    <header class="header">
+      <img src="logo.png" alt="Logo" class="logo" />
       <h1>Trust Law Textbooks</h1>
-    </div>
+    </header>
 
     <div class="toolbar">
-      <button id="drawerToggle" class="btn btn-dark">Repos</button>
-
-      <input id="searchInput" class="search" placeholder="Search within text…"/>
-      <button id="findPrevBtn" class="btn btn-lite">Prev</button>
-      <button id="findNextBtn" class="btn btn-lite">Next</button>
-
-      <div id="pageLabel" class="page-label">Book p.— (PDF p.—)</div>
-
-      <div class="jump-inline">
-        <label for="bookPageInput">Book p.</label>
-        <input id="bookPageInput" type="number" inputmode="numeric" placeholder="684"/>
-        <button id="goBtn" class="btn btn-lite">Go</button>
-        <button id="calibrateBtn" class="btn">Calibrate</button>
-      </div>
-
-      <button id="printBtn" class="btn btn-lite">Print</button>
-      <button id="exportTxtBtn" class="btn btn-lite">Export to TXT</button>
+      <button id="drawerToggle">Repos</button>
+      <input id="searchBox" type="text" placeholder="Search within text…" />
+      <button id="prevBtn">Prev</button>
+      <button id="nextBtn">Next</button>
+      <span>Book p.<input id="pageInput" type="number" min="1" value="1" /></span>
+      <button id="goBtn">Go</button>
+      <button id="calibrateBtn">Calibrate</button>
+      <button id="printBtn">Print</button>
+      <button id="exportBtn">Export to TXT</button>
     </div>
-  </header>
 
-  <!-- LEFT DRAWER: Repo Hub (branding: dark) -->
-  <aside id="drawer" class="drawer" aria-hidden="true">
-    <div class="drawer-head">
-      <h2>Repositories</h2>
-      <button id="drawerClose" class="btn btn-outline">Close</button>
-    </div>
-    <div class="drawer-section">
-      <input id="repoFilter" class="drawer-filter" placeholder="Filter repos…"/>
-      <ul id="repoList" class="repo-list"></ul>
-    </div>
-  </aside>
+    <main class="main">
+      <aside class="sidebar">
+        <input id="filterBox" type="text" placeholder="Filter list…" />
+        <ul id="bookList"></ul>
+      </aside>
+      <section class="viewer">
+        <div id="pdfViewer" class="pdf-viewer"></div>
+        <div id="matches" class="matches"></div>
+      </section>
+    </main>
+  </div>
 
-  <main class="layout">
-    <!-- LEFT: list of books -->
-    <aside class="left">
-      <input id="listFilter" class="list-filter" placeholder="Filter list…"/>
-      <ul id="catalogList" class="catalog"></ul>
-    </aside>
-
-    <!-- CENTER: PDF (14 cm width) -->
-    <section class="center">
-      <div class="pdf-wrap">
-        <div id="pdfContainer" class="pdf-container" aria-label="PDF viewer">
-          <canvas id="pdfCanvas"></canvas>
-          <div id="textLayer" class="text-layer"></div>
-          <div id="highlightLayer" class="highlight-layer"></div>
-        </div>
-      </div>
-      <div class="pager">
-        <button id="prevBtn" class="btn">Prev</button>
-        <button id="nextBtn" class="btn">Next</button>
-      </div>
-    </section>
-
-    <!-- RIGHT: Matches panel -->
-    <aside class="right">
-      <div class="matches-head">
-        <h2>Matches</h2>
-        <div id="matchCount" class="muted"></div>
-      </div>
-      <ul id="matchesList" class="matches"></ul>
-    </aside>
-  </main>
-
-  <div id="toast" class="toast" hidden></div>
+  <script src="drawer.js"></script>
   <script src="main.js"></script>
 </body>
 </html>
