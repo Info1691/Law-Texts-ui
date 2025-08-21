@@ -1,0 +1,8 @@
+[
+  { "name": "Compliance UI", "desc": "Case citations viewer/editor", "url": "https://info1691.github.io/compliance-ui/" },
+  { "name": "Breaches UI",   "desc": "Canonical breach tags manager", "url": "https://info1691.github.io/breaches-ui/" },
+  { "name": "Laws UI",       "desc": "Canonical statutes viewer",     "url": "https://info1691.github.io/laws-ui/" },
+  { "name": "Rules UI",      "desc": "JFSC & SRA rules viewer",       "url": "https://info1691.github.io/rules-ui/" },
+  { "name": "Citations UI",  "desc": "Structured case entries",       "url": "https://info1691.github.io/citations-ui/" },
+  { "name": "Law Texts UI",  "desc": "This page (textbooks)",         "url": "https://info1691.github.io/Law-Texts-ui/" }
+]
