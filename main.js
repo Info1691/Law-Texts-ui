@@ -1,7 +1,6 @@
-// ===== Registry paths & state ===== 
+// ===== Registry paths & state =====
 const REGISTRY_CANDIDATES = [
-  "textbooks.json",                 // your actual file in repo root
-  "data/textbooks/textbooks.json"   // optional future location
+  "textbooks.json"   // single source of truth at repo root
 ];
 
 let registry = [];
