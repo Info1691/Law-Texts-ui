@@ -1,89 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Trust Law Textbooks</title>
   <link rel="stylesheet" href="style.css"/>
-
-  <!-- PDF.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <script>
-    if (window.pdfjsLib) {
-      pdfjsLib.GlobalWorkerOptions.workerSrc =
-        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-    }
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
 </head>
 <body>
-  <header class="topbar">
+  <header class="header">
     <div class="brand">
-      <img src="logo.png" alt="Blue Chip Consultancy Services" class="logo"/>
+      <img src="logo.png" class="logo" alt="Blue Chip Logo"/>
       <h1>Trust Law Textbooks</h1>
     </div>
-    <nav class="toolbar">
-      <button id="drawerToggle" class="btn">Drawer</button>
-      <button id="printBtn" class="btn">Print</button>
-      <button id="exportBtn" class="btn">Export to TXT</button>
-    </nav>
+
+    <div class="toolbar">
+      <button id="drawerToggle" class="btn btn-dark">Repos</button>
+
+      <input id="searchInput" class="search" placeholder="Search within text…"/>
+      <button id="findPrevBtn" class="btn btn-lite">Prev</button>
+      <button id="findNextBtn" class="btn btn-lite">Next</button>
+
+      <div id="pageLabel" class="page-label">Book p.— (PDF p.—)</div>
+
+      <div class="jump-inline">
+        <label for="bookPageInput">Book p.</label>
+        <input id="bookPageInput" type="number" inputmode="numeric" placeholder="684"/>
+        <button id="goBtn" class="btn btn-lite">Go</button>
+        <button id="calibrateBtn" class="btn">Calibrate</button>
+      </div>
+
+      <button id="printBtn" class="btn btn-lite">Print</button>
+      <button id="exportTxtBtn" class="btn btn-lite">Export to TXT</button>
+    </div>
   </header>
 
-  <!-- LEFT DRAWER (restored, does NOT overlay logo) -->
+  <!-- LEFT DRAWER = REPO HUB -->
   <aside id="drawer" class="drawer" aria-hidden="true">
     <div class="drawer-head">
-      <strong>Drawer</strong>
-      <button id="drawerClose" class="xbtn" aria-label="Close">✕</button>
+      <h2>Repositories</h2>
+      <button id="drawerClose" class="btn btn-dark">Close</button>
     </div>
-    <div class="drawer-body">
-      <p>Notes / metadata live here. This is the same drawer you had before.</p>
+    <div class="drawer-section">
+      <input id="repoFilter" class="list-filter" placeholder="Filter repos…"/>
+      <ul id="repoList" class="repo-list"></ul>
     </div>
   </aside>
 
-  <!-- Three-column layout -->
-  <main class="layout3">
-    <!-- LEFT: book list -->
-    <aside class="sidebar">
-      <input id="filterInput" class="input" placeholder="Filter list…"/>
-      <ul id="bookList" class="list"></ul>
+  <main class="layout">
+    <!-- LEFT: list of books -->
+    <aside class="left">
+      <input id="listFilter" class="list-filter" placeholder="Filter list…"/>
+      <ul id="catalogList" class="catalog"></ul>
     </aside>
 
-    <!-- CENTER: viewer -->
-    <section class="content">
-      <div class="content-toolbar">
-        <input id="searchInput" class="input" placeholder="Search within text…"/>
-        <div class="nav">
-          <button id="prevBtn" class="btn">Prev</button>
-          <button id="nextBtn" class="btn">Next</button>
-        </div>
-      </div>
-
-      <div class="meta">
-        <div>Book: <span id="metaBook">—</span></div>
-        <div>Chapter: <span id="metaChapter">—</span></div>
-        <div>Source: <span id="metaSource">—</span></div>
-        <div>Reference: <span id="metaRef">—</span></div>
-      </div>
-
-      <!-- Single-page viewer: canvas + highlight layer + text layer -->
-      <div id="viewer" class="viewer">
-        <div id="pageSurface" class="pageSurface">
+    <!-- CENTER: PDF (14cm wide) -->
+    <section class="center">
+      <div class="pdf-wrap">
+        <div id="pdfContainer" class="pdf-container">
           <canvas id="pdfCanvas"></canvas>
-          <div id="highlightLayer" class="hlayer"></div>
-          <div id="textLayer" class="textLayer"></div>
+          <div id="textLayer" class="text-layer"></div>
+          <div id="highlightLayer" class="highlight-layer"></div>
         </div>
-        <div class="hint">Pages: <span id="pageInfo">—</span></div>
       </div>
-
-      <div id="status" class="status"></div>
+      <div class="pager">
+        <button id="prevBtn" class="btn">Prev</button>
+        <button id="nextBtn" class="btn">Next</button>
+      </div>
     </section>
 
-    <!-- RIGHT: matches -->
-    <aside class="results-pane">
-      <div class="results-head">Matches</div>
-      <div id="results" class="results"></div>
+    <!-- RIGHT: Matches panel -->
+    <aside class="right">
+      <div class="matches-head">
+        <h2>Matches</h2>
+        <div id="matchCount" class="muted"></div>
+      </div>
+      <ul id="matchesList" class="matches"></ul>
     </aside>
   </main>
 
-  <script src="main.js?v=recover1"></script>
+  <div id="toast" class="toast" hidden></div>
+  <script src="main.js"></script>
 </body>
 </html>
