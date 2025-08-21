@@ -12,12 +12,12 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,
 /* 3-column layout */
 .layout3 {
   display:grid;
-  grid-template-columns: 260px 1fr 320px;
+  grid-template-columns: 260px 1fr 340px;
   gap:12px;
   height: calc(100vh - 64px);
   padding:12px;
 }
-@media (max-width: 980px){ .layout3 { grid-template-columns: 220px 1fr 260px; } }
+@media (max-width: 980px){ .layout3 { grid-template-columns: 220px 1fr 280px; } }
 @media (max-width: 760px){
   .layout3 { grid-template-columns: 1fr; }
   .results-pane { order:3; height: 30vh; }
@@ -33,7 +33,8 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,
 /* Center content */
 .content { display:flex; flex-direction:column; gap:8px; min-width:0; }
 .content-toolbar { display:flex; gap:8px; align-items:center; }
-.nav { margin-left:auto; display:flex; gap:6px; }
+.nav { margin-left:auto; display:flex; gap:6px; align-items:center; }
+.zoomLabel { font-size:12px; color:#333; width:42px; text-align:center; }
 .btn { padding:8px 12px; border:1px solid var(--border); background:#fff; border-radius:6px; cursor:pointer; }
 .btn:active { transform: translateY(1px); }
 
@@ -43,18 +44,18 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,
   border:1px solid var(--border);
   border-radius:8px;
   background:#fff;
-  height: calc(100% - 118px); /* fill remaining vertical space in the center column */
+  height: calc(100% - 118px);
   min-height: 60vh;
-  overflow: auto;             /* allow scrolling when page is taller */
+  overflow: auto;             /* vertical scroll for tall pages */
   position: relative;
   padding: 8px;
 }
-.pageWrap { position:relative; width:100%; margin:0 auto; display:flex; justify-content:center; align-items:flex-start; }
+.pageWrap { position:relative; width:100%; margin:0 auto; display:block; }
 #pdfCanvas { display:block; width:100%; height:auto; background:#fff; }
 
-/* Layers */
-.hlayer { position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none; z-index:2; }
-.textLayer { position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none; z-index:3; color:transparent; }
+/* Overlay layers */
+.hlayer { position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none; z-index:3; }
+.textLayer { position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none; z-index:2; color:transparent; }
 .textLayer > span, .textLayer > div { position:absolute; transform-origin:0 0; white-space:pre; }
 
 /* highlight rectangles */
@@ -71,10 +72,19 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,
 }
 .results-head { padding:10px 12px; border-bottom:1px solid var(--border); font-weight:600; }
 .results { overflow:auto; padding:8px; height: 100%; }
-.result { padding:6px 8px; border-bottom:1px solid var(--border); cursor:pointer; }
+.result { padding:8px 10px; border-bottom:1px solid var(--border); cursor:pointer; }
 .result:last-child { border-bottom:none; }
 .result em { background: #ffeb3b; }
 .result.active { background: var(--light); }
 
+/* Bottom tray (restored) */
+.tray { margin-top:8px; border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+.tray-head { padding:8px 10px; background:#fafbfc; border-bottom:1px solid var(--border); font-weight:600; }
+.tray-body { max-height:180px; overflow:auto; }
+.tray-body .result { padding:8px 10px; border-bottom:1px solid var(--border); cursor:pointer; }
+.tray-body .result:last-child { border-bottom:none; }
+.tray-body .result em { background:#ffeb3b; }
+
+/* Status */
 .status { font-size:12px; color:#555; margin-top:4px; }
-.error { color:#b00020; }
+.status.error { color:#b00020; }
