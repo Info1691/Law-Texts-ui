@@ -16,8 +16,7 @@ let current = {
   textIndex: {},
   hits: [],
   hitCursor: -1,
-  lastQuery: "",
-  lastViewportCSS: null
+  lastQuery: ""
 };
 
 // ----- DOM -----
@@ -61,16 +60,13 @@ function setStatus(msg, isError=false){ els.status.textContent = msg || ""; els.
       } catch(e){ lastErr = `Invalid JSON at ${path}: ${e.message}`; }
     } catch(e){ lastErr = `Fetch failed: ${e.message}`; }
   }
-  if (!registry.length){
-    setStatus(`Error loading registry. ${lastErr || "No candidates worked."} Tried: ${REGISTRY_CANDIDATES.join(", ")}.`, true);
-    return;
-  }
+  if (!registry.length){ setStatus(`Error loading registry. ${lastErr || "No candidates worked."} Tried: ${REGISTRY_CANDIDATES.join(", ")}.`, true); return; }
   renderList(registry);
   wireEvents();
   setStatus("");
 })();
 
-// ----- Render book list -----
+// ----- List -----
 function renderList(items){
   els.list.innerHTML = "";
   items.forEach((b) => {
@@ -92,7 +88,6 @@ async function selectBook(book, liEl){
   current.isPdf = isPDF(book.reference_url);
   current.pdf = null; current.totalPages = 0; current.page = 1;
   current.textIndex = {}; current.hits = []; current.hitCursor = -1; current.lastQuery = "";
-  current.lastViewportCSS = null;
 
   els.results.innerHTML = "";
   els.viewer.innerHTML = `<div class="placeholder">Loading…</div>`;
@@ -107,13 +102,13 @@ async function selectBook(book, liEl){
   try {
     if (current.isPdf){
       await openPdf(url);
-      // Pager surface: canvas + absolute text layer (for highlights)
+      // Viewer surface: canvas + positioned text layer for precise highlights
       els.viewer.innerHTML = `
-        <div id="pageWrap" style="position:relative; width:100%;">
-          <canvas id="pdfCanvas" style="display:block; width:100%; background:#fff;"></canvas>
-          <div id="textLayer" style="position:absolute; left:0; top:0; right:0; bottom:0; pointer-events:none;"></div>
+        <div id="pageWrap" style="position:relative; width:100%; height:100%; display:flex; justify-content:center; align-items:flex-start;">
+          <canvas id="pdfCanvas" style="display:block; width:100%; height:auto; background:#fff;"></canvas>
+          <div id="textLayer" class="textLayer"></div>
         </div>
-        <div class="hint">Pages: <span id="pageInfo"></span> — Prev/Next turns pages. Search results highlight on the page.</div>
+        <div class="hint" style="margin:6px 0 0 0;">Pages: <span id="pageInfo"></span> — Prev/Next turns pages. Click a match on the right to jump.</div>
       `;
       await renderPage(current.page);
       setStatus(`PDF loaded (${current.totalPages} pages).`);
@@ -121,7 +116,7 @@ async function selectBook(book, liEl){
       const res = await fetch(url, { cache:"no-store" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const text = await res.text();
-      els.viewer.innerHTML = `<pre>${escHTML(text)}</pre>`;
+      els.viewer.innerHTML = `<pre style="margin:0; padding:12px;">${escHTML(text)}</pre>`;
       setStatus("Text loaded.");
     }
   } catch(err){
@@ -130,7 +125,7 @@ async function selectBook(book, liEl){
   }
 }
 
-// ----- PDF.js helpers -----
+// ----- PDF helpers -----
 async function openPdf(url){
   if (!window.pdfjsLib) throw new Error("PDF.js not available");
   const pdf = await pdfjsLib.getDocument({ url }).promise;
@@ -138,68 +133,67 @@ async function openPdf(url){
   current.totalPages = pdf.numPages;
 }
 
-// Fit-to-width at a readable size (bigger than before)
+// fit portrait width without cutting sides, readable
 function computeScaleForPage(unscaledWidth){
-  const viewerWidth = Math.max(els.viewer.clientWidth, 760);
-  // aim to fill most of the content area; bump 25% for readability
-  const targetCssWidth = Math.min(viewerWidth - 24, 1100);
-  return Math.min((targetCssWidth / unscaledWidth) * 1.25, 3.2);
+  const wrap = document.getElementById("pageWrap");
+  const wrapWidth = Math.max((wrap?.clientWidth) || (els.viewer.clientWidth), 760);
+  const targetCssWidth = Math.min(wrapWidth - 24, 1100);
+  return Math.min((targetCssWidth / unscaledWidth) * 1.10, 3.0);
 }
 
 async function renderPage(pageNum){
   if (!current.pdf) return;
   current.page = Math.min(Math.max(1, pageNum), current.totalPages);
-
   const page = await current.pdf.getPage(current.page);
 
-  // compute readable scale for this viewport
+  // compute readable scale
   const unscaled = page.getViewport({ scale: 1 });
   current.scale = computeScaleForPage(unscaled.width);
 
-  // CSS viewport (for element sizing)
   const viewportCSS = page.getViewport({ scale: current.scale });
-  current.lastViewportCSS = viewportCSS;
 
-  // canvas
   const canvas = document.getElementById("pdfCanvas");
+  const textLayer = document.getElementById("textLayer");
   const ctx = canvas.getContext("2d");
-
   const dpr = window.devicePixelRatio || 1;
-  canvas.style.width = Math.round(viewportCSS.width) + "px";
+
+  // size canvas (CSS & device pixels)
+  canvas.style.width  = Math.round(viewportCSS.width) + "px";
   canvas.style.height = Math.round(viewportCSS.height) + "px";
   canvas.width  = Math.floor(viewportCSS.width  * dpr);
   canvas.height = Math.floor(viewportCSS.height * dpr);
 
+  // text layer same CSS size & positioned on top
+  textLayer.style.width  = canvas.style.width;
+  textLayer.style.height = canvas.style.height;
+
   const transform = dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null;
   const viewportDevice = page.getViewport({ scale: current.scale, transform });
 
+  // draw page
   await page.render({ canvasContext: ctx, viewport: viewportDevice }).promise;
 
-  // render text layer for accurate highlights
+  // rebuild text layer for accurate on-page highlight
   await renderTextLayer(page, viewportCSS);
 
   // page counter
   const info = document.getElementById("pageInfo");
   if (info) info.textContent = `${current.page} / ${current.totalPages}`;
 
-  // apply highlighting
+  // apply highlight if query present
   const q = clean(current.lastQuery);
   if (q) highlightTextLayer(q);
+
+  // if there are hits, auto-select the first on this page in the side panel
+  syncHitSelectionForCurrentPage();
 }
 
-// Build/refresh the text layer (DOM spans positioned over the page)
 async function renderTextLayer(page, viewportCSS){
   const textLayerDiv = document.getElementById("textLayer");
   if (!textLayerDiv) return;
-
-  // reset
   textLayerDiv.innerHTML = "";
-  textLayerDiv.style.width  = Math.round(viewportCSS.width) + "px";
-  textLayerDiv.style.height = Math.round(viewportCSS.height) + "px";
 
   const textContent = await page.getTextContent();
-  // pdf.js text layer renderer
-  // NOTE: textLayerFactory is optional; the default builder is fine
   await pdfjsLib.renderTextLayer({
     textContent,
     container: textLayerDiv,
@@ -207,44 +201,33 @@ async function renderTextLayer(page, viewportCSS){
     textDivs: []
   }).promise;
 
-  // make it visually invisible except highlights we add
+  // Make overlay text invisible—only our highlights will show
   textLayerDiv.style.color = "transparent";
 }
 
-// Highlight query inside the text layer spans (exact positioning)
 function highlightTextLayer(q){
-  const textLayerDiv = document.getElementById("textLayer");
-  if (!textLayerDiv) return;
+  const tl = document.getElementById("textLayer");
+  if (!tl) return;
   const needle = q.toLowerCase();
   const rx = new RegExp(escReg(needle), "gi");
 
-  // Clear existing highlights
-  textLayerDiv.querySelectorAll(".hl").forEach(n => {
-    // unwrap if previously wrapped
-    const parent = n.parentNode;
-    if (parent) parent.replaceChild(document.createTextNode(n.textContent), n);
+  // unwrap previous marks (if any)
+  tl.querySelectorAll("mark.hl").forEach(m => {
+    const parent = m.parentNode;
+    if (!parent) return;
+    parent.replaceChild(document.createTextNode(m.textContent), m);
   });
-  // Also restore original text (remove any split wrappers)
-  // (renderTextLayer will rebuild on each page change anyway)
 
-  // For each text div, wrap matches in <mark class="hl">
-  const nodes = Array.from(textLayerDiv.querySelectorAll("span, div"));
-  nodes.forEach(div => {
-    if (!div.firstChild || div.childNodes.length !== 1 || div.firstChild.nodeType !== 3) return;
-    const text = div.textContent;
-    if (!text || text.toLowerCase().indexOf(needle) === -1) return;
-
-    const html = text.replace(rx, m => `<mark class="hl" style="
-      background: #ffeb3b;
-      color: transparent;
-      opacity: .65;
-      border-radius: 2px;
-      padding: 0 .02em;">${m}</mark>`);
-    div.innerHTML = html;
+  // wrap matches inside textLayer
+  const nodes = Array.from(tl.querySelectorAll("span,div"));
+  nodes.forEach(n => {
+    if (!n.firstChild || n.childNodes.length !== 1 || n.firstChild.nodeType !== 3) return;
+    const txt = n.textContent || "";
+    if (txt.toLowerCase().indexOf(needle) === -1) return;
+    n.innerHTML = txt.replace(rx, m => `<mark class="hl">${m}</mark>`);
   });
 }
 
-// Get plain text of a page (for search index)
 async function getPageText(pageNumber){
   if (current.textIndex[pageNumber]) return current.textIndex[pageNumber];
   const page = await current.pdf.getPage(pageNumber);
@@ -277,12 +260,12 @@ async function runSearch(){
   }
 
   setStatus("Searching PDF…");
-  const maxResults = 100;
+  const maxResults = 150;
   for (let p=1; p<=current.totalPages && current.hits.length<maxResults; p++){
     const t = await getPageText(p);
     const lower = t.toLowerCase();
-    let from = 0, pos;
     const needle = q.toLowerCase();
+    let from = 0, pos;
     while ((pos = lower.indexOf(needle, from)) !== -1){
       const snippet = t.slice(Math.max(0, pos-80), Math.min(t.length, pos+needle.length+80));
       current.hits.push({ page: p, snippet });
@@ -294,6 +277,7 @@ async function runSearch(){
 
   if (!current.hits.length){ setStatus("No matches."); await renderPage(current.page); return; }
 
+  // render the side results list (right pane)
   const frag = document.createDocumentFragment();
   const rx = new RegExp(escReg(q), "gi");
   current.hits.forEach((h,i) => {
@@ -303,6 +287,7 @@ async function runSearch(){
     div.addEventListener("click", () => gotoHit(i));
     frag.appendChild(div);
   });
+  els.results.innerHTML = "";
   els.results.appendChild(frag);
 
   current.hitCursor = 0;
@@ -314,15 +299,33 @@ async function gotoHit(idx){
   if (!current.hits[idx]) return;
   current.hitCursor = idx;
   await renderPage(current.hits[idx].page); // also applies highlight
-
-  // focus selected result row
-  const rows = els.results.querySelectorAll(".result");
-  rows.forEach(n => n.style.background = "");
-  const row = rows[idx];
-  if (row){ row.style.background = "var(--light)"; row.scrollIntoView({ block: "nearest" }); }
+  highlightActiveResultRow();
+  scrollActiveResultIntoView();
 }
 
-// ----- Page navigation: Prev/Next always turns pages -----
+function highlightActiveResultRow(){
+  const rows = els.results.querySelectorAll(".result");
+  rows.forEach(n => n.classList.remove("active"));
+  const row = rows[current.hitCursor];
+  if (row) row.classList.add("active");
+}
+
+function scrollActiveResultIntoView(){
+  const row = els.results.querySelectorAll(".result")[current.hitCursor];
+  if (row) row.scrollIntoView({ block: "nearest" });
+}
+
+function syncHitSelectionForCurrentPage(){
+  if (!current.hits.length) return;
+  const idx = current.hits.findIndex(h => h.page === current.page);
+  if (idx !== -1){
+    current.hitCursor = idx;
+    highlightActiveResultRow();
+    scrollActiveResultIntoView();
+  }
+}
+
+// ----- Page navigation -----
 function navPage(step){
   if (!current.isPdf || !current.pdf) return;
   const wanted = current.page + (step < 0 ? -1 : 1);
@@ -366,7 +369,7 @@ function wireEvents(){
     URL.revokeObjectURL(a.href);
   });
 
-  // Re-fit page on rotation / resize
+  // Re-fit on rotation/resize
   window.addEventListener("resize", async () => {
     if (!current.isPdf || !current.pdf) return;
     await renderPage(current.page);
