@@ -1,6 +1,6 @@
 [
-  { "title": "Lewin on Trusts (20th ed)", "subtitle": "uk — LEWIN-20", "url": "data/texts/LEWIN-20.pdf" },
-  { "title": "Litigating Trust Disputes in Jersey", "subtitle": "jersey — Sheedy–Baker", "url": "data/texts/Litigating-Trust-Disputes-in-Jersey.pdf" },
-  { "title": "Principles of Jersey Trusts", "subtitle": "jersey — PJTL", "url": "data/texts/Principles-of-Jersey-Trusts.pdf" },
-  { "title": "Underhill & Hayton: Law of Trusts (20th ed)", "subtitle": "uk — UNDERHILL-20", "url": "data/texts/UNDERHILL-20.pdf" }
+  { "title": "Lewin on Trusts (20th ed)", "subtitle": "uk — LEWIN-20", "url": "data/textbooks/uk/Lewin-on-Trusts.txt" },
+  { "title": "Litigating Trust Disputes in Jersey", "subtitle": "jersey — Sheedy–Baker", "url": "data/textbooks/jersey/Litigating-Trust-Disputes-in-Jersey.pdf" },
+  { "title": "Principles of Jersey Trusts", "subtitle": "jersey — PJTL", "url": "data/textbooks/jersey/Principles-of-Jersey-Trusts.txt" },
+  { "title": "Underhill & Hayton: Law of Trusts (20th ed)", "subtitle": "uk — UNDERHILL-20", "url": "data/textbooks/uk/underhill-20.txt" }
 ]
