@@ -1,38 +1,78 @@
 :root { --blue:#103a5c; --light:#f5f7fa; --border:#e2e6ea; }
 * { box-sizing:border-box; }
-
+html, body { height:100%; }
 body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; background:#fff; color:#111; }
 
+/* Header */
 .topbar { display:flex; justify-content:space-between; align-items:center; background:var(--blue); color:#fff; padding:12px 16px; }
 .brand { display:flex; align-items:center; gap:12px; }
 .logo { height:36px; background:#fff; padding:4px; border-radius:4px; }
 .toolbar .btn { margin-left:8px; }
 
-.layout { display:grid; grid-template-columns: 280px 1fr; height: calc(100vh - 64px); }
-.sidebar { border-right:1px solid var(--border); padding:12px; background:#fff; }
-.content { display:flex; flex-direction:column; padding:12px; gap:8px; background:#fff; }
+/* 3-column layout */
+.layout3 {
+  display:grid;
+  grid-template-columns: 260px 1fr 320px;
+  gap:12px;
+  height: calc(100vh - 64px);
+  padding:12px;
+}
+@media (max-width: 980px){
+  .layout3 { grid-template-columns: 220px 1fr 260px; }
+}
+@media (max-width: 760px){
+  .layout3 { grid-template-columns: 1fr; }
+  .results-pane { order:3; height: 30vh; }
+}
 
+/* Left list */
+.sidebar { border:1px solid var(--border); border-radius:8px; padding:10px; background:#fff; overflow:auto; }
 .input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:6px; }
-.list { list-style:none; margin:8px 0 0; padding:0; overflow:auto; height: calc(100% - 56px); }
+.list { list-style:none; margin:8px 0 0; padding:0; }
 .list li { padding:10px; border:1px solid var(--border); border-radius:6px; margin-bottom:8px; cursor:pointer; }
 .list li.active { outline:2px solid var(--blue); }
 
+/* Center content */
+.content { display:flex; flex-direction:column; gap:8px; min-width:0; } /* min-width to allow canvas to scale */
 .content-toolbar { display:flex; gap:8px; align-items:center; }
 .nav { margin-left:auto; display:flex; gap:6px; }
 .btn { padding:8px 12px; border:1px solid var(--border); background:#fff; border-radius:6px; cursor:pointer; }
 .btn:active { transform: translateY(1px); }
 
 .meta { display:grid; grid-template-columns: repeat(4,1fr); gap:8px; font-size:14px; color:#333; }
-.viewer { background:#fff; border:1px solid var(--border); border-radius:8px; padding:0; height: 60vh; overflow:auto; }
-.viewer pre { margin:0; padding:12px; white-space:pre-wrap; word-wrap:break-word; }
-.viewer iframe { width:100%; height:100%; border:0; background:#fff; }
+
+.viewer {
+  border:1px solid var(--border);
+  border-radius:8px;
+  background:#fff;
+  height: calc(100% - 118px); /* fill remaining vertical space in the center column */
+  min-height: 60vh;
+  overflow:hidden; /* one page at a time */
+  position:relative;
+  padding:0;
+}
 .placeholder { padding:16px; color:#666; }
 
-.results { border:1px solid var(--border); border-radius:8px; padding:8px; max-height:22vh; overflow:auto; }
+/* Right results pane */
+.results-pane {
+  border:1px solid var(--border);
+  border-radius:8px;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+.results-head { padding:10px 12px; border-bottom:1px solid var(--border); font-weight:600; }
+.results { overflow:auto; padding:8px; height: 100%; }
 .result { padding:6px 8px; border-bottom:1px solid var(--border); cursor:pointer; }
 .result:last-child { border-bottom:none; }
 .result em { background: #ffeb3b; }
+.result.active { background: var(--light); }
 
-.status { font-size:12px; color:#555; margin-top:6px; }
+.status { font-size:12px; color:#555; margin-top:4px; }
 .error { color:#b00020; }
-.hint { font-size:12px; opacity:.75; padding:6px 0 0 0; }
+
+/* Text layer for highlights */
+.textLayer { position:absolute; left:0; top:0; right:0; bottom:0; z-index:2; pointer-events:none; color:transparent; }
+.textLayer > span, .textLayer > div { position:absolute; transform-origin:0 0; white-space:pre; }
+.textLayer mark.hl { background: rgba(255,235,59,0.55); color:transparent; border-radius:2px; padding:0 .02em; }
