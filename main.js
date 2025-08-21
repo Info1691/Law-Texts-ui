@@ -1,4 +1,8 @@
-// ===== Registry (single source of truth) =====
+// =====================
+// Law-Texts-ui / main.js
+// =====================
+
+// ----- Registry (single source of truth) -----
 const REGISTRY_CANDIDATES = ["textbooks.json"];
 
 let registry = [];
@@ -12,10 +16,10 @@ let current = {
   textIndex: {},      // page -> plain text
   hits: [],           // [{ page, snippet }]
   hitCursor: -1,
-  lastQuery: ""       // current search term (for highlight)
+  lastQuery: ""       // used for drawing highlights
 };
 
-// ===== DOM =====
+// ----- DOM -----
 const els = {
   list: document.getElementById("bookList"),
   filter: document.getElementById("filterInput"),
@@ -33,14 +37,14 @@ const els = {
   exportBtn: document.getElementById("exportBtn")
 };
 
-// ===== Utils =====
+// ----- Utils -----
 const isPDF = (url) => /\.pdf(\?|#|$)/i.test((url||"").trim());
 const clean = (s) => (s||"").toString().trim();
 const escHTML = (s) => (s||"").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const escReg = (s) => (s||"").replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 function setStatus(msg, isError=false){ els.status.textContent = msg || ""; els.status.className = "status" + (isError ? " error" : ""); }
 
-// ===== Boot: load registry =====
+// ----- Boot: load registry -----
 (async function boot(){
   setStatus("Loading registry…");
   let lastErr = null;
@@ -56,13 +60,16 @@ function setStatus(msg, isError=false){ els.status.textContent = msg || ""; els.
       } catch(e){ lastErr = `Invalid JSON at ${path}: ${e.message}`; }
     } catch(e){ lastErr = `Fetch failed: ${e.message}`; }
   }
-  if (!registry.length){ setStatus(`Error loading registry. ${lastErr || "No candidates worked."} Tried: ${REGISTRY_CANDIDATES.join(", ")}.`, true); return; }
+  if (!registry.length){
+    setStatus(`Error loading registry. ${lastErr || "No candidates worked."} Tried: ${REGISTRY_CANDIDATES.join(", ")}.`, true);
+    return;
+  }
   renderList(registry);
   wireEvents();
   setStatus("");
 })();
 
-// ===== Render book list =====
+// ----- Render book list -----
 function renderList(items){
   els.list.innerHTML = "";
   items.forEach((b) => {
@@ -75,7 +82,7 @@ function renderList(items){
   });
 }
 
-// ===== Select book =====
+// ----- Select book -----
 async function selectBook(book, liEl){
   Array.from(els.list.children).forEach(li => li.classList.remove("active"));
   if (liEl) liEl.classList.add("active");
@@ -119,7 +126,7 @@ async function selectBook(book, liEl){
   }
 }
 
-// ===== PDF.js helpers (canvas, crisp using devicePixelRatio) =====
+// ----- PDF.js helpers (canvas, crisp using devicePixelRatio) -----
 async function openPdf(url){
   if (!window.pdfjsLib) throw new Error("PDF.js not available");
   const pdf = await pdfjsLib.getDocument({ url }).promise;
@@ -128,11 +135,12 @@ async function openPdf(url){
 }
 
 function autoScaleForWidth(){
-  const containerWidth = Math.max(els.viewer.clientWidth, 600);
-  // base width ~816px (~8.5in @ 96dpi); bump 20% for readability
-  current.scale = (containerWidth / 816) * 1.2;
-  // cap scale to avoid over-zoom on very wide screens
-  current.scale = Math.min(current.scale, 2.0);
+  // Bigger by default for readability
+  const containerWidth = Math.max(els.viewer.clientWidth, 700);
+  // base width ~816px (~8.5in @ 96dpi); 1.8x for comfortable reading
+  current.scale = (containerWidth / 816) * 1.8;
+  // cap to avoid huge zoom on very wide screens
+  current.scale = Math.min(current.scale, 2.6);
 }
 
 async function renderPage(pageNum){
@@ -140,7 +148,6 @@ async function renderPage(pageNum){
   current.page = Math.min(Math.max(1, pageNum), current.totalPages);
   const page = await current.pdf.getPage(current.page);
 
-  // viewport for CSS sizing
   const viewportCSS = page.getViewport({ scale: current.scale });
   const canvas = document.getElementById("pdfCanvas");
   const ctx = canvas.getContext("2d");
@@ -152,14 +159,11 @@ async function renderPage(pageNum){
   canvas.width  = Math.floor(viewportCSS.width  * dpr);
   canvas.height = Math.floor(viewportCSS.height * dpr);
 
-  // apply DPR transform to viewport used for render
   const transform = dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null;
   const viewportDevice = page.getViewport({ scale: current.scale, transform });
 
-  // render page
   await page.render({ canvasContext: ctx, viewport: viewportDevice }).promise;
 
-  // update page info
   const info = document.getElementById("pageInfo");
   if (info) info.textContent = `${current.page} / ${current.totalPages}`;
 
@@ -177,52 +181,82 @@ async function getPageText(pageNumber){
   return text;
 }
 
-// ===== Highlight logic (fast approximation) =====
+// ----- Highlight logic (handles splits across adjacent items) -----
 async function highlightMatchesOnCanvas(page, ctx, viewport, q, dpr){
   try {
     const content = await page.getTextContent();
     const needle = q.toLowerCase();
 
+    // Precompute item metrics
+    const items = content.items.map((it) => {
+      const m = pdfjsLib.Util.transform(viewport.transform, it.transform);
+      const x = m[4];
+      const yTop = m[5];
+      const fontHeight = Math.hypot(m[2], m[3]);
+      const widthPx = it.width * viewport.scale; // CSS px
+      const text = it.str || "";
+      return {
+        text,
+        lower: text.toLowerCase(),
+        x, yTop, fontHeight, widthPx,
+        avgChar: widthPx / Math.max(1, text.length)
+      };
+    });
+
     ctx.save();
     ctx.globalAlpha = 0.35;
     ctx.fillStyle = "#ffeb3b";
 
-    for (const item of content.items){
-      const text = item.str || "";
-      const lower = text.toLowerCase();
-      if (!lower.includes(needle)) continue;
+    // helper to draw a box (CSS px -> device px)
+    const fillBox = (x, yTop, w, h) => {
+      const pad = Math.max(1, h * 0.15);
+      const yy = yTop - h - pad;
+      ctx.fillRect(x * dpr, yy * dpr, Math.max(2, w) * dpr, (h + pad * 2) * dpr);
+    };
 
-      // Transform text matrix into viewport space
-      const m = pdfjsLib.Util.transform(viewport.transform, item.transform);
-      const x = m[4];
-      const yTop = m[5];
+    for (let i = 0; i < items.length; i++){
+      const a = items[i];
+      if (!a.text) continue;
 
-      // Approximate metrics
-      const fontHeight = Math.hypot(m[2], m[3]); // transformed glyph height
-      const itemWidth = item.width * viewport.scale; // width in CSS px
-      const avgChar = itemWidth / Math.max(1, text.length);
-
-      // Find all occurrences within this item
+      // (1) matches fully inside this item
       let from = 0, pos;
-      while ((pos = lower.indexOf(needle, from)) !== -1){
-        const hlX = x + pos * avgChar;
-        const hlW = Math.max(avgChar * needle.length, 2);
-        // PDF.js y=top; canvas expects y from top; fontHeight is ascent; add small padding
-        const padding = Math.max(1, fontHeight * 0.15);
-        const hlY = yTop - fontHeight - padding;
-        const hlH = fontHeight + padding * 2;
-
-        ctx.fillRect(hlX * dpr, hlY * dpr, hlW * dpr, hlH * dpr);
+      while ((pos = a.lower.indexOf(needle, from)) !== -1){
+        const x = a.x + pos * a.avgChar;
+        const w = a.avgChar * needle.length;
+        fillBox(x, a.yTop, w, a.fontHeight);
         from = pos + needle.length;
       }
+
+      // (2) match split across this item + next item (e.g., "Dol" + "lar")
+      if (i + 1 < items.length){
+        const b = items[i+1];
+        const joined = a.lower + b.lower;
+        const jpos = joined.indexOf(needle);
+        if (jpos !== -1){
+          const aChars = Math.min(a.text.length, Math.max(0, jpos + needle.length) - jpos);
+          const bChars = Math.max(0, needle.length - aChars);
+
+          if (aChars > 0){
+            const xa = a.x + jpos * a.avgChar;
+            const wa = a.avgChar * aChars;
+            fillBox(xa, a.yTop, wa, a.fontHeight);
+          }
+          if (bChars > 0){
+            const xb = b.x;
+            const wb = b.avgChar * bChars;
+            fillBox(xb, b.yTop, wb, b.fontHeight);
+          }
+        }
+      }
     }
+
     ctx.restore();
   } catch(e){
-    // Silent fallback if metrics are unavailable
+    // If metrics aren't available, skip highlighting without breaking render.
   }
 }
 
-// ===== Search (TXT or PDF) =====
+// ----- Search (TXT or PDF) -----
 async function runSearch(){
   const q = clean(els.search.value);
   els.results.innerHTML = ""; current.hits = []; current.hitCursor = -1;
@@ -257,7 +291,7 @@ async function runSearch(){
       if (current.hits.length >= maxResults) break;
       from = pos + needle.length;
     }
-    await new Promise(r => setTimeout(r, 0));
+    await new Promise(r => setTimeout(r, 0)); // yield to UI
   }
 
   if (!current.hits.length){ setStatus("No matches."); await renderPage(current.page); return; }
@@ -281,7 +315,7 @@ async function gotoHit(idx){
   if (!current.hits[idx]) return;
   current.hitCursor = idx;
   const page = current.hits[idx].page;
-  await renderPage(page); // this also draws highlight for current.lastQuery
+  await renderPage(page); // also draws highlight for current.lastQuery
 
   // focus selected result row
   const rows = els.results.querySelectorAll(".result");
@@ -290,15 +324,21 @@ async function gotoHit(idx){
   if (row){ row.style.background = "var(--light)"; row.scrollIntoView({ block: "nearest" }); }
 }
 
+// ----- Prev/Next: hits if present, else page nav -----
 function navHit(step){
-  if (!current.hits.length) return;
-  let idx = current.hitCursor + step;
-  if (idx < 0) idx = current.hits.length - 1;
-  if (idx >= current.hits.length) idx = 0;
-  gotoHit(idx);
+  if (current.hits.length){
+    let idx = current.hitCursor + step;
+    if (idx < 0) idx = current.hits.length - 1;
+    if (idx >= current.hits.length) idx = 0;
+    gotoHit(idx);
+    return;
+  }
+  if (current.isPdf && current.pdf){
+    renderPage(current.page + (step < 0 ? -1 : 1));
+  }
 }
 
-// ===== Events =====
+// ----- Events -----
 function wireEvents(){
   els.filter.addEventListener("input", () => {
     const q = els.filter.value.toLowerCase();
@@ -328,6 +368,7 @@ function wireEvents(){
     URL.revokeObjectURL(a.href);
   });
 
+  // Keep fit-to-width on rotation/resize
   window.addEventListener("resize", async () => {
     if (!current.isPdf || !current.pdf) return;
     autoScaleForWidth();
