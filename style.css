@@ -34,7 +34,7 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,
 .content { display:flex; flex-direction:column; gap:8px; min-width:0; }
 .content-toolbar { display:flex; gap:8px; align-items:center; }
 .nav { margin-left:auto; display:flex; gap:6px; align-items:center; }
-.zoomLabel { font-size:12px; color:#333; width:42px; text-align:center; }
+.zoomLabel { font-size:12px; color:#333; width:48px; text-align:center; }
 .btn { padding:8px 12px; border:1px solid var(--border); background:#fff; border-radius:6px; cursor:pointer; }
 .btn:active { transform: translateY(1px); }
 
@@ -46,45 +46,29 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,
   background:#fff;
   height: calc(100% - 118px);
   min-height: 60vh;
-  overflow: auto;             /* vertical scroll for tall pages */
-  position: relative;
+  overflow:auto;
+  position:relative;
   padding: 8px;
 }
-.pageWrap { position:relative; width:100%; margin:0 auto; display:block; }
+
+/* The pageSurface is the exact CSS size of the page; canvas and overlays are 100% of it */
+.pageSurface {
+  position: relative;
+  width: 100%;
+  height: auto;         /* set per page by JS */
+  margin: 0 auto;       /* center horizontally */
+}
 #pdfCanvas { display:block; width:100%; height:auto; background:#fff; }
 
-/* Overlay layers */
-.hlayer { position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none; z-index:3; }
-.textLayer { position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none; z-index:2; color:transparent; }
+/* Overlay layers perfectly aligned with the canvas inside pageSurface */
+.hlayer, .textLayer {
+  position:absolute;
+  left:0; top:0;
+  width:100%; height:100%;
+  pointer-events:none;
+}
+.hlayer { z-index:3; }
+.textLayer { z-index:2; color:transparent; }
 .textLayer > span, .textLayer > div { position:absolute; transform-origin:0 0; white-space:pre; }
 
-/* highlight rectangles */
-.hlayer .hl { position:absolute; background: rgba(255,235,59,0.55); border-radius:2px; }
-
-/* Right results pane */
-.results-pane {
-  border:1px solid var(--border);
-  border-radius:8px;
-  background:#fff;
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
-}
-.results-head { padding:10px 12px; border-bottom:1px solid var(--border); font-weight:600; }
-.results { overflow:auto; padding:8px; height: 100%; }
-.result { padding:8px 10px; border-bottom:1px solid var(--border); cursor:pointer; }
-.result:last-child { border-bottom:none; }
-.result em { background: #ffeb3b; }
-.result.active { background: var(--light); }
-
-/* Bottom tray (restored) */
-.tray { margin-top:8px; border:1px solid var(--border); border-radius:8px; overflow:hidden; }
-.tray-head { padding:8px 10px; background:#fafbfc; border-bottom:1px solid var(--border); font-weight:600; }
-.tray-body { max-height:180px; overflow:auto; }
-.tray-body .result { padding:8px 10px; border-bottom:1px solid var(--border); cursor:pointer; }
-.tray-body .result:last-child { border-bottom:none; }
-.tray-body .result em { background:#ffeb3b; }
-
-/* Status */
-.status { font-size:12px; color:#555; margin-top:4px; }
-.status.error { color:#b00020; }
+/*
