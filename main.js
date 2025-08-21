@@ -1,19 +1,20 @@
 // Trust Law Textbooks — fixed 3-column layout, Repo drawer, calibrated PDF + Matches
 document.addEventListener('DOMContentLoaded', () => {
+  // ---------- PDF.js worker ----------
   if (!window.pdfjsLib) { alert('PDF.js failed to load'); return; }
   pdfjsLib.GlobalWorkerOptions.workerSrc =
     'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
 
   // ---------- CONFIG ----------
-  // Try multiple catalog locations so it works with your existing repo
+  // Try multiple catalog locations so it works with existing repo layouts
   const CATALOG_CANDIDATES = [
     'data/texts/catalog.json',
     'texts/catalog.json',
     'data/law-texts/catalog.json'
   ];
   const REPOS_CANDIDATES = ['data/repos.json', 'repos.json'];
-  const DEFAULT_OFFSET = -83;
-  const STORAGE_PREFIX = 'lawtexts:';
+  const DEFAULT_OFFSET = -83;              // overridden by Calibrate
+  const STORAGE_PREFIX = 'lawtexts:';      // per-PDF localStorage namespace
   const MAX_MATCHES = 200;
 
   // ---------- STATE ----------
@@ -29,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const textLayer = $('#textLayer'); const hlLayer = $('#highlightLayer');
   const catalogList = $('#catalogList');
 
-  // Header
+  // Header controls
   $('#printBtn').addEventListener('click', () => window.print());
   $('#exportTxtBtn').addEventListener('click', exportVisibleText);
   $('#findNextBtn').addEventListener('click', () => handleFind('next'));
@@ -44,20 +45,21 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#nextBtn').addEventListener('click', ()=> queueRender(Math.min(pdfDoc?.numPages||1, currentPage+1)));
   $('#listFilter').addEventListener('input', filterCatalog);
 
-  // Drawer (Repo Hub)
+  // Repo drawer
   const drawer = $('#drawer');
   $('#drawerToggle').addEventListener('click', ()=> drawer.classList.toggle('open'));
   $('#drawerClose').addEventListener('click', ()=> drawer.classList.remove('open'));
   $('#repoFilter').addEventListener('input', filterRepos);
 
-  // Storage helpers
+  // ---------- Storage / utils ----------
   const key = (s) => STORAGE_PREFIX + (currentPdfUrl || '') + ':' + s;
   const loadCalib = () => JSON.parse(localStorage.getItem(key('calib')) || '{}');
   const saveCalib = (o) => localStorage.setItem(key('calib'), JSON.stringify(o));
   const toast = (m, ms=2300) => { const t=$('#toast'); t.textContent=m; t.hidden=false; clearTimeout(t._tm); t._tm=setTimeout(()=>t.hidden=true,ms); };
   const escapeHTML = s => s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const delay = (ms) => new Promise(r=>setTimeout(r, ms));
 
-  // Init
+  // ---------- Init ----------
   (async function init(){
     await loadRepos();
     await loadCatalog();
@@ -65,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (direct) openPdf(direct, null);
   })();
 
-  // ---------- Load helpers (try candidates) ----------
+  // ---------- fetch-first helper (tries multiple paths) ----------
   async function fetchFirst(paths){
     for (const p of paths){
       try{
@@ -79,13 +81,22 @@ document.addEventListener('DOMContentLoaded', () => {
   // ---------- Repos ----------
   async function loadRepos(){
     const data = await fetchFirst(REPOS_CANDIDATES);
-    const ul = $('#repoList'); ul.innerHTML='';
-    if (!data){ ul.innerHTML='<li class="repo-item"><div class="meta"><small>No repos.json found</small></div></li>'; return; }
+    const ul = $('#repoList'); ul.innerHTML = '';
+    if (!data){
+      ul.innerHTML = '<li class="repo-item"><div class="meta"><small>No repos.json found</small></div></li>';
+      return;
+    }
     for (const r of data){
       const li = document.createElement('li');
-      li.className='repo-item'; li.dataset.name=(r.name||'').toLowerCase();
-      li.innerHTML = `<div class="meta"><strong>${r.name||''}</strong>${r.desc?`<small>${r.desc}</small>`:''}${r.url?`<small>${r.url}</small>`:''}</div>
-                      <div class="repo-actions"><a class="btn btn-lite" href="${r.url}" target="_blank" rel="noopener">Open</a></div>`;
+      li.className = 'repo-item';
+      li.dataset.name = (r.name||'').toLowerCase();
+      li.innerHTML = `
+        <div class="meta">
+          <strong>${r.name||''}</strong>
+          ${r.desc?`<small>${r.desc}</small>`:''}
+          ${r.url ?`<small>${r.url}</small>`:''}
+        </div>
+        <div class="repo-actions"><a class="btn btn-lite" href="${r.url}" target="_blank" rel="noopener">Open</a></div>`;
       ul.appendChild(li);
     }
   }
@@ -104,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
       toast('catalog.json not found');
       return;
     }
-    catalogList.innerHTML='';
+    catalogList.innerHTML = '';
     for (const it of data){
       const li = document.createElement('li');
       li.dataset.title = (it.title||'').toLowerCase();
@@ -113,7 +124,6 @@ document.addEventListener('DOMContentLoaded', () => {
       li.addEventListener('click', ()=> openPdf(it.url, li));
       catalogList.appendChild(li);
     }
-    // Auto-open first
     if (data.length) openPdf(data[0].url, catalogList.firstElementChild);
   }
   function filterCatalog(e){
@@ -121,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
     [...catalogList.children].forEach(li => li.style.display = li.dataset.title?.includes(q) ? '' : 'none');
   }
 
-  // ---------- Open & render PDF (robust with 404 check) ----------
+  // ---------- OPEN & RENDER PDF (Safari-safe ArrayBuffer path) ----------
   async function openPdf(url, li){
     try{
       currentPdfUrl = url;
@@ -130,20 +140,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (li){ [...catalogList.children].forEach(n=>n.classList.remove('active')); li.classList.add('active'); }
 
-      // Encode spaces; check existence before giving to pdf.js (prevents opaque "Script error.")
       const safeUrl = encodeURI(url);
-      const head = await fetch(safeUrl, { method:'HEAD' });
-      if (!head.ok){
-        toast(`PDF not found: ${url}`);
-        console.error('PDF 404/blocked:', url, head.status);
-        return;
+
+      // Prefer fetch → ArrayBuffer → {data} to dodge HEAD/CORS/worker oddities on iPad/Safari
+      let source;
+      try{
+        const resp = await fetch(safeUrl, { cache:'no-store' });
+        if (!resp.ok) throw new Error(`HTTP ${resp.status} for ${safeUrl}`);
+        const ab = await resp.arrayBuffer();
+        source = { data: ab };
+        console.log('Loaded via ArrayBuffer:', safeUrl, ab.byteLength, 'bytes');
+      }catch(e){
+        console.warn('ArrayBuffer fetch failed, falling back to URL mode:', e);
+        source = { url: safeUrl };
       }
 
-      console.log('Loading PDF:', safeUrl);
-      const task = pdfjsLib.getDocument({ url: safeUrl });
+      const task = pdfjsLib.getDocument(source);
       pdfDoc = await task.promise;
 
-      // scale to fixed 14cm container
+      // Fit to 14cm container
       const cssWidth = pdfContainer.clientWidth;
       const pg1 = await pdfDoc.getPage(1);
       const v = pg1.getViewport({ scale: 1 });
@@ -164,23 +179,32 @@ document.addEventListener('DOMContentLoaded', () => {
       const page = await pdfDoc.getPage(num);
       const viewport = page.getViewport({ scale: viewportScale });
 
+      // Canvas
       pdfCanvas.height = Math.floor(viewport.height);
       pdfCanvas.width  = Math.floor(viewport.width);
       await page.render({ canvasContext: ctx, viewport }).promise;
 
+      // Layers
       textLayer.innerHTML=''; hlLayer.innerHTML='';
       textLayer.style.width = hlLayer.style.width = pdfCanvas.width + 'px';
       textLayer.style.height= hlLayer.style.height= pdfCanvas.height + 'px';
 
+      // Build simple text layer (for search/highlight)
       const textContent = await page.getTextContent();
       pageTextCache.set(num, textContent);
-
       for (const item of textContent.items){
-        const span=document.createElement('span'); span.textContent=item.str;
-        const tr = pdfjsLib.Util.transform(pdfjsLib.Util.transform(viewport.transform, item.transform), [1,0,0,-1,0,0]);
-        const [a,b,c,d,e,f]=tr; const fs=Math.hypot(a,b);
-        span.style.position='absolute'; span.style.left=e+'px'; span.style.top=(f-fs)+'px';
-        span.style.fontSize=fs+'px'; span.style.transformOrigin='left bottom';
+        const span = document.createElement('span');
+        span.textContent = item.str;
+        const tr = pdfjsLib.Util.transform(
+          pdfjsLib.Util.transform(viewport.transform, item.transform),
+          [1,0,0,-1,0,0]
+        );
+        const [a,b,c,d,e,f] = tr; const fs = Math.hypot(a,b);
+        span.style.position='absolute';
+        span.style.left = e+'px';
+        span.style.top  = (f - fs)+'px';
+        span.style.fontSize = fs+'px';
+        span.style.transformOrigin='left bottom';
         span.style.transform=`matrix(${a/fs},${b/fs},${c/fs},${d/fs},0,0)`;
         textLayer.appendChild(span);
       }
@@ -199,11 +223,11 @@ document.addEventListener('DOMContentLoaded', () => {
     currentPage = num; render(num);
   }
 
-  // ---------- Book ↔ PDF page mapping ----------
+  // ---------- Book ↔ PDF mapping ----------
   function pdfFromBook(book){
     const c = loadCalib();
     if (Array.isArray(c.anchors) && c.anchors.length){
-      const a=[...c.anchors].filter(x=>x.bookPageStart<=book).sort((x,y)=>y.bookPageStart-x.bookPageStart)[0];
+      const a = [...c.anchors].filter(x=>x.bookPageStart<=book).sort((x,y)=>y.bookPageStart-x.bookPageStart)[0];
       if (a) return book + a.offset;
     }
     const off = (typeof c.offset==='number') ? c.offset : DEFAULT_OFFSET;
@@ -215,8 +239,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const sorted=[...c.anchors].sort((x,y)=>x.bookPageStart-y.bookPageStart);
       let chosen = sorted[0] || { bookPageStart:1, offset:(typeof c.offset==='number')?c.offset:DEFAULT_OFFSET };
       for (const a of sorted){
-        const pivot=a.bookPageStart + a.offset;
-        if (pivot <= pdf) chosen=a; else break;
+        const pivot = a.bookPageStart + a.offset;
+        if (pivot <= pdf) chosen = a; else break;
       }
       return pdf - chosen.offset;
     }
@@ -232,7 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const book = parseInt(ans,10);
     if (!Number.isInteger(book)) return;
     const off = currentPage - book;
-    const c = loadCalib(); c.offset=off; c.anchors=c.anchors||[];
+    const c = loadCalib(); c.offset = off; c.anchors = c.anchors || [];
     saveCalib(c);
     toast(`Calibrated: Book p.${book} ↔ PDF p.${currentPage} (offset ${off>=0?'+':''}${off})`);
     updateLabel();
@@ -256,12 +280,13 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let p=1;p<=pdfDoc.numPages;p++){
           const tc = pageTextCache.get(p) || await pdfDoc.getPage(p).then(pg=>pg.getTextContent());
           if (!pageTextCache.has(p)) pageTextCache.set(p, tc);
-          const items=tc.items.map(i=>i.str); const joined=items.join(' ');
-          const idxs=findAll(joined.toLowerCase(), q.toLowerCase());
+          const items = tc.items.map(i=>i.str);
+          const joined = items.join(' ');
+          const idxs = findAll(joined.toLowerCase(), q.toLowerCase());
           for (const idx of idxs){
             const start=Math.max(0, idx-60), end=Math.min(joined.length, idx+q.length+60);
-            const snippet=joined.slice(start,end).replace(/\s+/g,' ').trim();
-            matches.push({page:p, snippet, bookPage:bookFromPdf(p)});
+            const snippet = joined.slice(start,end).replace(/\s+/g,' ').trim();
+            matches.push({ page:p, snippet, bookPage:bookFromPdf(p) });
             if (matches.length>=MAX_MATCHES) break;
           }
           if (matches.length>=MAX_MATCHES) break;
@@ -275,24 +300,27 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!matches.length) return;
     const i = matches.findIndex(m=>m.page===currentPage);
     const next = (mode==='next') ? (i+1)%matches.length : (i-1+matches.length)%matches.length;
-    const m = matches[next]; queueRender(m.page); await delay(180); await highlightSnippetOnCurrentPage(searchTerm);
+    const m = matches[next];
+    queueRender(m.page); await delay(180); await highlightSnippetOnCurrentPage(searchTerm);
   }
   function findAll(hay, needle){ const out=[]; let i=hay.indexOf(needle); while(i!==-1){ out.push(i); i=hay.indexOf(needle, i+needle.length);} return out; }
   function renderMatches(){
-    const ul=$('#matchesList'); ul.innerHTML='';
+    const ul = $('#matchesList'); ul.innerHTML='';
     $('#matchCount').textContent = matches.length ? `${matches.length} result(s)` : 'No results';
     for (const m of matches){
       const li=document.createElement('li'); li.className='match';
-      li.innerHTML=`<div class="meta">p.${m.bookPage}</div><div>${escapeHTML(m.snippet)}</div>`;
+      li.innerHTML = `<div class="meta">p.${m.bookPage}</div><div>${escapeHTML(m.snippet)}</div>`;
       li.addEventListener('click', async ()=>{ queueRender(m.page); await delay(180); await highlightSnippetOnCurrentPage(searchTerm); });
       ul.appendChild(li);
     }
   }
 
+  // ---------- Highlight snippet on current page ----------
   async function highlightSnippetOnCurrentPage(snippet){
     if (!pdfDoc) return false;
     const tc = pageTextCache.get(currentPage) || await pdfDoc.getPage(currentPage).then(p=>p.getTextContent());
     if (!pageTextCache.has(currentPage)) pageTextCache.set(currentPage, tc);
+
     const items = tc.items.map(i=>i.str);
     const joined = items.join(' ').toLowerCase();
     const needle = snippet.toLowerCase().replace(/\s+/g,' ').trim();
@@ -300,23 +328,32 @@ document.addEventListener('DOMContentLoaded', () => {
     if (startIdx === -1){ hlLayer.innerHTML=''; return false; }
 
     let acc=0, startItem=0, startChar=0;
-    for (let i=0;i<items.length;i++){ const s=items[i]; if (acc+s.length+1>startIdx){ startItem=i; startChar=startIdx-acc; break; } acc+=s.length+1; }
-    const endIdx=startIdx+needle.length; let endItem=startItem, endChar=endIdx-acc;
-    for (let i=startItem;i<items.length;i++){ const s=items[i], spanEnd=acc+s.length+1; if (spanEnd>=endIdx){ endItem=i; endChar=endIdx-acc; break; } acc=spanEnd; }
+    for (let i=0;i<items.length;i++){
+      const s=items[i]; if (acc + s.length + 1 > startIdx){ startItem=i; startChar=startIdx-acc; break; }
+      acc += s.length + 1;
+    }
+    const endIdx = startIdx + needle.length;
+    let endItem=startItem, endChar=endIdx-acc;
+    for (let i=startItem;i<items.length;i++){
+      const s=items[i], spanEnd=acc+s.length+1;
+      if (spanEnd >= endIdx){ endItem=i; endChar=endIdx-acc; break; }
+      acc = spanEnd;
+    }
 
     hlLayer.innerHTML='';
     const page = await pdfDoc.getPage(currentPage);
     const viewport = page.getViewport({ scale: viewportScale });
 
     for (let i=startItem;i<=endItem;i++){
-      const it=tc.items[i];
+      const it = tc.items[i];
       const tr = pdfjsLib.Util.transform(pdfjsLib.Util.transform(viewport.transform, it.transform), [1,0,0,-1,0,0]);
-      const [a,b,c,d,e,f]=tr; const fs=Math.hypot(a,b);
+      const [a,b,c,d,e,f] = tr; const fs = Math.hypot(a,b);
       const widthPerChar = (it.width ? (it.width * viewportScale) : Math.abs(a)) / Math.max(1, it.str.length);
-      let left=e, top=f-fs, wChars=it.str.length;
-      if (i===startItem){ left+=widthPerChar*startChar; wChars-=startChar; }
-      if (i===endItem){ wChars=(i===startItem ? (endChar-startChar) : endChar); }
-      const box=document.createElement('div'); box.className='highlight';
+      let left=e, top=f - fs, wChars=it.str.length;
+      if (i===startItem){ left += widthPerChar * startChar; wChars -= startChar; }
+      if (i===endItem){ wChars = (i===startItem ? (endChar-startChar) : endChar); }
+      const box=document.createElement('div');
+      box.className='highlight';
       box.style.left=left+'px'; box.style.top=top+'px';
       box.style.width=Math.max(2, widthPerChar*Math.max(0,wChars))+'px';
       box.style.height=Math.max(2, fs*1.1)+'px';
@@ -325,7 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return true;
   }
 
-  // ---------- Export ----------
+  // ---------- Export visible page text ----------
   async function exportVisibleText(){
     if (!pdfDoc) return;
     const tc = pageTextCache.get(currentPage) || await pdfDoc.getPage(currentPage).then(p=>p.getTextContent());
@@ -334,7 +371,4 @@ document.addEventListener('DOMContentLoaded', () => {
     const a = document.createElement('a'); a.href=URL.createObjectURL(blob);
     a.download=`book-p${bookFromPdf(currentPage)}-pdf-p${currentPage}.txt`; a.click(); URL.revokeObjectURL(a.href);
   }
-
-  // ---------- Helpers ----------
-  function delay(ms){ return new Promise(r=>setTimeout(r, ms)); }
 });
