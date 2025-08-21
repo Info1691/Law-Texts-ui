@@ -8,10 +8,11 @@ let current = {
   pdf: null,
   totalPages: 0,
   page: 1,
-  scale: 1.2,         // CSS scale; internal pixel ratio handled separately
-  textIndex: {},      // page -> text
-  hits: [],
-  hitCursor: -1
+  scale: 1.2,         // CSS scale; recalculated per viewport
+  textIndex: {},      // page -> plain text
+  hits: [],           // [{ page, snippet }]
+  hitCursor: -1,
+  lastQuery: ""       // current search term (for highlight)
 };
 
 // ===== DOM =====
@@ -83,6 +84,7 @@ async function selectBook(book, liEl){
   current.isPdf = isPDF(book.reference_url);
   current.pdf = null; current.totalPages = 0; current.page = 1;
   current.textIndex = {}; current.hits = []; current.hitCursor = -1;
+  current.lastQuery = "";
 
   els.results.innerHTML = "";
   els.viewer.innerHTML = `<div class="placeholder">Loading…</div>`;
@@ -127,8 +129,10 @@ async function openPdf(url){
 
 function autoScaleForWidth(){
   const containerWidth = Math.max(els.viewer.clientWidth, 600);
-  // base width ~816px (~8.5in @ 96dpi)
-  current.scale = containerWidth / 816;
+  // base width ~816px (~8.5in @ 96dpi); bump 20% for readability
+  current.scale = (containerWidth / 816) * 1.2;
+  // cap scale to avoid over-zoom on very wide screens
+  current.scale = Math.min(current.scale, 2.0);
 }
 
 async function renderPage(pageNum){
@@ -136,24 +140,32 @@ async function renderPage(pageNum){
   current.page = Math.min(Math.max(1, pageNum), current.totalPages);
   const page = await current.pdf.getPage(current.page);
 
+  // viewport for CSS sizing
   const viewportCSS = page.getViewport({ scale: current.scale });
   const canvas = document.getElementById("pdfCanvas");
   const ctx = canvas.getContext("2d");
 
-  // Render at device pixel ratio for sharpness
+  // crisp rendering at device pixel ratio
   const dpr = window.devicePixelRatio || 1;
   canvas.style.width = viewportCSS.width + "px";
   canvas.style.height = viewportCSS.height + "px";
   canvas.width  = Math.floor(viewportCSS.width  * dpr);
   canvas.height = Math.floor(viewportCSS.height * dpr);
 
+  // apply DPR transform to viewport used for render
   const transform = dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null;
   const viewportDevice = page.getViewport({ scale: current.scale, transform });
 
+  // render page
   await page.render({ canvasContext: ctx, viewport: viewportDevice }).promise;
 
+  // update page info
   const info = document.getElementById("pageInfo");
   if (info) info.textContent = `${current.page} / ${current.totalPages}`;
+
+  // draw highlight for current query (if any)
+  const q = clean(current.lastQuery);
+  if (q) await highlightMatchesOnCanvas(page, ctx, viewportDevice, q, dpr);
 }
 
 async function getPageText(pageNumber){
@@ -165,11 +177,58 @@ async function getPageText(pageNumber){
   return text;
 }
 
+// ===== Highlight logic (fast approximation) =====
+async function highlightMatchesOnCanvas(page, ctx, viewport, q, dpr){
+  try {
+    const content = await page.getTextContent();
+    const needle = q.toLowerCase();
+
+    ctx.save();
+    ctx.globalAlpha = 0.35;
+    ctx.fillStyle = "#ffeb3b";
+
+    for (const item of content.items){
+      const text = item.str || "";
+      const lower = text.toLowerCase();
+      if (!lower.includes(needle)) continue;
+
+      // Transform text matrix into viewport space
+      const m = pdfjsLib.Util.transform(viewport.transform, item.transform);
+      const x = m[4];
+      const yTop = m[5];
+
+      // Approximate metrics
+      const fontHeight = Math.hypot(m[2], m[3]); // transformed glyph height
+      const itemWidth = item.width * viewport.scale; // width in CSS px
+      const avgChar = itemWidth / Math.max(1, text.length);
+
+      // Find all occurrences within this item
+      let from = 0, pos;
+      while ((pos = lower.indexOf(needle, from)) !== -1){
+        const hlX = x + pos * avgChar;
+        const hlW = Math.max(avgChar * needle.length, 2);
+        // PDF.js y=top; canvas expects y from top; fontHeight is ascent; add small padding
+        const padding = Math.max(1, fontHeight * 0.15);
+        const hlY = yTop - fontHeight - padding;
+        const hlH = fontHeight + padding * 2;
+
+        ctx.fillRect(hlX * dpr, hlY * dpr, hlW * dpr, hlH * dpr);
+        from = pos + needle.length;
+      }
+    }
+    ctx.restore();
+  } catch(e){
+    // Silent fallback if metrics are unavailable
+  }
+}
+
 // ===== Search (TXT or PDF) =====
 async function runSearch(){
   const q = clean(els.search.value);
   els.results.innerHTML = ""; current.hits = []; current.hitCursor = -1;
-  if (!q){ setStatus(""); return; }
+  current.lastQuery = q;
+
+  if (!q){ setStatus(""); await renderPage(current.page); return; }
   const url = clean(current.book?.reference_url);
   if (!url){ setStatus("No book selected."); return; }
 
@@ -198,10 +257,10 @@ async function runSearch(){
       if (current.hits.length >= maxResults) break;
       from = pos + needle.length;
     }
-    await new Promise(r => setTimeout(r, 0)); // yield to UI
+    await new Promise(r => setTimeout(r, 0));
   }
 
-  if (!current.hits.length){ setStatus("No matches."); return; }
+  if (!current.hits.length){ setStatus("No matches."); await renderPage(current.page); return; }
 
   const frag = document.createDocumentFragment();
   const rx = new RegExp(escReg(q), "gi");
@@ -222,8 +281,9 @@ async function gotoHit(idx){
   if (!current.hits[idx]) return;
   current.hitCursor = idx;
   const page = current.hits[idx].page;
-  await renderPage(page);
-  // highlight selected row
+  await renderPage(page); // this also draws highlight for current.lastQuery
+
+  // focus selected result row
   const rows = els.results.querySelectorAll(".result");
   rows.forEach(n => n.style.background = "");
   const row = rows[idx];
