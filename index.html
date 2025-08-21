@@ -41,8 +41,8 @@
         <input id="searchInput" class="input" placeholder="Search within text…"/>
         <div class="nav">
           <button id="zoomOutBtn" class="btn">–</button>
-          <button id="zoomInBtn" class="btn">+</button>
           <span class="zoomLabel" id="zoomLabel">100%</span>
+          <button id="zoomInBtn" class="btn">+</button>
           <button id="prevBtn" class="btn">Prev</button>
           <button id="nextBtn" class="btn">Next</button>
         </div>
@@ -55,16 +55,16 @@
         <div>Reference: <span id="metaRef">—</span></div>
       </div>
 
-      <!-- Viewer: the key is the fixed-size pageSurface which aligns canvas + overlays -->
+      <!-- Viewer: canvas + highlight overlay + (invisible) text layer -->
       <div id="viewer" class="viewer">
-        <div id="pageSurface" class="pageSurface">
+        <div id="pageWrap" class="pageWrap">
           <canvas id="pdfCanvas"></canvas>
           <div id="highlightLayer" class="hlayer"></div>
           <div id="textLayer" class="textLayer"></div>
         </div>
         <div class="hint">Pages: <span id="pageInfo">—</span></div>
 
-        <!-- Bottom tray -->
+        <!-- Bottom tray (secondary list of matches) -->
         <div class="tray">
           <div class="tray-head">Matches (tray)</div>
           <div id="resultsBottom" class="tray-body"></div>
@@ -81,7 +81,7 @@
     </aside>
   </main>
 
-  <script src="main.js?v=aligned1"></script>
+  <script src="main.js?v=restore1"></script>
   <script src="drawer.js"></script>
 </body>
 </html>
