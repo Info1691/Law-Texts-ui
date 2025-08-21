@@ -27,14 +27,15 @@
     </nav>
   </header>
 
-  <main class="layout">
-    <!-- Sidebar -->
+  <!-- Three-column layout: Left list • Center viewer • Right results -->
+  <main class="layout3">
+    <!-- Left: book list -->
     <aside class="sidebar">
       <input id="filterInput" class="input" placeholder="Filter list…"/>
       <ul id="bookList" class="list"></ul>
     </aside>
 
-    <!-- Content -->
+    <!-- Center: viewer + controls -->
     <section class="content">
       <div class="content-toolbar">
         <input id="searchInput" class="input" placeholder="Search within text…"/>
@@ -51,19 +52,23 @@
         <div>Reference: <span id="metaRef">—</span></div>
       </div>
 
-      <!-- Viewer renders TXT or PDF canvas -->
+      <!-- Viewer: single page with canvas + text layer -->
       <div id="viewer" class="viewer">
         <div class="placeholder">Select a book on the left.</div>
       </div>
 
-      <!-- Search results + status -->
-      <div id="results" class="results"></div>
       <div id="status" class="status"></div>
     </section>
+
+    <!-- Right: search results (now a side pane) -->
+    <aside class="results-pane">
+      <div class="results-head">Matches</div>
+      <div id="results" class="results"></div>
+    </aside>
   </main>
 
-  <!-- Cache-bust main.js so iPad loads the new build -->
-  <script src="main.js?v=canvas3"></script>
+  <!-- Cache-bust to force the new JS on iPad -->
+  <script src="main.js?v=rhs1"></script>
   <script src="drawer.js"></script>
 </body>
 </html>
