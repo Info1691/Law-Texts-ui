@@ -27,15 +27,13 @@
     </nav>
   </header>
 
-  <!-- Three-column layout: Left list • Center viewer • Right results -->
+  <!-- Left list • Center viewer • Right results -->
   <main class="layout3">
-    <!-- Left: book list -->
     <aside class="sidebar">
       <input id="filterInput" class="input" placeholder="Filter list…"/>
       <ul id="bookList" class="list"></ul>
     </aside>
 
-    <!-- Center: viewer + controls -->
     <section class="content">
       <div class="content-toolbar">
         <input id="searchInput" class="input" placeholder="Search within text…"/>
@@ -52,23 +50,27 @@
         <div>Reference: <span id="metaRef">—</span></div>
       </div>
 
-      <!-- Viewer: single page with canvas + text layer -->
+      <!-- Viewer: single page + text + highlight layers -->
       <div id="viewer" class="viewer">
-        <div class="placeholder">Select a book on the left.</div>
+        <div id="pageWrap" class="pageWrap">
+          <canvas id="pdfCanvas"></canvas>
+          <div id="highlightLayer" class="hlayer"></div>
+          <div id="textLayer" class="textLayer"></div>
+        </div>
+        <div class="hint">Pages: <span id="pageInfo">—</span></div>
       </div>
 
       <div id="status" class="status"></div>
     </section>
 
-    <!-- Right: search results (now a side pane) -->
     <aside class="results-pane">
       <div class="results-head">Matches</div>
       <div id="results" class="results"></div>
     </aside>
   </main>
 
-  <!-- Cache-bust to force the new JS on iPad -->
-  <script src="main.js?v=rhs1"></script>
+  <!-- cache-bust -->
+  <script src="main.js?v=rhs2"></script>
   <script src="drawer.js"></script>
 </body>
 </html>
