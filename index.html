@@ -29,13 +29,13 @@
 
   <!-- Left list • Center viewer • Right results -->
   <main class="layout3">
-    <!-- LEFT: book list -->
+    <!-- LEFT -->
     <aside class="sidebar">
       <input id="filterInput" class="input" placeholder="Filter list…"/>
       <ul id="bookList" class="list"></ul>
     </aside>
 
-    <!-- CENTER: controls + page viewer + bottom tray -->
+    <!-- CENTER -->
     <section class="content">
       <div class="content-toolbar">
         <input id="searchInput" class="input" placeholder="Search within text…"/>
@@ -55,16 +55,16 @@
         <div>Reference: <span id="metaRef">—</span></div>
       </div>
 
-      <!-- Viewer: single page with highlight + text layers -->
+      <!-- Viewer: the key is the fixed-size pageSurface which aligns canvas + overlays -->
       <div id="viewer" class="viewer">
-        <div id="pageWrap" class="pageWrap">
+        <div id="pageSurface" class="pageSurface">
           <canvas id="pdfCanvas"></canvas>
           <div id="highlightLayer" class="hlayer"></div>
           <div id="textLayer" class="textLayer"></div>
         </div>
         <div class="hint">Pages: <span id="pageInfo">—</span></div>
 
-        <!-- Bottom tray (restored) -->
+        <!-- Bottom tray -->
         <div class="tray">
           <div class="tray-head">Matches (tray)</div>
           <div id="resultsBottom" class="tray-body"></div>
@@ -74,14 +74,14 @@
       <div id="status" class="status"></div>
     </section>
 
-    <!-- RIGHT: matches pane -->
+    <!-- RIGHT -->
     <aside class="results-pane">
       <div class="results-head">Matches</div>
       <div id="results" class="results"></div>
     </aside>
   </main>
 
-  <script src="main.js?v=finalfix1"></script>
+  <script src="main.js?v=aligned1"></script>
   <script src="drawer.js"></script>
 </body>
 </html>
