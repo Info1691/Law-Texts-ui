@@ -1,103 +1,193 @@
-// Trust Law Textbooks — Safari-friendly viewer
-// PDF+TXT support, locked catalog, repo drawer, search/matches, calibration
+// Trust Law Textbooks — robust viewer (PDF + TXT), auto-creates canvas/layers,
+// locked catalog, search/matches, calibration, Safari-friendly worker setup.
 document.addEventListener('DOMContentLoaded', () => {
-  // ====== CONFIG ======
-  const CATALOG_URL = 'data/texts/catalog.json';   // lock to a single catalog
-  const DEFAULT_OFFSET = -83;                      // book->pdf default offset
-  const STORAGE_PREFIX = 'lawtexts:';              // per-doc storage namespace
+  // ===== CONFIG =====
+  const CATALOG_URL = 'data/texts/catalog.json';   // single source of truth
+  const DEFAULT_OFFSET = -83;                      // book↔pdf default offset
+  const STORAGE_PREFIX = 'lawtexts:';              // per-doc localStorage key
   const MAX_MATCHES = 200;
 
-  // ====== STATE ======
+  // ===== STATE =====
   let pdfDoc = null, currentDocUrl = null, currentPage = 1;
   let rendering = false, pendingPage = null, viewportScale = 1;
   const pageTextCache = new Map();
   let searchTerm = '', matches = [];
-  // TXT state
   let isTextDoc = false, textDocContent = '', activeTextMark = null;
 
-  // ====== DOM ======
+  // ===== DOM helpers =====
   const $ = s => document.querySelector(s);
-  const pdfContainer = $('#pdfContainer');
-  const pdfCanvas = $('#pdfCanvas'); const ctx = pdfCanvas.getContext('2d');
-  const textLayer = $('#textLayer'); const hlLayer = $('#highlightLayer');
-  const catalogList = $('#catalogList');
+  const $$ = s => Array.from(document.querySelectorAll(s));
 
-  // Toolbar wiring
-  $('#printBtn').addEventListener('click', () => window.print());
-  $('#exportTxtBtn').addEventListener('click', exportVisibleText);
-  $('#findNextBtn').addEventListener('click', () => handleFind('next'));
-  $('#findPrevBtn').addEventListener('click', () => handleFind('prev'));
-  $('#searchInput').addEventListener('keydown', (e)=>{ if (e.key==='Enter') handleFind('new'); });
-  $('#goBtn').addEventListener('click', ()=> {
-    const n = parseInt($('#bookPageInput').value, 10);
+  // try to find your existing containers; fallback to sensible defaults
+  const viewerHost =
+    $('#pdfContainer') || $('#pdfViewer') || $('.viewer') || document.body;
+
+  // Toolbar wiring (ids expected in your UI)
+  bindBtn('#printBtn', () => window.print());
+  bindBtn('#exportTxtBtn', exportVisibleText);
+  bindBtn('#findNextBtn', () => handleFind('next'));
+  bindBtn('#findPrevBtn', () => handleFind('prev'));
+  const searchInput = $('#searchInput'); if (searchInput) {
+    searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') handleFind('new'); });
+  }
+  bindBtn('#goBtn', () => {
+    const n = parseInt($('#bookPageInput')?.value || '', 10);
     if (Number.isInteger(n)) goToBookPage(n);
   });
-  $('#calibrateBtn').addEventListener('click', calibrateOffset);
-  $('#prevBtn').addEventListener('click', ()=> { if (!isTextDoc) queueRender(Math.max(1, currentPage-1)); });
-  $('#nextBtn').addEventListener('click', ()=> { if (!isTextDoc) queueRender(Math.min(pdfDoc?.numPages||1, currentPage+1)); });
-  $('#listFilter').addEventListener('input', filterCatalog);
+  bindBtn('#calibrateBtn', calibrateOffset);
+  bindBtn('#prevBtn', () => { if (!isTextDoc) queueRender(Math.max(1, currentPage - 1)); });
+  bindBtn('#nextBtn', () => { if (!isTextDoc) queueRender(Math.min(pdfDoc?.numPages || 1, currentPage + 1)); });
+  $('#listFilter')?.addEventListener('input', filterCatalog);
 
-  // Drawer (Repo Hub)
+  // Drawer (optional)
   const drawer = $('#drawer');
-  $('#drawerToggle').addEventListener('click', ()=> drawer.classList.toggle('open'));
-  $('#drawerClose').addEventListener('click', ()=> drawer.classList.remove('open'));
-  $('#repoFilter').addEventListener('input', filterRepos);
+  $('#drawerToggle')?.addEventListener('click', () => drawer?.classList.toggle('open'));
+  $('#repoFilter')?.addEventListener('input', filterRepos);
+  $('#drawerClose')?.addEventListener('click', () => drawer?.classList.remove('open'));
 
-  // ====== Utils / Storage ======
-  const isPdf = u => /\.pdf(?:[#?].*)?$/i.test(u);
-  const isTxt = u => /\.txt(?:[#?].*)?$/i.test(u);
+  // ===== Utils =====
+  const isPdf = u => /\.pdf(?:[#?].*)?$/i.test(u || '');
+  const isTxt = u => /\.txt(?:[#?].*)?$/i.test(u || '');
+  function bindBtn(sel, fn){ const el=$(sel); if (el) el.addEventListener('click', fn); }
   const key = s => STORAGE_PREFIX + (currentDocUrl || '') + ':' + s;
   const loadCalib = () => JSON.parse(localStorage.getItem(key('calib')) || '{}');
   const saveCalib = o => localStorage.setItem(key('calib'), JSON.stringify(o));
-  const toast = (m,ms=2300)=>{ const t=$('#toast'); t.textContent=m; t.hidden=false; clearTimeout(t._tm); t._tm=setTimeout(()=>t.hidden=true,ms); };
+  const toast = (m, ms=2000) => { const t=$('#toast'); if (!t) return; t.textContent=m; t.hidden=false; clearTimeout(t._tm); t._tm=setTimeout(()=>t.hidden=true,ms); };
   const escapeHTML = s => s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  const delay = ms => new Promise(r=>setTimeout(r,ms));
+  const delay = ms => new Promise(r => setTimeout(r, ms));
 
-  // ====== PDF.js Worker Setup (Safari-friendly) ======
-  // Strategy:
-  // 1) Try to use a SAME-ORIGIN worker at ./vendor/pdf.worker.min.js (no CORS noise)
-  // 2) If not found, DISABLE worker mode (no "Script error." in Safari)
-  async function setupPdfjsWorker() {
-    if (!window.pdfjsLib) { alert('PDF.js failed to load'); return false; }
-    try {
-      // Try local worker
-      const localPath = './vendor/pdf.worker.min.js';
-      const resp = await fetch(localPath, { method: 'HEAD', cache: 'no-store' });
-      if (resp.ok) {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = localPath;
-        console.log('[pdfjs] using local worker:', localPath);
-        return true;
-      }
-    } catch {}
-    // Fall back: disable worker mode (silences Safari console noise)
-    if (typeof pdfjsLib.disableWorker !== 'undefined') {
-      pdfjsLib.disableWorker = true;     // PDF.js v2.x
-      console.log('[pdfjs] worker disabled (v2 API)');
-    } else {
-      // v3.x removed the flag; this still works — PDFs load on main thread anyway
-      console.log('[pdfjs] worker not available; running on main thread');
+  // ===== Auto-create PDF layers when needed =====
+  function ensurePdfLayers() {
+    let shell = $('#pdfLayerShell');
+    if (!shell) {
+      shell = document.createElement('div');
+      shell.id = 'pdfLayerShell';
+      shell.style.position = 'relative';
+      shell.style.margin = '0 auto';
+      shell.style.maxWidth = '100%';
+      viewerHost.innerHTML = '';
+      viewerHost.appendChild(shell);
     }
-    return true;
+
+    let canvas = $('#pdfCanvas');
+    if (!canvas) {
+      canvas = document.createElement('canvas');
+      canvas.id = 'pdfCanvas';
+      canvas.style.display = 'block';
+      canvas.style.width = '100%';
+      shell.appendChild(canvas);
+    }
+
+    let textLayer = $('#textLayer');
+    if (!textLayer) {
+      textLayer = document.createElement('div');
+      textLayer.id = 'textLayer';
+      Object.assign(textLayer.style, layerCSS());
+      shell.appendChild(textLayer);
+    }
+
+    let hlLayer = $('#highlightLayer');
+    if (!hlLayer) {
+      hlLayer = document.createElement('div');
+      hlLayer.id = 'highlightLayer';
+      Object.assign(hlLayer.style, layerCSS(true));
+      shell.appendChild(hlLayer);
+    }
+
+    // style helpers
+    function layerCSS(highlight=false){
+      return {
+        position: 'absolute', left: '0', top: '0',
+        pointerEvents: highlight ? 'none' : 'auto'
+      };
+    }
+
+    // add highlight box css once
+    if (!$('style[data-hl]')) {
+      const st = document.createElement('style'); st.setAttribute('data-hl','1');
+      st.textContent = `
+        #highlightLayer .highlight{ position:absolute; background:rgba(255,213,77,0.35); border-radius:2px; }
+        #textLayer span{ position:absolute; white-space:pre; transform-origin:left bottom; }
+      `;
+      document.head.appendChild(st);
+    }
+    return { shell, canvas, textLayer: $('#textLayer'), hlLayer: $('#highlightLayer') };
   }
 
-  // ====== Boot ======
+  // Text viewer ensure
+  function ensureTextViewer(){
+    let viewer = $('#textViewer');
+    if (!viewer){
+      viewer = document.createElement('pre');
+      viewer.id = 'textViewer';
+      viewer.style.whiteSpace = 'pre-wrap';
+      viewer.style.wordBreak = 'break-word';
+      viewer.style.padding = '1em';
+      viewer.style.fontFamily = 'serif';
+      viewer.style.maxHeight = '78vh';
+      viewer.style.overflowY = 'auto';
+      viewerHost.innerHTML = '';
+      viewerHost.appendChild(viewer);
+
+      if (!$('style[data-text-hl]')) {
+        const st = document.createElement('style'); st.setAttribute('data-text-hl','1');
+        st.textContent = `.highlight-text{ background:#ffd54d66; box-shadow:0 0 0 2px #ffd54d66 inset; }`;
+        document.head.appendChild(st);
+      }
+    }
+    viewer.style.display = 'block';
+    return viewer;
+  }
+  function clearTextViewer(){
+    const v = $('#textViewer'); if (v){ v.textContent=''; v.style.display='none'; }
+    if (activeTextMark){ activeTextMark.remove(); activeTextMark=null; }
+  }
+  function showPdfLayers(show){
+    const { canvas, textLayer, hlLayer } = ensurePdfLayers();
+    canvas.style.display = show ? 'block' : 'none';
+    textLayer.style.display = show ? 'block' : 'none';
+    hlLayer.style.display = show ? 'block' : 'none';
+  }
+
+  // ===== PDF.js worker (Safari-friendly) =====
+  async function setupPdfjs() {
+    if (!window.pdfjsLib) { alert('PDF.js failed to load'); return; }
+    try {
+      const local = './vendor/pdf.worker.min.js';
+      const r = await fetch(local, { method:'HEAD', cache:'no-store' });
+      if (r.ok) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = local;
+        console.log('[pdfjs] using local worker');
+        return;
+      }
+    } catch {}
+    // fallback: disable worker mode to silence Safari console
+    if (typeof pdfjsLib.disableWorker !== 'undefined') {
+      pdfjsLib.disableWorker = true;
+      console.log('[pdfjs] worker disabled (v2 API)');
+    } else {
+      console.log('[pdfjs] running without worker (v3 main thread)');
+    }
+  }
+
+  // ===== Boot =====
   (async function init(){
-    await setupPdfjsWorker();
-    await loadRepos();       // optional drawer
-    await loadCatalog();     // only one catalog file
+    await setupPdfjs();
+    await loadRepos();
+    await loadCatalog();
   })();
 
-  // ====== Repos (drawer) ======
+  // ===== Drawer repos =====
   async function loadRepos(){
     try{
       const r = await fetch('data/repos.json', {cache:'no-store'});
       if (!r.ok) return;
       const data = await r.json();
-      const ul = $('#repoList'); ul.innerHTML='';
+      const ul = $('#repoList'); if (!ul) return;
+      ul.innerHTML='';
       for (const d of data){
         const li = document.createElement('li');
-        li.className='repo-item';
-        li.dataset.name = (d.name||'').toLowerCase();
+        li.className='repo-item'; li.dataset.name=(d.name||'').toLowerCase();
         li.innerHTML = `
           <div class="meta">
             <strong>${d.name||''}</strong>
@@ -110,116 +200,91 @@ document.addEventListener('DOMContentLoaded', () => {
     }catch{}
   }
   function filterRepos(e){
-    const q = e.target.value.toLowerCase();
-    [...document.querySelectorAll('.repo-item')].forEach(li=>{
-      li.style.display = li.dataset.name?.includes(q) ? '' : 'none';
-    });
+    const q = (e.target.value||'').toLowerCase();
+    $$('.repo-item').forEach(li => { li.style.display = (li.dataset.name||'').includes(q) ? '' : 'none'; });
   }
 
-  // ====== Catalog (locked to one JSON) ======
+  // ===== Catalog (locked) =====
   async function loadCatalog(){
     try{
-      const resp = await fetch(CATALOG_URL, { cache: 'no-store' });
+      const resp = await fetch(CATALOG_URL, { cache:'no-store' });
       if (!resp.ok) throw new Error('catalog not found');
-      const raw = await resp.json();
-      console.log('[catalog] using', CATALOG_URL, 'items:', Array.isArray(raw)?raw.length:0);
+      const items = await resp.json();
+      console.log('[catalog] using', CATALOG_URL, 'items:', Array.isArray(items)?items.length:0);
 
-      catalogList.innerHTML='';
-      for (const it of raw){
+      const list = $('#catalogList') || $('#bookList') || createCatalogList();
+      list.innerHTML = '';
+      for (const it of items){
         const li = document.createElement('li');
         li.dataset.title = (it.title||'').toLowerCase();
         li.dataset.url = it.url || '';
         li.innerHTML = `<strong>${it.title||''}</strong>${it.subtitle?`<br><small>${it.subtitle}</small>`:''}`;
-        if (it.url){
-          li.addEventListener('click', ()=> openDocument(it.url, li));
-        } else {
-          li.style.opacity='.6'; li.style.cursor='not-allowed'; li.title='No file linked';
-        }
-        catalogList.appendChild(li);
+        if (it.url) li.addEventListener('click', () => openDocument(it.url, li));
+        else { li.style.opacity='.6'; li.style.cursor='not-allowed'; }
+        list.appendChild(li);
       }
-
-      // Auto-open first entry
-      const first = [...catalogList.children].find(li => li.dataset.url);
+      // auto-open first
+      const first = Array.from(list.children).find(li => li.dataset.url);
       if (first) openDocument(first.dataset.url, first);
     }catch(e){
       console.error('catalog load error:', e);
       toast('catalog.json error');
     }
   }
+  function createCatalogList(){
+    // fallback if index didn’t include a list
+    const aside = document.createElement('aside');
+    aside.className = 'sidebar';
+    const filter = document.createElement('input'); filter.id='listFilter'; filter.placeholder='Filter list…';
+    const ul = document.createElement('ul'); ul.id='catalogList';
+    aside.appendChild(filter); aside.appendChild(ul);
+    viewerHost.parentElement?.insertBefore(aside, viewerHost);
+    filter.addEventListener('input', filterCatalog);
+    return ul;
+  }
   function filterCatalog(e){
-    const q = e.target.value.toLowerCase();
-    [...catalogList.children].forEach(li => li.style.display = li.dataset.title?.includes(q) ? '' : 'none');
+    const q = (e.target.value||'').toLowerCase();
+    const list = $('#catalogList') || $('#bookList'); if (!list) return;
+    Array.from(list.children).forEach(li => li.style.display = (li.dataset.title||'').includes(q) ? '' : 'none');
   }
 
-  // ====== Open Any Document (PDF or TXT) ======
+  // ===== Open doc (PDF or TXT) =====
   async function openDocument(url, li){
     try{
       currentDocUrl = url;
-      // reset state
-      pageTextCache.clear(); matches=[]; $('#matchesList').innerHTML=''; $('#matchCount').textContent='';
-      $('#searchInput').value=''; searchTerm='';
-      textDocContent=''; isTextDoc=false; clearTextViewer();
-      showPdfLayers(true);
+      pageTextCache.clear(); matches=[]; $('#matchesList')?.replaceChildren(); $('#matchCount') && ($('#matchCount').textContent='');
+      if (searchInput) searchInput.value = ''; searchTerm='';
+      textDocContent=''; isTextDoc=false; clearTextViewer(); showPdfLayers(true);
+      if (li){ (li.parentElement? Array.from(li.parentElement.children):[]).forEach(n=>n.classList.remove('active')); li.classList.add('active'); }
 
-      if (li){ [...catalogList.children].forEach(n=>n.classList.remove('active')); li.classList.add('active'); }
       const safe = encodeURI(url);
       console.log('[openDocument] type:', isPdf(safe)?'PDF':(isTxt(safe)?'TXT':'UNKNOWN'), '\n"url="', safe, '"');
 
       if (isPdf(safe)) return openPdf(safe);
-      if (isTxt(safe) || !/\.[a-z0-9]+$/i.test(safe)) return openText(safe); // default to TXT if no ext
-      toast('Unsupported file type: ' + safe);
+      if (isTxt(safe) || !/\.[a-z0-9]+$/i.test(safe)) return openText(safe); // default TXT if no ext
+      toast('Unsupported file: '+safe);
     }catch(err){
       console.error('Document load error:', err);
       toast('Error loading document');
     }
   }
 
-  // ====== TXT loader ======
+  // ===== TXT =====
   async function openText(url){
     try{
-      const resp = await fetch(url, { cache: 'no-store' });
+      const resp = await fetch(url, { cache:'no-store' });
       if (!resp.ok) throw new Error(`HTTP ${resp.status} for ${url}`);
       textDocContent = await resp.text();
-
       isTextDoc = true;
       const viewer = ensureTextViewer();
       viewer.textContent = textDocContent;
       showPdfLayers(false);
-      $('#pageLabel').textContent = url.split('/').pop();
+      $('#pageLabel') && ($('#pageLabel').textContent = url.split('/').pop());
       toast('Loaded text file');
     }catch(e){
       console.error('Text load error:', e);
       toast('Error loading text file');
     }
-  }
-  function ensureTextViewer(){
-    let viewer = document.getElementById('textViewer');
-    if (!viewer){
-      viewer = document.createElement('pre');
-      viewer.id = 'textViewer';
-      viewer.style.whiteSpace = 'pre-wrap';
-      viewer.style.wordBreak = 'break-word';
-      viewer.style.padding = '1em';
-      viewer.style.fontFamily = 'serif';
-      viewer.style.maxHeight = '80vh';
-      viewer.style.overflowY = 'auto';
-      const style = document.createElement('style');
-      style.textContent = '.highlight-text{background:#ffd54d66; box-shadow:0 0 0 2px #ffd54d66 inset;}';
-      document.head.appendChild(style);
-      pdfContainer.appendChild(viewer);
-    }
-    viewer.style.display='block';
-    return viewer;
-  }
-  function clearTextViewer(){
-    const viewer = document.getElementById('textViewer');
-    if (viewer){ viewer.textContent=''; viewer.style.display='none'; }
-    if (activeTextMark){ activeTextMark.remove(); activeTextMark=null; }
-  }
-  function showPdfLayers(show){
-    pdfCanvas.style.display = show ? 'block' : 'none';
-    textLayer.style.display  = show ? 'block' : 'none';
-    hlLayer.style.display    = show ? 'block' : 'none';
   }
   function highlightInTextViewer(index, length){
     const viewer = ensureTextViewer();
@@ -233,7 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
       offset = next;
     }
     if (!startNode){ viewer.scrollTop = 0; return; }
-    if (!endNode){ endNode = startNode; endOffset = startNode.nodeValue.length; }
+    if (!endNode){ endNode=startNode; endOffset=startNode.nodeValue.length; }
     const range = document.createRange(); range.setStart(startNode,startOffset); range.setEnd(endNode,endOffset);
     const span = document.createElement('span'); span.className='highlight-text'; range.surroundContents(span);
     activeTextMark = span;
@@ -241,10 +306,10 @@ document.addEventListener('DOMContentLoaded', () => {
     viewer.scrollTop += (rect.top - parentRect.top) - parentRect.height/3;
   }
 
-  // ====== PDF loader (Safari-friendly) ======
+  // ===== PDF =====
   async function openPdf(url){
     try{
-      // try ArrayBuffer (works well on GH Pages); worker is already local/disabled above
+      // Use ArrayBuffer when possible; worker is local/disabled already
       let source;
       try{
         const resp = await fetch(url, { cache:'no-store' });
@@ -253,17 +318,16 @@ document.addEventListener('DOMContentLoaded', () => {
         source = { data: ab };
         console.log('Loaded via ArrayBuffer:', url, ab.byteLength, 'bytes');
       }catch(e){
-        console.warn('ArrayBuffer fetch failed, using URL mode:', e);
+        console.warn('ArrayBuffer fetch failed, URL mode:', e);
         source = { url };
       }
-
       const task = pdfjsLib.getDocument(source);
       pdfDoc = await task.promise;
 
-      // Fit to container width
-      const cssWidth = pdfContainer.clientWidth || 800;
-      const pg1 = await pdfDoc.getPage(1);
-      const v = pg1.getViewport({ scale: 1 });
+      // fit to container width
+      const cssWidth = viewerHost.clientWidth || 820;
+      const p1 = await pdfDoc.getPage(1);
+      const v = p1.getViewport({ scale: 1 });
       viewportScale = cssWidth / v.width;
 
       isTextDoc = false;
@@ -273,40 +337,38 @@ document.addEventListener('DOMContentLoaded', () => {
       toast(`Loaded PDF (${pdfDoc.numPages} pages)`);
     }catch(e){
       console.error('PDF load/render error:', e);
-      toast('Error loading PDF (see console)');
+      toast('Error loading PDF');
     }
   }
 
   async function render(num){
     rendering = true;
     try{
+      const { canvas, textLayer, hlLayer } = ensurePdfLayers();
+      const ctx = canvas.getContext('2d');
       const page = await pdfDoc.getPage(num);
       const viewport = page.getViewport({ scale: viewportScale });
 
-      pdfCanvas.height = Math.floor(viewport.height);
-      pdfCanvas.width  = Math.floor(viewport.width);
+      canvas.height = Math.floor(viewport.height);
+      canvas.width  = Math.floor(viewport.width);
       await page.render({ canvasContext: ctx, viewport }).promise;
 
+      // rebuild text & highlight layers
       textLayer.innerHTML=''; hlLayer.innerHTML='';
-      textLayer.style.width = hlLayer.style.width = pdfCanvas.width + 'px';
-      textLayer.style.height= hlLayer.style.height= pdfCanvas.height + 'px';
+      textLayer.style.width = hlLayer.style.width = canvas.width + 'px';
+      textLayer.style.height= hlLayer.style.height= canvas.height + 'px';
 
       const textContent = await page.getTextContent();
       pageTextCache.set(num, textContent);
       for (const item of textContent.items){
-        const span = document.createElement('span');
-        span.textContent = item.str;
+        const span = document.createElement('span'); span.textContent = item.str;
         const tr = pdfjsLib.Util.transform(
           pdfjsLib.Util.transform(viewport.transform, item.transform),
           [1,0,0,-1,0,0]
         );
         const [a,b,c,d,e,f] = tr; const fs = Math.hypot(a,b);
-        span.style.position='absolute';
-        span.style.left = e+'px';
-        span.style.top  = (f - fs)+'px';
-        span.style.fontSize = fs+'px';
-        span.style.transformOrigin='left bottom';
-        span.style.transform=`matrix(${a/fs},${b/fs},${c/fs},${d/fs},0,0)`;
+        span.style.left = e+'px'; span.style.top = (f - fs)+'px'; span.style.fontSize = fs+'px';
+        span.style.transform = `matrix(${a/fs},${b/fs},${c/fs},${d/fs},0,0)`;
         textLayer.appendChild(span);
       }
     }catch(e){
@@ -324,11 +386,11 @@ document.addEventListener('DOMContentLoaded', () => {
     currentPage = num; render(num);
   }
 
-  // ====== Book ↔ PDF mapping / calibration ======
+  // ===== Book↔PDF mapping & calibration =====
   function pdfFromBook(book){
     const c = loadCalib();
     if (Array.isArray(c.anchors) && c.anchors.length){
-      const a = [...c.anchors].filter(x=>x.bookPageStart<=book).sort((x,y)=>y.bookPageStart-x.bookPageStart)[0];
+      const a = c.anchors.filter(x=>x.bookPageStart<=book).sort((x,y)=>y.bookPageStart-x.bookPageStart)[0];
       if (a) return book + a.offset;
     }
     const off = (typeof c.offset==='number') ? c.offset : DEFAULT_OFFSET;
@@ -339,45 +401,36 @@ document.addEventListener('DOMContentLoaded', () => {
     if (Array.isArray(c.anchors) && c.anchors.length){
       const sorted=[...c.anchors].sort((x,y)=>x.bookPageStart-y.bookPageStart);
       let chosen = sorted[0] || { bookPageStart:1, offset:(typeof c.offset==='number')?c.offset:DEFAULT_OFFSET };
-      for (const a of sorted){
-        const pivot = a.bookPageStart + a.offset;
-        if (pivot <= pdf) chosen = a; else break;
-      }
+      for (const a of sorted){ const pivot=a.bookPageStart + a.offset; if (pivot<=pdf) chosen=a; else break; }
       return pdf - chosen.offset;
     }
     const off = (typeof c.offset==='number') ? c.offset : DEFAULT_OFFSET;
     return pdf - off;
   }
   function updateLabel(){
-    if (isTextDoc){
-      $('#pageLabel').textContent = currentDocUrl ? currentDocUrl.split('/').pop() : 'Text';
-    }else{
-      $('#pageLabel').textContent = `Book p.${bookFromPdf(currentPage)} (PDF p.${currentPage})`;
-    }
+    const label = $('#pageLabel'); if (!label) return;
+    if (isTextDoc) label.textContent = currentDocUrl ? currentDocUrl.split('/').pop() : 'Text';
+    else           label.textContent = `Book p.${bookFromPdf(currentPage)} (PDF p.${currentPage})`;
   }
   async function calibrateOffset(){
-    if (isTextDoc){ toast('Calibration not applicable to text files'); return; }
-    if (!pdfDoc) return;
+    if (isTextDoc || !pdfDoc) { toast('Calibration is for PDFs'); return; }
     const ans = prompt(`Calibration\nThis is PDF page ${currentPage}.\nEnter the BOOK page printed on this page:`);
-    const book = parseInt(ans,10);
-    if (!Number.isInteger(book)) return;
+    const book = parseInt(ans||'',10); if (!Number.isInteger(book)) return;
     const off = currentPage - book;
-    const c = loadCalib(); c.offset = off; c.anchors = c.anchors || [];
-    saveCalib(c);
+    const c = loadCalib(); c.offset = off; c.anchors = c.anchors || []; saveCalib(c);
     toast(`Calibrated: Book p.${book} ↔ PDF p.${currentPage} (offset ${off>=0?'+':''}${off})`);
     updateLabel();
   }
   function goToBookPage(book){
-    if (isTextDoc || !pdfDoc) { toast('Book page jump only works for PDFs'); return; }
-    const target = Math.max(1, Math.min(pdfDoc.numPages, pdfFromBook(book)));
-    queueRender(target);
-    toast(`Book p.${book} → PDF p.${target}`);
+    if (isTextDoc || !pdfDoc) { toast('Book page jump works for PDFs'); return; }
+    const t = Math.max(1, Math.min(pdfDoc.numPages, pdfFromBook(book)));
+    queueRender(t); toast(`Book p.${book} → PDF p.${t}`);
   }
 
-  // ====== Search & matches (PDF + TXT) ======
+  // ===== Search (PDF + TXT) =====
   async function handleFind(mode){
-    const q = $('#searchInput').value.trim();
-    if (!q){ $('#matchesList').innerHTML=''; $('#matchCount').textContent=''; return; }
+    const q = (searchInput?.value || '').trim();
+    if (!q){ $('#matchesList')?.replaceChildren(); $('#matchCount') && ($('#matchCount').textContent=''); return; }
     if (isTextDoc) return handleFindText(q, mode);
     return handleFindPdf(q, mode);
   }
@@ -386,7 +439,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function handleFindPdf(q, mode){
     if (!pdfDoc) return;
     if (mode==='new' || q!==searchTerm){
-      searchTerm=q; matches=[]; $('#matchesList').innerHTML='<li class="muted">Searching…</li>';
+      searchTerm=q; matches=[]; const list=$('#matchesList'); if (list) list.innerHTML='<li class="muted">Searching…</li>';
       try{
         for (let p=1;p<=pdfDoc.numPages;p++){
           const tc = pageTextCache.get(p) || await pdfDoc.getPage(p).then(pg=>pg.getTextContent());
@@ -402,20 +455,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }catch(e){ console.error('Search error:', e); toast('Search error'); }
       renderMatches(() => highlightSnippetOnCurrentPage(searchTerm));
-      if (matches.length){ queueRender(matches[0].page); await delay(180); await highlightSnippetOnCurrentPage(q); }
+      if (matches.length){ queueRender(matches[0].page); await delay(160); await highlightSnippetOnCurrentPage(q); }
       return;
     }
     if (!matches.length) return;
     const i = matches.findIndex(m=>m.page===currentPage);
     const next = (mode==='next') ? (i+1)%matches.length : (i-1+matches.length)%matches.length;
-    const m = matches[next]; queueRender(m.page); await delay(180); await highlightSnippetOnCurrentPage(searchTerm);
+    const m = matches[next]; queueRender(m.page); await delay(160); await highlightSnippetOnCurrentPage(searchTerm);
   }
 
   // TXT search
   async function handleFindText(q, mode){
     if (!textDocContent) return;
     if (mode==='new' || q!==searchTerm){
-      searchTerm=q; matches=[]; $('#matchesList').innerHTML='<li class="muted">Searching…</li>';
+      searchTerm=q; matches=[]; $('#matchesList') && ($('#matchesList').innerHTML='<li class="muted">Searching…</li>');
       const hay = textDocContent.toLowerCase(); const needle=q.toLowerCase();
       let idx = hay.indexOf(needle);
       while (idx !== -1 && matches.length < MAX_MATCHES){
@@ -430,13 +483,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!matches.length) return;
     let i = 0;
     if (activeTextMark){
-      const viewer = document.getElementById('textViewer');
+      const viewer = $('#textViewer');
       const walker = document.createTreeWalker(viewer, NodeFilter.SHOW_TEXT, null);
-      let offset=0, n;
-      while ((n = walker.nextNode())){
-        if (n === activeTextMark.firstChild){ break; }
-        offset += n.nodeValue.length;
-      }
+      let offset=0, n; while ((n = walker.nextNode())){ if (n === activeTextMark.firstChild) break; offset += n.nodeValue.length; }
       i = matches.findIndex(m => m.pos >= offset); if (i === -1) i = 0;
     }
     const next = (mode==='next') ? (i+1)%matches.length : (i-1+matches.length)%matches.length;
@@ -445,21 +494,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function findAll(h, n){ const out=[]; let i=h.indexOf(n); while(i!==-1){ out.push(i); i=h.indexOf(n, i+n.length);} return out; }
   function renderMatches(onClickHighlight){
-    const ul = $('#matchesList'); ul.innerHTML='';
-    $('#matchCount').textContent = matches.length ? `${matches.length} result(s)` : 'No results';
+    const ul = $('#matchesList'); if (!ul) return; ul.innerHTML='';
+    $('#matchCount') && ($('#matchCount').textContent = matches.length ? `${matches.length} result(s)` : 'No results');
     for (const m of matches){
       const li=document.createElement('li'); li.className='match';
       const label = (m.bookPage!=null) ? `p.${m.bookPage}` : 'match';
       li.innerHTML = `<div class="meta">${label}</div><div>${escapeHTML(m.snippet)}</div>`;
       li.addEventListener('click', async ()=>{
         if (isTextDoc){ highlightInTextViewer(m.pos, m.len); }
-        else { queueRender(m.page); await delay(180); await onClickHighlight(); }
+        else { queueRender(m.page); await delay(160); await onClickHighlight(); }
       });
       ul.appendChild(li);
     }
   }
 
-  // PDF highlight
   async function highlightSnippetOnCurrentPage(snippet){
     if (!pdfDoc) return false;
     const tc = pageTextCache.get(currentPage) || await pdfDoc.getPage(currentPage).then(p=>p.getTextContent());
@@ -467,21 +515,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const items = tc.items.map(i=>i.str); const joined = items.join(' ').toLowerCase();
     const needle = snippet.toLowerCase().replace(/\s+/g,' ').trim();
     const startIdx = joined.indexOf(needle);
-    if (startIdx === -1){ hlLayer.innerHTML=''; return false; }
+    if (startIdx === -1){ $('#highlightLayer') && ($('#highlightLayer').innerHTML=''); return false; }
 
     let acc=0, startItem=0, startChar=0;
     for (let i=0;i<items.length;i++){ const s=items[i]; if (acc+s.length+1>startIdx){ startItem=i; startChar=startIdx-acc; break; } acc+=s.length+1; }
     const endIdx = startIdx + needle.length; let endItem=startItem, endChar=endIdx-acc;
     for (let i=startItem;i<items.length;i++){ const s=items[i], spanEnd=acc+s.length+1; if (spanEnd>=endIdx){ endItem=i; endChar=endIdx-acc; break; } acc=spanEnd; }
 
-    hlLayer.innerHTML='';
-    const page = await pdfDoc.getPage(currentPage); const viewport = page.getViewport({ scale: viewportScale });
+    const { hlLayer } = ensurePdfLayers(); hlLayer.innerHTML='';
+    const page = await pdfDoc.getPage(currentPage);
+    const viewport = page.getViewport({ scale: viewportScale });
+
     for (let i=startItem;i<=endItem;i++){
       const it = tc.items[i];
       const tr = pdfjsLib.Util.transform(pdfjsLib.Util.transform(viewport.transform, it.transform), [1,0,0,-1,0,0]);
       const [a,b,c,d,e,f]=tr; const fs=Math.hypot(a,b);
-      const widthPerChar = (it.width ? (it.width*viewportScale) : Math.abs(a)) / Math.max(1, it.str.length);
-      let left=e, top=f-fs, wChars=it.str.length;
+      const widthPerChar = (it.width ? (it.width * viewportScale) : Math.abs(a)) / Math.max(1, it.str.length);
+      let left=e, top=f - fs, wChars=it.str.length;
       if (i===startItem){ left+=widthPerChar*startChar; wChars-=startChar; }
       if (i===endItem){ wChars=(i===startItem ? (endChar-startChar) : endChar); }
       const box=document.createElement('div'); box.className='highlight';
@@ -493,7 +543,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return true;
   }
 
-  // ====== Export ======
+  // ===== Export =====
   async function exportVisibleText(){
     if (isTextDoc){
       if (!textDocContent) return;
