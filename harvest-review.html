@@ -1,0 +1,92 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Harvest Review</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:0;background:#f5f7fb;color:#243042}
+  header{background:#103b66;color:#fff;padding:14px 18px;display:flex;gap:12px;align-items:center}
+  header h1{font-size:18px;margin:0;font-weight:600}
+  main{max-width:1200px;margin:18px auto;padding:0 16px}
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+  input[type="search"]{padding:8px 10px;border:1px solid #c9d4e4;border-radius:6px;min-width:260px}
+  select{padding:8px;border:1px solid #c9d4e4;border-radius:6px}
+  .count{margin-left:auto;color:#51627a}
+  table{width:100%;border-collapse:separate;border-spacing:0;background:#fff;border:1px solid #e3e9f3;border-radius:8px;overflow:hidden}
+  th,td{padding:10px 12px;border-bottom:1px solid #eef2f8;vertical-align:top}
+  th{background:#f8fafc;text-align:left;color:#324a67;font-weight:600}
+  tr:last-child td{border-bottom:none}
+  .tag{display:inline-block;font-size:12px;border:1px solid #d7e3f3;border-radius:999px;padding:2px 8px;margin-left:6px;color:#51627a;background:#f4f8ff}
+  a{color:#0b63ce;text-decoration:none} a:hover{text-decoration:underline}
+</style>
+<header>
+  <h1>Harvest Review</h1>
+</header>
+<main>
+  <div class="controls">
+    <label><input id="approvedOnly" type="checkbox" checked> Show approved only</label>
+    <select id="hostFilter"><option value="">All hosts</option></select>
+    <input id="q" type="search" placeholder="Filter title or URL…">
+    <span class="count" id="count"></span>
+  </div>
+  <table id="tbl">
+    <thead><tr><th>Title</th><th>Host</th><th>Type</th><th>Link</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</main>
+<script>
+const INDEX_BASE = 'https://info1691.github.io/law-index/'; // <- change owner if needed
+
+const els = {
+  approved: document.getElementById('approvedOnly'),
+  host:     document.getElementById('hostFilter'),
+  q:        document.getElementById('q'),
+  tbl:      document.querySelector('#tbl tbody'),
+  count:    document.getElementById('count'),
+};
+
+async function fetchJSON(u){ const r=await fetch(u); if(!r.ok) throw new Error(u+': '+r.status); return r.json(); }
+
+let items = [], hosts = [];
+async function load(){
+  const cat = els.approved.checked ? 'harvest/catalog-approved.json' : 'harvest/catalog.json';
+  const list = await fetchJSON(INDEX_BASE + cat);
+  // list is [{title, subtitle, url}]
+  items = list.map(x => ({
+    title: x.title || x.url,
+    url:   new URL(x.url, INDEX_BASE).href,
+    host:  (x.subtitle||'').split(' — ')[0] || (new URL(x.url, INDEX_BASE)).host,
+    type:  /\.pdf(\?|#|$)/i.test(x.url) ? 'PDF' : 'TXT'
+  }));
+  hosts = Array.from(new Set(items.map(i=>i.host))).sort();
+  els.host.innerHTML = '<option value="">All hosts</option>' +
+                       hosts.map(h=>`<option value="${h}">${h}</option>`).join('');
+  render();
+}
+
+function render(){
+  const q = els.q.value.trim().toLowerCase();
+  const h = els.host.value;
+  const rows = items.filter(i =>
+    (!h || i.host===h) &&
+    (!q || i.title.toLowerCase().includes(q) || i.url.toLowerCase().includes(q))
+  );
+  els.count.textContent = `${rows.length} item${rows.length===1?'':'s'}`;
+  els.tbl.innerHTML = rows.map(i => `
+    <tr>
+      <td>${escapeHtml(i.title)}</td>
+      <td>${i.host}</td>
+      <td>${i.type}<span class="tag">harvest</span></td>
+      <td><a href="${i.url}" target="_blank" rel="noopener">Open</a></td>
+    </tr>`).join('') || `<tr><td colspan="4">No items.</td></tr>`;
+}
+
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+['change','keyup'].forEach(ev=>{
+  els.approved.addEventListener(ev, load);
+  els.host.addEventListener(ev, render);
+  els.q.addEventListener(ev, render);
+});
+
+load().catch(e=>{ els.tbl.innerHTML = `<tr><td colspan="4">Failed to load: ${e.message}</td></tr>`; });
+</script>
