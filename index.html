@@ -1,22 +1,17 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Trust Law Textbooks</title>
-  <link rel="icon" href="logo.png" />
+  <link rel="icon" href="logo.png"/>
   <style>
-    :root {
-      --brand:#0b3b67;
-      --ink:#1f2937;
-      --ink-2:#6b7280;
-      --line:#e5e7eb;
-      --bg:#f8fafc;
-      --btn:#f1f5f9;
-      --btn-ink:#0f172a;
+    :root{
+      --brand:#0b3b67; --ink:#1f2937; --ink2:#6b7280;
+      --line:#e5e7eb; --bg:#f8fafc; --btn:#f1f5f9; --btn-ink:#0f172a;
     }
     *{box-sizing:border-box}
-    html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, sans-serif}
+    html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
     header{background:var(--brand);color:#fff;padding:14px 16px}
     header .brand{display:flex;align-items:center;gap:12px;font-weight:700;font-size:20px}
     header img{height:24px;width:24px}
@@ -25,15 +20,15 @@
     .toolbar .input{height:30px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;min-width:220px}
     .toolbar .btn{height:30px;padding:0 10px;border:1px solid var(--line);border-radius:6px;background:var(--btn);color:var(--btn-ink);cursor:pointer}
     .toolbar .btn:active{transform:translateY(1px)}
-    .toolbar .muted{color:var(--ink-2);margin-left:8px}
+    .toolbar .muted{color:var(--ink2);margin-left:8px}
 
     main{display:flex;gap:12px;height:calc(100% - 98px);padding:12px}
-    aside#leftPane{width:280px;min-width:260px;max-width:340px;background:#fff;border:1px solid var(--line);border-radius:8px;display:flex;flex-direction:column;overflow:hidden}
+    aside#leftPane{width:300px;min-width:260px;max-width:340px;background:#fff;border:1px solid var(--line);border-radius:8px;display:flex;flex-direction:column;overflow:hidden}
     #listFilter{margin:8px;height:32px;padding:6px 8px;border:1px solid var(--line);border-radius:6px}
     #catalogList{list-style:none;margin:0;padding:0;overflow:auto}
     #catalogList li{padding:12px;border-top:1px solid var(--line);cursor:pointer}
     #catalogList li:first-child{border-top:none}
-    #catalogList li .sub{color:var(--ink-2);font-size:12px;margin-top:2px}
+    #catalogList li .sub{color:var(--ink2);font-size:12px;margin-top:2px}
     #catalogList li.active{outline:2px solid #93c5fd;background:#eff6ff}
 
     section#centerPane{flex:1;min-width:14cm;display:flex;flex-direction:column;gap:8px}
@@ -42,21 +37,21 @@
     #lt-viewer-scroll{flex:1;min-width:14cm;overflow:auto;display:flex;justify-content:center;align-items:flex-start;background:#fff}
     #pdfLayerShell{position:relative}
     #pdfCanvas{display:block;margin:0 auto}
-    #textLayer, #highlightLayer{position:absolute;left:0;top:0}
+    #textLayer,#highlightLayer{position:absolute;left:0;top:0}
     #pager{display:flex;justify-content:center;gap:8px;border-top:1px solid var(--line);padding:8px;background:#fff}
     .btn{padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--btn);color:var(--btn-ink);cursor:pointer}
     .btn:active{transform:translateY(1px)}
 
-    /* Repos drawer */
-    #drawer{position:fixed;inset:0;background:rgba(2,6,23,.45);display:none;align-items:stretch;z-index:50}
-    #drawer.open{display:flex}
-    #drawer .panel{width:min(520px,90vw);margin-left:auto;background:#fff;height:100%;display:flex;flex-direction:column;border-left:1px solid var(--line)}
-    #drawer .panel header{background:#fff;color:var(--ink);padding:12px;border-bottom:1px solid var(--line)}
+    /* LEFT drawer (brand-matched) */
+    #drawer{position:fixed;inset:0;background:rgba(2,6,23,.45);display:none;z-index:50}
+    #drawer.open{display:block}
+    #drawer .panel{position:absolute;left:0;top:0;bottom:0;width:min(420px,92vw);background:#fff;border-right:1px solid var(--line);display:flex;flex-direction:column}
+    #drawer .panel header{background:#fff;color:var(--ink);padding:12px 12px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center}
     #repoFilter{margin:8px;height:32px;padding:6px 8px;border:1px solid var(--line);border-radius:6px}
     #repoList{list-style:none;margin:0;padding:0;overflow:auto}
     #repoList li{padding:12px;border-top:1px solid var(--line);cursor:pointer}
     #repoList li:first-child{border-top:none}
-    .muted{color:var(--ink-2);font-size:12px}
+    .muted{color:var(--ink2);font-size:12px}
 
     /* highlights */
     #textLayer span{position:absolute;white-space:pre;transform-origin:left bottom}
@@ -71,18 +66,18 @@
 <body>
   <header>
     <div class="brand">
-      <img src="logo.png" alt="BB" />
+      <img src="logo.png" alt="BB"/>
       Trust Law Textbooks
     </div>
   </header>
 
   <div class="toolbar">
     <button id="reposBtn" class="btn">Repos</button>
-    <input id="searchInput" class="input" placeholder="Search within text…" />
+    <input id="searchInput" class="input" placeholder="Search within text…"/>
     <button id="prevBtn" class="btn">Prev</button>
     <button id="nextBtn" class="btn">Next</button>
     <span class="muted">Book p.</span>
-    <input id="bookPageInput" class="input" style="width:80px" placeholder="e.g. 684" />
+    <input id="bookPageInput" class="input" style="width:80px" placeholder="e.g. 684"/>
     <button id="goBtn" class="btn">Go</button>
     <button id="calibrateBtn" class="btn">Calibrate</button>
     <button id="printBtn" class="btn">Print</button>
@@ -92,7 +87,7 @@
 
   <main>
     <aside id="leftPane">
-      <input id="listFilter" placeholder="Filter list…" />
+      <input id="listFilter" placeholder="Filter list…"/>
       <ul id="catalogList"></ul>
     </aside>
 
@@ -105,7 +100,7 @@
             <div id="textLayer"></div>
             <div id="highlightLayer"></div>
           </div>
-          <!-- TXT viewer is injected as #textViewer when needed -->
+          <!-- TXT viewer injected as #textViewer when needed -->
         </div>
         <div id="pager">
           <button class="btn" id="pagerPrev">Prev</button>
@@ -115,21 +110,21 @@
     </section>
   </main>
 
-  <!-- Repos drawer -->
+  <!-- LEFT Repos drawer -->
   <div id="drawer">
     <div class="panel">
       <header>
         <strong>Repositories</strong>
-        <button id="repoClose" class="btn" style="float:right">Close</button>
+        <button id="repoClose" class="btn" style="margin-left:auto">Close</button>
       </header>
-      <input id="repoFilter" placeholder="Filter repos…" />
+      <input id="repoFilter" placeholder="Filter repos…"/>
       <ul id="repoList"></ul>
     </div>
   </div>
 
   <div id="toast" hidden></div>
 
-  <!-- PDF.js core (explicit worker set in main.js) -->
+  <!-- PDF.js (exactly once) -->
   <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
   <script src="main.js"></script>
 </body>
