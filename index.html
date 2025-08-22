@@ -2,82 +2,135 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Trust Law Textbooks</title>
-  <link rel="stylesheet" href="style.css" />
-  <!-- Core PDF.js lib (worker handled in main.js for Safari) -->
-  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+  <link rel="icon" href="logo.png" />
+  <style>
+    :root {
+      --brand:#0b3b67;
+      --ink:#1f2937;
+      --ink-2:#6b7280;
+      --line:#e5e7eb;
+      --bg:#f8fafc;
+      --btn:#f1f5f9;
+      --btn-ink:#0f172a;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, sans-serif}
+    header{background:var(--brand);color:#fff;padding:14px 16px}
+    header .brand{display:flex;align-items:center;gap:12px;font-weight:700;font-size:20px}
+    header img{height:24px;width:24px}
+
+    .toolbar{display:flex;gap:8px;align-items:center;padding:8px 12px;background:#fff;border-bottom:1px solid var(--line)}
+    .toolbar .input{height:30px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;min-width:220px}
+    .toolbar .btn{height:30px;padding:0 10px;border:1px solid var(--line);border-radius:6px;background:var(--btn);color:var(--btn-ink);cursor:pointer}
+    .toolbar .btn:active{transform:translateY(1px)}
+    .toolbar .muted{color:var(--ink-2);margin-left:8px}
+
+    main{display:flex;gap:12px;height:calc(100% - 98px);padding:12px}
+    aside#leftPane{width:280px;min-width:260px;max-width:340px;background:#fff;border:1px solid var(--line);border-radius:8px;display:flex;flex-direction:column;overflow:hidden}
+    #listFilter{margin:8px;height:32px;padding:6px 8px;border:1px solid var(--line);border-radius:6px}
+    #catalogList{list-style:none;margin:0;padding:0;overflow:auto}
+    #catalogList li{padding:12px;border-top:1px solid var(--line);cursor:pointer}
+    #catalogList li:first-child{border-top:none}
+    #catalogList li .sub{color:var(--ink-2);font-size:12px;margin-top:2px}
+    #catalogList li.active{outline:2px solid #93c5fd;background:#eff6ff}
+
+    section#centerPane{flex:1;min-width:14cm;display:flex;flex-direction:column;gap:8px}
+    #pageHeader{background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+    #viewerShell{flex:1;background:#fff;border:1px solid var(--line);border-radius:8px;display:flex;flex-direction:column;overflow:hidden}
+    #lt-viewer-scroll{flex:1;min-width:14cm;overflow:auto;display:flex;justify-content:center;align-items:flex-start;background:#fff}
+    #pdfLayerShell{position:relative}
+    #pdfCanvas{display:block;margin:0 auto}
+    #textLayer, #highlightLayer{position:absolute;left:0;top:0}
+    #pager{display:flex;justify-content:center;gap:8px;border-top:1px solid var(--line);padding:8px;background:#fff}
+    .btn{padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--btn);color:var(--btn-ink);cursor:pointer}
+    .btn:active{transform:translateY(1px)}
+
+    /* Repos drawer */
+    #drawer{position:fixed;inset:0;background:rgba(2,6,23,.45);display:none;align-items:stretch;z-index:50}
+    #drawer.open{display:flex}
+    #drawer .panel{width:min(520px,90vw);margin-left:auto;background:#fff;height:100%;display:flex;flex-direction:column;border-left:1px solid var(--line)}
+    #drawer .panel header{background:#fff;color:var(--ink);padding:12px;border-bottom:1px solid var(--line)}
+    #repoFilter{margin:8px;height:32px;padding:6px 8px;border:1px solid var(--line);border-radius:6px}
+    #repoList{list-style:none;margin:0;padding:0;overflow:auto}
+    #repoList li{padding:12px;border-top:1px solid var(--line);cursor:pointer}
+    #repoList li:first-child{border-top:none}
+    .muted{color:var(--ink-2);font-size:12px}
+
+    /* highlights */
+    #textLayer span{position:absolute;white-space:pre;transform-origin:left bottom}
+    #highlightLayer .hl{position:absolute;background:rgba(255,213,77,.35);border-radius:2px}
+    .txt-hl{background:#ffd54d66;box-shadow:0 0 0 2px #ffd54d66 inset}
+
+    /* toast */
+    #toast{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);background:#111827;color:#fff;padding:8px 10px;border-radius:6px;font-size:14px;display:none;z-index:60}
+    #toast[hidden]{display:none}
+  </style>
 </head>
 <body>
-  <header class="app-header">
-    <img src="logo.png" alt="BB" class="logo" />
-    <h1>Trust Law Textbooks</h1>
+  <header>
+    <div class="brand">
+      <img src="logo.png" alt="BB" />
+      Trust Law Textbooks
+    </div>
   </header>
 
-  <nav class="toolbar">
+  <div class="toolbar">
     <button id="reposBtn" class="btn">Repos</button>
     <input id="searchInput" class="input" placeholder="Search within text…" />
-    <button id="findPrevBtn" class="btn">Prev</button>
-    <button id="findNextBtn" class="btn">Next</button>
-
-    <span class="sep"></span>
-
-    <span class="label">Book p.</span>
-    <input id="bookPageInput" class="input small" type="number" min="1" />
+    <button id="prevBtn" class="btn">Prev</button>
+    <button id="nextBtn" class="btn">Next</button>
+    <span class="muted">Book p.</span>
+    <input id="bookPageInput" class="input" style="width:80px" placeholder="e.g. 684" />
     <button id="goBtn" class="btn">Go</button>
     <button id="calibrateBtn" class="btn">Calibrate</button>
-
-    <span class="grow"></span>
-
     <button id="printBtn" class="btn">Print</button>
     <button id="exportTxtBtn" class="btn">Export to TXT</button>
-  </nav>
+    <span id="pageLabel" class="muted" style="margin-left:auto"></span>
+  </div>
 
-  <main class="layout">
-    <!-- LEFT: Catalog -->
-    <aside class="pane left">
-      <input id="listFilter" class="input" placeholder="Filter list…" />
-      <ul id="catalogList" class="list"></ul>
+  <main>
+    <aside id="leftPane">
+      <input id="listFilter" placeholder="Filter list…" />
+      <ul id="catalogList"></ul>
     </aside>
 
-    <!-- CENTER: Viewer -->
-    <section class="pane center">
-      <div class="viewer-head">
-        <span id="pageLabel"></span>
-      </div>
-      <div id="viewerScroll" class="viewer-scroll">
-        <!-- main.js creates the PDF canvas + layers OR a <pre id="textViewer"> here -->
-      </div>
-
-      <div class="pager">
-        <button id="prevBtn" class="btn">Prev</button>
-        <button id="nextBtn" class="btn">Next</button>
+    <section id="centerPane">
+      <div id="pageHeader"></div>
+      <div id="viewerShell">
+        <div id="lt-viewer-scroll">
+          <div id="pdfLayerShell">
+            <canvas id="pdfCanvas"></canvas>
+            <div id="textLayer"></div>
+            <div id="highlightLayer"></div>
+          </div>
+          <!-- TXT viewer is injected as #textViewer when needed -->
+        </div>
+        <div id="pager">
+          <button class="btn" id="pagerPrev">Prev</button>
+          <button class="btn" id="pagerNext">Next</button>
+        </div>
       </div>
     </section>
-
-    <!-- RIGHT: Matches -->
-    <aside class="pane right">
-      <div class="matches-head">
-        <strong>Matches</strong> <span id="matchCount" class="muted"></span>
-      </div>
-      <ul id="matchesList" class="matches"></ul>
-    </aside>
   </main>
 
-  <!-- Drawer (Repos) -->
-  <div id="drawer" class="drawer">
-    <div class="drawer-card">
-      <div class="drawer-head">
+  <!-- Repos drawer -->
+  <div id="drawer">
+    <div class="panel">
+      <header>
         <strong>Repositories</strong>
-        <button id="drawerClose" class="btn lite">Close</button>
-      </div>
-      <input id="repoFilter" class="input" placeholder="Filter repos…" />
-      <ul id="repoList" class="list"></ul>
+        <button id="repoClose" class="btn" style="float:right">Close</button>
+      </header>
+      <input id="repoFilter" placeholder="Filter repos…" />
+      <ul id="repoList"></ul>
     </div>
   </div>
 
-  <div id="toast" class="toast" hidden></div>
+  <div id="toast" hidden></div>
 
+  <!-- PDF.js core (explicit worker set in main.js) -->
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
   <script src="main.js"></script>
 </body>
 </html>
