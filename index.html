@@ -1,162 +1,28 @@
 <!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Trust Law Textbooks</title>
-  <link rel="icon" href="logo.png"/>
-  <style>
-    :root{
-      --brand:#0b3b67; --ink:#1f2937; --ink2:#6b7280;
-      --line:#e5e7eb; --bg:#f8fafc; --btn:#f1f5f9; --btn-ink:#0f172a;
-      --logoTile:40px;      /* brand tile size */
-      --logoImg:28px;       /* inner logo height */
-      --minPaneWidth:14cm;  /* minimum readable width */
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-
-    /* Header / branding */
-    header{background:var(--brand);color:#fff;padding:10px 14px}
-    header .brand{display:flex;align-items:center;gap:12px;font-weight:700;font-size:20px}
-    .logo-tile{
-      width:var(--logoTile);height:var(--logoTile);background:#fff;border-radius:6px;
-      display:flex;align-items:center;justify-content:center;flex:0 0 var(--logoTile);
-      box-shadow:0 0 0 1px rgba(0,0,0,.06) inset;
-    }
-    .logo-tile img{height:var(--logoImg);width:auto;display:block}
-
-    /* Toolbar */
-    .toolbar{display:flex;gap:8px;align-items:center;padding:8px 12px;background:#fff;border-bottom:1px solid var(--line)}
-    .toolbar .input{height:30px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;min-width:220px}
-    .toolbar .btn{height:30px;padding:0 10px;border:1px solid var(--line);border-radius:6px;background:var(--btn);color:var(--btn-ink);cursor:pointer}
-    .toolbar .btn:active{transform:translateY(1px)}
-    .toolbar .muted{color:var(--ink2);margin-left:8px}
-
-    /* Layout */
-    main{display:flex;gap:12px;height:calc(100% - 84px);padding:12px;min-height:0}
-    aside#leftPane{width:300px;min-width:260px;max-width:340px;background:#fff;border:1px solid var(--line);border-radius:8px;display:flex;flex-direction:column;overflow:hidden;min-height:0}
-    #listFilter{margin:8px;height:32px;padding:6px 8px;border:1px solid var(--line);border-radius:6px}
-    #catalogList{list-style:none;margin:0;padding:0;overflow:auto}
-    #catalogList li{padding:12px;border-top:1px solid var(--line);cursor:pointer}
-    #catalogList li:first-child{border-top:none}
-    #catalogList li .sub{color:var(--ink2);font-size:12px;margin-top:2px}
-    #catalogList li.active{outline:2px solid #93c5fd;background:#eff6ff}
-
-    section#centerPane{flex:1;min-width:var(--minPaneWidth);display:flex;flex-direction:column;gap:8px;min-height:0}
-    #pageHeader{background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 12px}
-    #viewerShell{flex:1;background:#fff;border:1px solid var(--line);border-radius:8px;display:flex;flex-direction:column;overflow:hidden;min-height:0}
-
-    /* Continuous SCROLLER (non-flex to avoid iOS flex/overflow bug) */
-    #lt-viewer-scroll{
-      flex:1; min-width:var(--minPaneWidth);
-      height:100%; overflow-y:auto; overflow-x:hidden;
-      display:block; background:#fff; -webkit-overflow-scrolling:touch;
-      touch-action:pan-y; overscroll-behavior-y:contain; min-height:0;
-    }
-
-    /* multipage layout */
-    #pdfPages{margin:16px auto; position:relative}
-    .page{position:relative; margin:0 auto 16px auto; background:#fff}
-    .page canvas{display:block; width:100%}
-    .hl-layer{position:absolute; left:0; top:0; right:0; bottom:0; pointer-events:none}
-    .hl {position:absolute;background:rgba(255,213,77,.35);border-radius:2px}
-
-    /* TXT viewer wraps inside pane */
-    #textViewer{
-      white-space:pre-wrap; word-break:break-word;
-      padding:16px; font-family:serif; margin:16px auto;
-      width:calc(100% - 32px); max-width:calc(100% - 32px);
-      background:#fff; border-radius:8px;
-    }
-    .txt-hl{background:#ffd54d66;box-shadow:0 0 0 2px #ffd54d66 inset}
-
-    #pager{display:flex;justify-content:center;gap:8px;border-top:1px solid var(--line);padding:8px;background:#fff}
-    .btn{padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--btn);color:var(--btn-ink);cursor:pointer}
-    .btn:active{transform:translateY(1px)}
-
-    /* Drawer (left, brand-matched) */
-    #drawer{position:fixed;inset:0;background:rgba(2,6,23,.45);display:none;z-index:60}
-    #drawer.open{display:block}
-    #drawer .panel{
-      position:absolute;left:0;top:0;bottom:0;width:min(420px,92vw);
-      background:var(--brand); color:#fff; display:flex; flex-direction:column;
-      box-shadow:2px 0 12px rgba(0,0,0,.28);
-    }
-    #drawer .panel header{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:8px}
-    #drawer .panel header .title{font-weight:600}
-    #drawer .close{margin-left:auto;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28);color:#fff}
-    #repoFilter{margin:10px 12px;height:32px;padding:6px 8px;border:1px solid rgba(255,255,255,.28);border-radius:6px;background:#083559;color:#fff}
-    #repoList{list-style:none;margin:0;padding:0 8px 12px 8px;overflow:auto}
-    #repoList li{padding:10px 10px;border-radius:8px;cursor:pointer;background:#0d4a7a;margin:8px 4px;color:#e6f1fb}
-    #repoList li:hover{background:#0f5b96}
-    #repoList li .muted{color:#cfe3fb;font-size:12px}
-
-    /* toast */
-    #toast{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);background:#111827;color:#fff;padding:8px 10px;border-radius:6px;font-size:14px;display:none;z-index:70}
-    #toast[hidden]{display:none}
-  </style>
-</head>
-<body>
-  <header>
-    <div class="brand">
-      <span class="logo-tile"><img src="logo.png" alt="BB"></span>
-      Trust Law Textbooks
-    </div>
-  </header>
-
-  <div class="toolbar">
-    <button id="reposBtn" class="btn">Repos</button>
-    <input id="searchInput" class="input" placeholder="Search within text…"/>
-    <button id="prevBtn" class="btn">Prev</button>
-    <button id="nextBtn" class="btn">Next</button>
-    <span class="muted">Book p.</span>
-    <input id="bookPageInput" class="input" style="width:80px" placeholder="e.g. 684"/>
-    <button id="goBtn" class="btn">Go</button>
-    <button id="calibrateBtn" class="btn">Calibrate</button>
-    <button id="printBtn" class="btn">Print</button>
-    <button id="exportTxtBtn" class="btn">Export to TXT</button>
-    <span id="pageLabel" class="muted" style="margin-left:auto"></span>
-  </div>
-
-  <main>
-    <aside id="leftPane">
-      <input id="listFilter" placeholder="Filter list…"/>
-      <ul id="catalogList"></ul>
-    </aside>
-
-    <section id="centerPane">
-      <div id="pageHeader"></div>
-      <div id="viewerShell">
-        <div id="lt-viewer-scroll">
-          <!-- multipage stack goes here -->
-          <div id="pdfPages" hidden></div>
-          <!-- TXT viewer appears as <pre id="textViewer"> when needed -->
-        </div>
-        <div id="pager">
-          <button class="btn" id="pagerPrev">Prev</button>
-          <button class="btn" id="pagerNext">Next</button>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <!-- Repo drawer -->
-  <div id="drawer">
-    <div class="panel">
-      <header>
-        <span class="title">Repositories</span>
-        <button id="repoClose" class="btn close">Close</button>
-      </header>
-      <input id="repoFilter" placeholder="Filter repos…"/>
-      <ul id="repoList"></ul>
-    </div>
-  </div>
-
-  <div id="toast" hidden></div>
-
-  <!-- PDF.js core -->
-  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
-  <script src="main.js"></script>
-</body>
-</html>
+<meta charset="utf-8">
+<title>law-index</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:0;background:#f5f7fb;color:#243042}
+  main{max-width:820px;margin:40px auto;padding:0 16px}
+  h1{font-size:24px;margin:0 0 16px}
+  ul{list-style:none;padding:0;margin:12px 0}
+  li{margin:10px 0}
+  a{color:#0b63ce;text-decoration:none} a:hover{text-decoration:underline}
+  code{background:#eef2f8;padding:2px 6px;border-radius:6px}
+</style>
+<main>
+  <h1>law-index</h1>
+  <p>Published artifacts from the harvest & forensic index.</p>
+  <h2>Harvest</h2>
+  <ul>
+    <li><a href="harvest/catalog.json">harvest/catalog.json</a></li>
+    <li><a href="harvest/catalog-approved.json">harvest/catalog-approved.json</a></li>
+    <li><a href="harvest-manifest.json">harvest-manifest.json</a></li>
+  </ul>
+  <h2>Indexes</h2>
+  <ul>
+    <li><a href="manifest.json">manifest.json</a> (from indexer)</li>
+    <li><a href="lexical.index.json">lexical.index.json</a> (from indexer)</li>
+  </ul>
+</main>
