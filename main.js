@@ -1,5 +1,5 @@
-// Trust Law Textbooks — iPad-friendly viewer.
-// Fixes: logo tile, proper vertical scroll in flex, swipe nav, and per-PDF calibration persistence.
+// Trust Law Textbooks — iPad-friendly reader.
+// Fixes: bigger logo tile, robust vertical scroll (no flex scroller), per-PDF calibration.
 
 document.addEventListener('DOMContentLoaded', () => {
   // ---- CONFIG ----
@@ -25,9 +25,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const toast = (m,ms=1500)=>{ const t=$('#toast'); if(!t) return; t.textContent=m; t.hidden=false; clearTimeout(t._tm); t._tm=setTimeout(()=>t.hidden=true,ms); };
 
   const searchInput = $('#searchInput');
-  const scroll = $('#lt-viewer-scroll'), shell = $('#pdfLayerShell');
-  const canvas = $('#pdfCanvas'), hlLayer = $('#highlightLayer');
-  const label = $('#pageLabel');
+  const scroll = $('#lt-viewer-scroll');
+  const shell  = $('#pdfLayerShell');
+  const canvas = $('#pdfCanvas');
+  const hlLayer= $('#highlightLayer');
+  const label  = $('#pageLabel');
 
   scroll.style.minWidth = `${MIN_CM}cm`;
 
@@ -47,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#repoClose')?.addEventListener('click', ()=> $('#drawer').classList.remove('open'));
   $('#repoFilter')?.addEventListener('input', e=>filterRepos(e.target.value));
 
-  // PDF.js worker: use local if present; else main-thread (quiet + supported)
+  // PDF.js worker: use local if present; else main-thread mode (quiet + supported)
   (async () => {
     try{
       const local = './vendor/pdf.worker.min.js';
@@ -61,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }catch{ console.log('[pdfjs] main-thread mode'); }
   })();
 
-  // Refitting on width change (debounced)
+  // Resize: refit width, redraw
   let roTm=null;
   new ResizeObserver(()=> {
     if (!pdfDoc || isText) return;
@@ -69,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
     roTm = setTimeout(async ()=>{ await fitScaleToWidth(); queueRender(currentPage); }, 80);
   }).observe(scroll);
 
-  // iPad swipe: left/right to change page (keeps vertical pan)
+  // Optional swipe (left/right) to change page; vertical pan remains natural
   let tX=0,tY=0,tTime=0;
   scroll.addEventListener('touchstart', e=>{
     const t=e.changedTouches[0]; tX=t.clientX; tY=t.clientY; tTime=Date.now();
@@ -143,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ---------- Open document ----------
   const isPdf = u => /\.pdf(?:[#?].*)?$/i.test(u||'');
   const isTxt = u => /\.txt(?:[#?].*)?$/i.test(u||'');
-  const basename = u => (u||'').split('/').pop() || u || '';
+  const base  = u => (u||'').split('/').pop() || u || '';
 
   async function openDocument(url){
     if (opening) return;
@@ -172,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const v = ensureTextViewer();
       v.textContent = textContent;
       showPdfLayers(false);
-      setLabel(basename(url));
+      setLabel(base(url));
       toast('Loaded text file');
     }catch(e){ console.error(e); toast('Error loading text file'); }
   }
@@ -218,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       shell.style.width  = canvas.width+'px';
       shell.style.height = canvas.height+'px';
-      hlLayer.innerHTML=''; // textLayer remains hidden
+      hlLayer.innerHTML=''; // textLayer stays hidden
 
       const tc = await page.getTextContent();
       pageTextCache.set(num, tc);
@@ -357,7 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ---------- Calibration (persist per PDF filename) ----------
-  const calibKey = () => 'lawtexts:calib:' + basename(currentUrl||'');
+  const calibKey = () => 'lawtexts:calib:' + base(currentUrl||'');
   function getOffset(){
     try{
       const raw = localStorage.getItem(calibKey());
@@ -371,7 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const pdfFromBook = book => book + getOffset();
   const bookFromPdf = pdf  => pdf  - getOffset();
 
-  function updateLabel(){ if (isText) setLabel(basename(currentUrl||'Text')); else setLabel(`Book p.${bookFromPdf(currentPage)} (PDF p.${currentPage})`); }
+  function updateLabel(){ if (isText) setLabel(base(currentUrl||'Text')); else setLabel(`Book p.${bookFromPdf(currentPage)} (PDF p.${currentPage})`); }
   function setLabel(s){ if (label) label.textContent=s; }
 
   function calibrate(){
@@ -379,7 +381,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ans=prompt(`Calibration\nThis is PDF page ${currentPage}.\nEnter the BOOK page printed on this page:`); const book=parseInt(ans||'',10);
     if (!Number.isInteger(book)) return;
     const off=currentPage-book; setOffset(off);
-    toast(`Saved calibration for ${basename(currentUrl)} (offset ${off>=0?'+':''}${off})`);
+    toast(`Saved calibration for ${base(currentUrl)} (offset ${off>=0?'+':''}${off})`);
     updateLabel();
   }
 
@@ -392,7 +394,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function exportVisibleText(){
     if (isText){
       const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([textContent],{type:'text/plain'}));
-      a.download=(basename(currentUrl).replace(/\.[^.]+$/,'')||'text')+'.txt'; a.click(); URL.revokeObjectURL(a.href); return;
+      a.download=(base(currentUrl).replace(/\.[^.]+$/,'')||'text')+'.txt'; a.click(); URL.revokeObjectURL(a.href); return;
     }
     if (!pdfDoc) return;
     const tc=pageTextCache.get(currentPage) || await pdfDoc.getPage(currentPage).then(p=>p.getTextContent());
