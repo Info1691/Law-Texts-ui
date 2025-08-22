@@ -9,20 +9,22 @@
     :root{
       --brand:#0b3b67; --ink:#1f2937; --ink2:#6b7280;
       --line:#e5e7eb; --bg:#f8fafc; --btn:#f1f5f9; --btn-ink:#0f172a;
+      --logoTile:40px;      /* size of the white brand tile */
+      --logoImg:28px;       /* inner logo height */
+      --minPaneWidth:14cm;  /* min reading width */
     }
     *{box-sizing:border-box}
     html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
 
     /* Header / branding */
     header{background:var(--brand);color:#fff;padding:10px 14px}
-    header .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:20px}
-    /* White background brand tile (matches your other repos) */
+    header .brand{display:flex;align-items:center;gap:12px;font-weight:700;font-size:20px}
     .logo-tile{
-      width:32px;height:32px;background:#fff;border-radius:6px;
-      display:flex;align-items:center;justify-content:center;flex:0 0 32px;
+      width:var(--logoTile);height:var(--logoTile);background:#fff;border-radius:6px;
+      display:flex;align-items:center;justify-content:center;flex:0 0 var(--logoTile);
       box-shadow:0 0 0 1px rgba(0,0,0,.06) inset;
     }
-    .logo-tile img{height:22px;width:auto;display:block}
+    .logo-tile img{height:var(--logoImg);width:auto;display:block}
 
     /* Toolbar */
     .toolbar{display:flex;gap:8px;align-items:center;padding:8px 12px;background:#fff;border-bottom:1px solid var(--line)}
@@ -41,25 +43,26 @@
     #catalogList li .sub{color:var(--ink2);font-size:12px;margin-top:2px}
     #catalogList li.active{outline:2px solid #93c5fd;background:#eff6ff}
 
-    section#centerPane{flex:1;min-width:14cm;display:flex;flex-direction:column;gap:8px;min-height:0}
+    section#centerPane{flex:1;min-width:var(--minPaneWidth);display:flex;flex-direction:column;gap:8px;min-height:0}
     #pageHeader{background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 12px}
     #viewerShell{flex:1;background:#fff;border:1px solid var(--line);border-radius:8px;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+
+    /* SCROLLER (made non-flex to avoid Safari flex/overflow bug) */
     #lt-viewer-scroll{
-      flex:1; min-width:14cm; overflow:auto; display:flex; justify-content:center; align-items:flex-start; background:#fff;
-      -webkit-overflow-scrolling:touch;  /* iOS momentum scroll */
-      touch-action:pan-y;                /* allow vertical pan */
-      min-height:0;
+      flex:1; min-width:var(--minPaneWidth);
+      height:100%; overflow-y:auto; overflow-x:hidden;
+      display:block; background:#fff; -webkit-overflow-scrolling:touch;
+      touch-action:pan-y; overscroll-behavior-y:contain; min-height:0;
     }
-    #pdfLayerShell{position:relative}
+    #pdfLayerShell{position:relative; display:block; margin:0 auto;} /* center the page */
     #pdfCanvas{display:block;margin:0 auto}
-    /* Keep textLayer hidden (avoids “overprint”); highlights draw on their own layer */
-    #textLayer{position:absolute;left:0;top:0;display:none}
+    #textLayer{position:absolute;left:0;top:0;display:none}  /* hide text layer (prevents overprint) */
     #highlightLayer{position:absolute;left:0;top:0}
     #pager{display:flex;justify-content:center;gap:8px;border-top:1px solid var(--line);padding:8px;background:#fff}
     .btn{padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--btn);color:var(--btn-ink);cursor:pointer}
     .btn:active{transform:translateY(1px)}
 
-    /* TXT viewer wraps within pane width */
+    /* TXT viewer wraps in pane */
     #textViewer{
       white-space:pre-wrap; word-break:break-word;
       padding:16px; font-family:serif; margin:16px auto;
@@ -69,7 +72,7 @@
     .txt-hl{background:#ffd54d66;box-shadow:0 0 0 2px #ffd54d66 inset}
     #highlightLayer .hl{position:absolute;background:rgba(255,213,77,.35);border-radius:2px}
 
-    /* Brand-matched LEFT drawer */
+    /* Drawer (left, brand matched) */
     #drawer{position:fixed;inset:0;background:rgba(2,6,23,.45);display:none;z-index:60}
     #drawer.open{display:block}
     #drawer .panel{
@@ -94,7 +97,7 @@
 <body>
   <header>
     <div class="brand">
-      <span class="logo-tile"><img src="logo.png" alt="BB"/></span>
+      <span class="logo-tile"><img src="logo.png" alt="BB"></span>
       Trust Law Textbooks
     </div>
   </header>
@@ -125,10 +128,10 @@
         <div id="lt-viewer-scroll">
           <div id="pdfLayerShell">
             <canvas id="pdfCanvas"></canvas>
-            <div id="textLayer"></div> <!-- hidden, for future copy/select -->
+            <div id="textLayer"></div>
             <div id="highlightLayer"></div>
           </div>
-          <!-- TXT viewer injected as #textViewer when needed -->
+          <!-- TXT viewer appears as <pre id="textViewer"> when needed -->
         </div>
         <div id="pager">
           <button class="btn" id="pagerPrev">Prev</button>
@@ -138,7 +141,7 @@
     </section>
   </main>
 
-  <!-- Brand drawer (LEFT) -->
+  <!-- Repo drawer -->
   <div id="drawer">
     <div class="panel">
       <header>
