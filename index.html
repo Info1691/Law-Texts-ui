@@ -14,13 +14,15 @@
     html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
 
     /* Header / branding */
-    header{background:var(--brand);color:#fff;padding:14px 16px}
-    header .brand{display:flex;align-items:center;gap:12px;font-weight:700;font-size:20px}
-    /* Transparent PNG/SVG recommended. If your current logo has a white box, swap the asset. */
-    header .brand img{
-      height:28px; width:auto; display:block; object-fit:contain; background:transparent;
-      image-rendering:-webkit-optimize-contrast; image-rendering:crisp-edges;
+    header{background:var(--brand);color:#fff;padding:10px 14px}
+    header .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:20px}
+    /* White background brand tile (matches your other repos) */
+    .logo-tile{
+      width:32px;height:32px;background:#fff;border-radius:6px;
+      display:flex;align-items:center;justify-content:center;flex:0 0 32px;
+      box-shadow:0 0 0 1px rgba(0,0,0,.06) inset;
     }
+    .logo-tile img{height:22px;width:auto;display:block}
 
     /* Toolbar */
     .toolbar{display:flex;gap:8px;align-items:center;padding:8px 12px;background:#fff;border-bottom:1px solid var(--line)}
@@ -30,8 +32,8 @@
     .toolbar .muted{color:var(--ink2);margin-left:8px}
 
     /* Layout */
-    main{display:flex;gap:12px;height:calc(100% - 98px);padding:12px}
-    aside#leftPane{width:300px;min-width:260px;max-width:340px;background:#fff;border:1px solid var(--line);border-radius:8px;display:flex;flex-direction:column;overflow:hidden}
+    main{display:flex;gap:12px;height:calc(100% - 84px);padding:12px;min-height:0}
+    aside#leftPane{width:300px;min-width:260px;max-width:340px;background:#fff;border:1px solid var(--line);border-radius:8px;display:flex;flex-direction:column;overflow:hidden;min-height:0}
     #listFilter{margin:8px;height:32px;padding:6px 8px;border:1px solid var(--line);border-radius:6px}
     #catalogList{list-style:none;margin:0;padding:0;overflow:auto}
     #catalogList li{padding:12px;border-top:1px solid var(--line);cursor:pointer}
@@ -39,24 +41,25 @@
     #catalogList li .sub{color:var(--ink2);font-size:12px;margin-top:2px}
     #catalogList li.active{outline:2px solid #93c5fd;background:#eff6ff}
 
-    section#centerPane{flex:1;min-width:14cm;display:flex;flex-direction:column;gap:8px}
+    section#centerPane{flex:1;min-width:14cm;display:flex;flex-direction:column;gap:8px;min-height:0}
     #pageHeader{background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 12px}
-    #viewerShell{flex:1;background:#fff;border:1px solid var(--line);border-radius:8px;display:flex;flex-direction:column;overflow:hidden}
+    #viewerShell{flex:1;background:#fff;border:1px solid var(--line);border-radius:8px;display:flex;flex-direction:column;overflow:hidden;min-height:0}
     #lt-viewer-scroll{
       flex:1; min-width:14cm; overflow:auto; display:flex; justify-content:center; align-items:flex-start; background:#fff;
-      -webkit-overflow-scrolling:touch; /* iOS momentum scrolling */
-      touch-action:pan-y; /* allow vertical pan by default */
+      -webkit-overflow-scrolling:touch;  /* iOS momentum scroll */
+      touch-action:pan-y;                /* allow vertical pan */
+      min-height:0;
     }
     #pdfLayerShell{position:relative}
     #pdfCanvas{display:block;margin:0 auto}
-    /* Keep textLayer invisible to avoid overprint; highlightLayer draws boxes */
+    /* Keep textLayer hidden (avoids “overprint”); highlights draw on their own layer */
     #textLayer{position:absolute;left:0;top:0;display:none}
     #highlightLayer{position:absolute;left:0;top:0}
     #pager{display:flex;justify-content:center;gap:8px;border-top:1px solid var(--line);padding:8px;background:#fff}
     .btn{padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--btn);color:var(--btn-ink);cursor:pointer}
     .btn:active{transform:translateY(1px)}
 
-    /* TXT viewer wraps neatly inside the pane width */
+    /* TXT viewer wraps within pane width */
     #textViewer{
       white-space:pre-wrap; word-break:break-word;
       padding:16px; font-family:serif; margin:16px auto;
@@ -91,7 +94,7 @@
 <body>
   <header>
     <div class="brand">
-      <img src="logo.png" alt="BB"/>
+      <span class="logo-tile"><img src="logo.png" alt="BB"/></span>
       Trust Law Textbooks
     </div>
   </header>
@@ -122,7 +125,7 @@
         <div id="lt-viewer-scroll">
           <div id="pdfLayerShell">
             <canvas id="pdfCanvas"></canvas>
-            <div id="textLayer"></div> <!-- invisible, kept for future select/copy -->
+            <div id="textLayer"></div> <!-- hidden, for future copy/select -->
             <div id="highlightLayer"></div>
           </div>
           <!-- TXT viewer injected as #textViewer when needed -->
@@ -135,7 +138,7 @@
     </section>
   </main>
 
-  <!-- LEFT Brand drawer -->
+  <!-- Brand drawer (LEFT) -->
   <div id="drawer">
     <div class="panel">
       <header>
@@ -149,7 +152,7 @@
 
   <div id="toast" hidden></div>
 
-  <!-- PDF.js core (exactly once) -->
+  <!-- PDF.js (core only, once) -->
   <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
   <script src="main.js"></script>
 </body>
