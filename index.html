@@ -12,16 +12,19 @@
     }
     *{box-sizing:border-box}
     html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+    /* Header / branding */
     header{background:var(--brand);color:#fff;padding:14px 16px}
     header .brand{display:flex;align-items:center;gap:12px;font-weight:700;font-size:20px}
     header img{height:24px;width:24px}
 
+    /* Toolbar */
     .toolbar{display:flex;gap:8px;align-items:center;padding:8px 12px;background:#fff;border-bottom:1px solid var(--line)}
     .toolbar .input{height:30px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;min-width:220px}
     .toolbar .btn{height:30px;padding:0 10px;border:1px solid var(--line);border-radius:6px;background:var(--btn);color:var(--btn-ink);cursor:pointer}
     .toolbar .btn:active{transform:translateY(1px)}
     .toolbar .muted{color:var(--ink2);margin-left:8px}
 
+    /* Layout */
     main{display:flex;gap:12px;height:calc(100% - 98px);padding:12px}
     aside#leftPane{width:300px;min-width:260px;max-width:340px;background:#fff;border:1px solid var(--line);border-radius:8px;display:flex;flex-direction:column;overflow:hidden}
     #listFilter{margin:8px;height:32px;padding:6px 8px;border:1px solid var(--line);border-radius:6px}
@@ -37,29 +40,44 @@
     #lt-viewer-scroll{flex:1;min-width:14cm;overflow:auto;display:flex;justify-content:center;align-items:flex-start;background:#fff}
     #pdfLayerShell{position:relative}
     #pdfCanvas{display:block;margin:0 auto}
-    #textLayer,#highlightLayer{position:absolute;left:0;top:0}
+    /* Keep textLayer invisible so the PDF is not “overprinted” */
+    #textLayer{position:absolute;left:0;top:0;display:none}
+    #highlightLayer{position:absolute;left:0;top:0}
     #pager{display:flex;justify-content:center;gap:8px;border-top:1px solid var(--line);padding:8px;background:#fff}
     .btn{padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--btn);color:var(--btn-ink);cursor:pointer}
     .btn:active{transform:translateY(1px)}
 
-    /* LEFT drawer (brand-matched) */
-    #drawer{position:fixed;inset:0;background:rgba(2,6,23,.45);display:none;z-index:50}
-    #drawer.open{display:block}
-    #drawer .panel{position:absolute;left:0;top:0;bottom:0;width:min(420px,92vw);background:#fff;border-right:1px solid var(--line);display:flex;flex-direction:column}
-    #drawer .panel header{background:#fff;color:var(--ink);padding:12px 12px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center}
-    #repoFilter{margin:8px;height:32px;padding:6px 8px;border:1px solid var(--line);border-radius:6px}
-    #repoList{list-style:none;margin:0;padding:0;overflow:auto}
-    #repoList li{padding:12px;border-top:1px solid var(--line);cursor:pointer}
-    #repoList li:first-child{border-top:none}
-    .muted{color:var(--ink2);font-size:12px}
-
-    /* highlights */
-    #textLayer span{position:absolute;white-space:pre;transform-origin:left bottom}
-    #highlightLayer .hl{position:absolute;background:rgba(255,213,77,.35);border-radius:2px}
+    /* TXT viewer wraps inside the pane width */
+    #textViewer{
+      white-space:pre-wrap; word-break:break-word;
+      padding:16px; font-family:serif; margin:16px auto;
+      width:calc(100% - 32px); max-width:calc(100% - 32px);
+      background:#fff; border-radius:8px;
+    }
     .txt-hl{background:#ffd54d66;box-shadow:0 0 0 2px #ffd54d66 inset}
 
+    /* Highlight rectangles */
+    #highlightLayer .hl{position:absolute;background:rgba(255,213,77,.35);border-radius:2px}
+
+    /* Brand-matched LEFT drawer */
+    #drawer{position:fixed;inset:0;background:rgba(2,6,23,.45);display:none;z-index:60}
+    #drawer.open{display:block}
+    #drawer .panel{
+      position:absolute;left:0;top:0;bottom:0;width:min(420px,92vw);
+      background:var(--brand); color:#fff; display:flex; flex-direction:column;
+      box-shadow:2px 0 12px rgba(0,0,0,.28);
+    }
+    #drawer .panel header{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:8px}
+    #drawer .panel header .title{font-weight:600}
+    #drawer .close{margin-left:auto;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28);color:#fff}
+    #repoFilter{margin:10px 12px;height:32px;padding:6px 8px;border:1px solid rgba(255,255,255,.28);border-radius:6px;background:#083559;color:#fff}
+    #repoList{list-style:none;margin:0;padding:0 8px 12px 8px;overflow:auto}
+    #repoList li{padding:10px 10px;border-radius:8px;cursor:pointer;background:#0d4a7a;margin:8px 4px;color:#e6f1fb}
+    #repoList li:hover{background:#0f5b96}
+    #repoList li .muted{color:#cfe3fb;font-size:12px}
+
     /* toast */
-    #toast{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);background:#111827;color:#fff;padding:8px 10px;border-radius:6px;font-size:14px;display:none;z-index:60}
+    #toast{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);background:#111827;color:#fff;padding:8px 10px;border-radius:6px;font-size:14px;display:none;z-index:70}
     #toast[hidden]{display:none}
   </style>
 </head>
@@ -97,7 +115,7 @@
         <div id="lt-viewer-scroll">
           <div id="pdfLayerShell">
             <canvas id="pdfCanvas"></canvas>
-            <div id="textLayer"></div>
+            <div id="textLayer"></div>       <!-- invisible, kept for future select/copy -->
             <div id="highlightLayer"></div>
           </div>
           <!-- TXT viewer injected as #textViewer when needed -->
@@ -110,12 +128,12 @@
     </section>
   </main>
 
-  <!-- LEFT Repos drawer -->
+  <!-- LEFT Brand drawer -->
   <div id="drawer">
     <div class="panel">
       <header>
-        <strong>Repositories</strong>
-        <button id="repoClose" class="btn" style="margin-left:auto">Close</button>
+        <span class="title">Repositories</span>
+        <button id="repoClose" class="btn close">Close</button>
       </header>
       <input id="repoFilter" placeholder="Filter repos…"/>
       <ul id="repoList"></ul>
@@ -124,7 +142,7 @@
 
   <div id="toast" hidden></div>
 
-  <!-- PDF.js (exactly once) -->
+  <!-- PDF.js core (exactly once) -->
   <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
   <script src="main.js"></script>
 </body>
