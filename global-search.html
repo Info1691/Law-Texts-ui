@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Global Search — Trust Law Library</title>
+<link rel="icon" href="logo.png">
+<style>
+  :root{--bg:#0f3a5a;--panel:#fff;--muted:#6b7280;}
+  body{margin:0;background:#f3f4f6;font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Helvetica,Arial,sans-serif;}
+  header{background:var(--bg);color:#fff;padding:10px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  header .title{font-weight:600}
+  header input{flex:1;min-width:220px;padding:8px;border-radius:6px;border:1px solid #d1d5db}
+  header button{padding:8px 12px;border-radius:6px;border:0;background:#2563eb;color:#fff;cursor:pointer}
+  #status{font-size:12px;opacity:.85}
+  main{display:grid;grid-template-columns:320px 1fr;gap:14px;padding:14px;max-width:1200px;margin:0 auto}
+  .panel{background:var(--panel);border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 1px 0 rgba(0,0,0,.03)}
+  #docs{padding:8px;max-height:72vh;overflow:auto}
+  .doc{padding:10px;border-radius:8px;cursor:pointer}
+  .doc:hover{background:#f3f4f6}
+  .doc.active{background:#e5f0ff}
+  .doc .meta{color:var(--muted);font-size:12px}
+  #hits{padding:14px;max-height:72vh;overflow:auto}
+  .hit{padding:12px 10px;border-bottom:1px solid #eee}
+  .hit .meta{color:var(--muted);font-size:12px;margin-bottom:6px}
+  mark{background:#ffeb3b}
+  .muted{color:var(--muted)}
+  @media (max-width:860px){ main{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<header>
+  <div class="title">Global Search</div>
+  <input id="q" type="search" placeholder="Search all Textbooks • Laws • Rules • Harvest…">
+  <button id="go">Search</button>
+  <div id="status"></div>
+</header>
+<main>
+  <div id="docs" class="panel"></div>
+  <div id="hits" class="panel"></div>
+</main>
+
+<!-- MiniSearch -->
+<script src="https://cdn.jsdelivr.net/npm/minisearch@6.3.0/dist/umd/index.min.js"></script>
+<!-- Indexed client -->
+<script>
+const INDEX_BASE = 'https://info1691.github.io/law-index/';
+const MANIFEST_URL = INDEX_BASE + 'manifest.json';
+const INDEX_URL    = INDEX_BASE + 'lexical.index.json';
+
+(async function () {
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+  const status=$('#status'), docsBox=$('#docs'), hitsBox=$('#hits'), qInp=$('#q');
+  $('#go').addEventListener('click', run);
+  qInp.addEventListener('keydown',e=>{ if(e.key==='Enter') run(); });
+
+  status.textContent='Loading index…';
+  const [manifest,indexJson]=await Promise.all([
+    fetch(MANIFEST_URL,{cache:'no-store'}).then(r=>r.json()),
+    fetch(INDEX_URL,{cache:'no-store'}).then(r=>r.json())
+  ]);
+  const mini=MiniSearch.loadJSON(indexJson);
+  status.textContent='Ready.';
+
+  function baseKey(url,title){ return (url||'')+'|'+(title||''); }
+  function isPdf(u){ return /\.pdf(?:[#?].*)?$/i.test(u||''); }
+  function escapeRx(s){ return String(s||'').replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+  function viewerLink(docUrl, hit){
+    const p=new URLSearchParams(); p.set('doc',docUrl);
+    if(hit?.pdfPage) p.set('pdfp',String(hit.pdfPage));
+    if(hit?.q) p.set('q',hit.q);
+    return `./index.html?${p.toString()}`; // your viewer’s main page
+  }
+
+  async function run(){
+    const q=(qInp.value||'').trim(); if(!q) return;
+    status.textContent='Searching…';
+    const results=mini.search(q,{prefix:true,fuzzy:0.1,boost:{title:4,subtitle:2}});
+    const byDoc=new Map();
+    for(const r of results){
+      const row=(manifest.docs||[]).find(d=>d.docId===r.doc.docId);
+      if(!row) continue;
+      const k=baseKey(row.url,row.title);
+      if(!byDoc.has(k)) byDoc.set(k,{title:row.title,url:row.url,hits:[],subtitle:r.doc.subtitle||'',source:r.doc.source||''});
+      byDoc.get(k).hits.push({page:row.page,bookPage:row.bookPage,snippet:row.snippet||''});
+    }
+    const list=Array.from(byDoc.values()).sort((a,b)=>b.hits.length-a.hits.length);
+    docsBox.innerHTML = list.length
+      ? list.map((d,i)=>`<div class="doc" data-i="${i}">
+            <div><strong>${esc(d.title)}</strong></div>
+            <div class="meta">${esc([d.subtitle,d.source].filter(Boolean).join(' — '))}</div>
+            <div class="meta">${d.hits.length} match${d.hits.length!==1?'es':''}</div>
+         </div>`).join('')
+      : `<div class="doc"><strong>No matches</strong></div>`;
+    hitsBox.innerHTML='';
+    status.textContent = list.length ? `Matches in ${list.length} document${list.length!==1?'s':''}.` : 'No results.';
+
+    const first=docsBox.querySelector('.doc'); if(first){ first.classList.add('active'); showHits(list[0], q); }
+    docsBox.onclick = e=>{
+      const li=e.target.closest('.doc'); if(!li) return;
+      docsBox.querySelectorAll('.doc').forEach(n=>n.classList.remove('active'));
+      li.classList.add('active'); const idx=+li.dataset.i; showHits(list[idx], q);
+    };
+  }
+
+  function showHits(doc,q){
+    const qrx=new RegExp(escapeRx(q),'ig');
+    hitsBox.innerHTML = doc.hits.map(h=>{
+      const where=`PDF p.${h.page}${Number.isFinite(h.bookPage)?` (book p.${h.bookPage})`:''}`;
+      const snippet=esc(h.snippet).replace(qrx,m=>`<mark>${m}</mark>`);
+      const openViewer=viewerLink(doc.url,{pdfPage:h.page,q});
+      const openDirect=doc.url+(isPdf(doc.url)?`#page=${h.page}`:'');
+      return `<div class="hit">
+        <div class="meta">${esc(doc.title)} — ${where}</div>
+        <div>${snippet}</div>
+        <div class="meta"><a href="${openViewer}">Open in Viewer</a> · <a href="${openDirect}" target="_blank">Open source</a></div>
+      </div>`;
+    }).join('');
+    hitsBox.scrollTop=0;
+  }
+})();
+</script>
+</body>
+</html>
