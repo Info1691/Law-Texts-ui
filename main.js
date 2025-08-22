@@ -1,93 +1,100 @@
-// Law-Texts-ui — Phase 1 (fit-to-width PDF/TXT, min 14cm)
-// Prev/Next doubles as find next/prev when search box has text.
-// No right pane. Repos drawer. Calibration (single offset). Safari-safe worker.
+// Trust Law Textbooks — Phase 1 viewer
+// Fit-to-width PDF/TXT (min 14cm), left drawer, no right pane.
+// Prev/Next does find-next/find-prev when the search box has text; otherwise page ±1.
+// Guarded to avoid duplicate opens/renders.
 
 document.addEventListener('DOMContentLoaded', () => {
-  // ----- CONFIG -----
+  // ---- CONFIG ----
   const CATALOG_URL = 'data/texts/catalog.json';
   const REPOS_URL   = 'data/repos.json';
-  const DEFAULT_OFF = -83;     // book ↔ pdf default offset
-  const MAX_MATCHES = 300;
+  const DEFAULT_OFF = -83;
   const MIN_CM      = 14;
+  const MAX_MATCHES = 300;
   const STORAGE_NS  = 'lawtexts:';
 
-  // ----- STATE -----
+  // ---- STATE ----
   let pdfDoc = null, currentUrl = null, currentPage = 1;
   let rendering = false, pendingPage = null, scale = 1;
   let isText = false, textContent = '';
-  const pageTextCache = new Map(); // page -> textContent
+  let opening = false;                 // prevents double-open
+  let openedOnce = false;              // prevents auto-open twice
+  const pageTextCache = new Map();     // page -> textContent
   let searchTerm = '', matches = [], matchIdx = -1;
 
-  // ----- DOM -----
+  // ---- DOM helpers ----
   const $  = s => document.querySelector(s);
   const $$ = s => Array.from(document.querySelectorAll(s));
   const esc = s => String(s).replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
   const key = s => STORAGE_NS + (currentUrl || '') + ':' + s;
-  const toast = (m,ms=1800)=>{ const t=$('#toast'); t.textContent=m; t.hidden=false; clearTimeout(t._tm); t._tm=setTimeout(()=>t.hidden=true,ms); };
-  const sleep = ms => new Promise(r=>setTimeout(r,ms));
+  const toast = (m,ms=1600)=>{ const t=$('#toast'); if(!t) return; t.textContent=m; t.hidden=false; clearTimeout(t._tm); t._tm=setTimeout(()=>t.hidden=true,ms); };
   const cmToPx = cm => cm*37.7952755906;
 
-  // Toolbar
+  // ---- Elements ----
   const searchInput = $('#searchInput');
+  const scroll = $('#lt-viewer-scroll'), shell = $('#pdfLayerShell');
+  const canvas = $('#pdfCanvas'), textLayer = $('#textLayer'), hlLayer = $('#highlightLayer');
+  const label = $('#pageLabel');
+
+  // enforce min width
+  scroll.style.minWidth = `${MIN_CM}cm`;
+
+  // Toolbar binds
   bind('#printBtn', () => window.print());
   bind('#exportTxtBtn', exportVisibleText);
-  bind('#goBtn', () => { const n=parseInt($('#bookPageInput')?.value||'',10); if (Number.isInteger(n)) jumpBookPage(n); });
+  bind('#goBtn', () => { const n=parseInt($('#bookPageInput')?.value||'',10); if(Number.isInteger(n)) jumpBookPage(n); });
   bind('#calibrateBtn', calibrate);
   bind('#prevBtn', prevAction);
   bind('#nextBtn', nextAction);
   bind('#pagerPrev', prevAction);
   bind('#pagerNext', nextAction);
   $('#listFilter')?.addEventListener('input', e=>filterCatalog(e.target.value));
-  searchInput?.addEventListener('keydown', e=>{ if (e.key==='Enter') startSearch('new'); });
+  searchInput?.addEventListener('keydown', e=>{ if(e.key==='Enter') startSearch('new'); });
 
-  // Drawer
-  const drawer = $('#drawer');
-  $('#reposBtn')?.addEventListener('click', ()=> drawer.classList.add('open'));
-  $('#repoClose')?.addEventListener('click', ()=> drawer.classList.remove('open'));
+  // Drawer (LEFT)
+  $('#reposBtn')?.addEventListener('click', ()=> $('#drawer').classList.add('open'));
+  $('#repoClose')?.addEventListener('click', ()=> $('#drawer').classList.remove('open'));
   $('#repoFilter')?.addEventListener('input', e=>filterRepos(e.target.value));
 
-  // Viewer mounts
-  const scroll = $('#lt-viewer-scroll');
-  const shell  = $('#pdfLayerShell');
-  const canvas = $('#pdfCanvas');
-  const textLayer = $('#textLayer');
-  const hlLayer   = $('#highlightLayer');
-  const label = $('#pageLabel');
-
-  // Ensure min width
-  scroll.style.minWidth = `${MIN_CM}cm`;
-
-  // Resize: refit current page
-  new ResizeObserver(()=>{ if (pdfDoc && !isText) { fitScaleToWidth().then(()=>render(currentPage)); } }).observe(scroll);
-
-  // PDF.js worker: explicit CDN (quiet on Safari)
+  // PDF.js worker (quiet on Safari)
   if (window.pdfjsLib){
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
   } else {
     alert('PDF.js failed to load');
   }
 
-  // Boot
+  // Refitting current page on width change (debounced + guarded)
+  let roTimer=null;
+  new ResizeObserver(() => {
+    if (!pdfDoc || isText) return;
+    clearTimeout(roTimer);
+    roTimer = setTimeout(async () => {
+      await fitScaleToWidth();
+      queueRender(currentPage);
+    }, 80);
+  }).observe(scroll);
+
+  // ---- Boot ----
   (async function init(){
     await loadRepos();
     await loadCatalog();
   })();
 
-  // --------- Catalog ----------
+  // ---------- Catalog ----------
   async function loadCatalog(){
     try{
       const r = await fetch(CATALOG_URL, { cache:'no-store' });
       if (!r.ok) throw new Error('catalog not found');
       const items = await r.json();
-      const list = $('#catalogList'); list.innerHTML='';
 
-      for (const it of items){
-        const li=document.createElement('li');
+      const list = $('#catalogList'); list.innerHTML='';
+      items.forEach(it => {
+        const li = document.createElement('li');
         li.innerHTML = `<div><strong>${esc(it.title||'')}</strong>${it.subtitle?`<div class="sub">${esc(it.subtitle)}</div>`:''}</div>`;
-        li.dataset.title=(it.title||'').toLowerCase();
-        li.dataset.url = it.url || '';
+        li.dataset.title = (it.title||'').toLowerCase();
+        li.dataset.url   = it.url || '';
         if (it.url){
-          li.addEventListener('click', ()=>{
+          li.addEventListener('click', () => {
+            if (li.classList.contains('active')) return; // avoid reopen same
             [...list.children].forEach(n=>n.classList.remove('active'));
             li.classList.add('active');
             openDocument(it.url);
@@ -96,11 +103,12 @@ document.addEventListener('DOMContentLoaded', () => {
           li.style.opacity='.6'; li.style.cursor='not-allowed';
         }
         list.appendChild(li);
-      }
+      });
 
-      // auto-open first
-      const first = Array.from(list.children).find(n=>n.dataset.url);
-      if (first){ first.classList.add('active'); openDocument(first.dataset.url); }
+      if (!openedOnce){
+        const first = Array.from(list.children).find(n=>n.dataset.url);
+        if (first){ first.classList.add('active'); openedOnce = true; openDocument(first.dataset.url); }
+      }
     }catch(e){ console.error(e); toast('catalog.json error'); }
   }
   function filterCatalog(q){
@@ -110,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --------- Repos ----------
+  // ---------- Repos ----------
   async function loadRepos(){
     try{
       const r = await fetch(REPOS_URL, { cache:'no-store' });
@@ -130,30 +138,40 @@ document.addEventListener('DOMContentLoaded', () => {
     $$('.repo-item').forEach(li=> li.style.display = (li.dataset.name||'').includes(n) ? '' : 'none');
   }
 
-  // --------- Open document ----------
+  // ---------- Open document ----------
   function isPdf(u){ return /\.pdf(?:[#?].*)?$/i.test(u||''); }
   function isTxt(u){ return /\.txt(?:[#?].*)?$/i.test(u||''); }
 
   async function openDocument(url){
-    currentUrl = url;
-    resetSearchState();
-    clearTextViewer();
-    showPdfLayers(true);
+    if (opening) return;
+    if (url === currentUrl && (pdfDoc || isText)) return; // guard
+    opening = true;
+    try{
+      currentUrl = url;
+      resetSearchState();
+      clearTextViewer();
+      showPdfLayers(true);
 
-    if (isPdf(url)) return openPdf(url);
-    if (isTxt(url) || !/\.[a-z0-9]+$/i.test(url)) return openTxt(url);
-    toast('Unsupported file: '+url);
+      if (isPdf(url)){
+        await openPdf(url);
+      } else if (isTxt(url) || !/\.[a-z0-9]+$/i.test(url)){
+        await openTxt(url);
+      } else {
+        toast('Unsupported file: '+url);
+      }
+    } finally {
+      opening = false;
+    }
   }
 
-  // TXT mode
+  // ---------- TXT ----------
   async function openTxt(url){
     try{
       const r = await fetch(url, { cache:'no-store' });
       if (!r.ok) throw new Error(`HTTP ${r.status} for ${url}`);
       textContent = await r.text();
       isText = true;
-      const v = ensureTextViewer();
-      v.textContent = textContent;
+      ensureTextViewer().textContent = textContent;
       showPdfLayers(false);
       setLabel(url.split('/').pop() || 'Text');
       toast('Loaded text file');
@@ -162,12 +180,11 @@ document.addEventListener('DOMContentLoaded', () => {
   function ensureTextViewer(){
     let v = $('#textViewer');
     if (!v){ v=document.createElement('pre'); v.id='textViewer'; scroll.appendChild(v); }
-    v.style.display='block';
-    return v;
+    v.style.display='block'; return v;
   }
   function clearTextViewer(){ const v=$('#textViewer'); if (v){ v.textContent=''; v.style.display='none'; } }
 
-  // PDF mode
+  // ---------- PDF ----------
   async function fitScaleToWidth(){
     const cssW = Math.max(scroll.clientWidth || 820, cmToPx(MIN_CM));
     const p = await pdfDoc.getPage(1);
@@ -183,6 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       await fitScaleToWidth();
       isText = false; currentPage = 1;
+      pageTextCache.clear();
       await render(currentPage);
       toast(`Loaded PDF (${pdfDoc.numPages} pages)`);
     }catch(e){ console.error(e); toast('Error loading PDF'); }
@@ -229,6 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function queueRender(n){
     if (!pdfDoc || isText) return;
     n = Math.max(1, Math.min(pdfDoc.numPages, n));
+    if (n === currentPage && !rendering) return;
     if (rendering){ pendingPage = n; return; }
     currentPage = n; render(n);
   }
@@ -238,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const v = $('#textViewer'); if (v) v.style.display = show ? 'none' : 'block';
   }
 
-  // --------- Prev/Next dual behavior ----------
+  // ---------- Prev/Next dual behavior ----------
   function nextAction(){
     const q=(searchInput?.value||'').trim();
     if (q) startSearch('next'); else if (!isText) queueRender(currentPage+1);
@@ -248,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (q) startSearch('prev'); else if (!isText) queueRender(currentPage-1);
   }
 
-  // --------- Search & highlight ----------
+  // ---------- Search & highlight ----------
   function resetSearchState(){ searchTerm=''; matches=[]; matchIdx=-1; hlLayer.innerHTML=''; pageTextCache.clear(); }
 
   async function startSearch(mode){
@@ -340,7 +359,6 @@ document.addEventListener('DOMContentLoaded', () => {
       hlLayer.appendChild(box);
     }
 
-    // scroll to view
     const first=hlLayer.firstChild;
     if (first){
       const r=first.getBoundingClientRect(), sc=scroll.getBoundingClientRect();
@@ -350,13 +368,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // --------- Mapping & calibration ----------
+  // ---------- Mapping & calibration ----------
   function loadCal(){ return JSON.parse(localStorage.getItem(key('calib')) || '{}'); }
   function saveCal(o){ localStorage.setItem(key('calib'), JSON.stringify(o)); }
   function pdfFromBook(book){ const c=loadCal(); const off=(typeof c.offset==='number')?c.offset:DEFAULT_OFF; return book+off; }
   function bookFromPdf(pdf){ const c=loadCal(); const off=(typeof c.offset==='number')?c.offset:DEFAULT_OFF; return pdf-off; }
   function updateLabel(){ if (isText) setLabel(currentUrl?.split('/').pop()||'Text'); else setLabel(`Book p.${bookFromPdf(currentPage)} (PDF p.${currentPage})`); }
-  function setLabel(s){ const el=label; if (el) el.textContent=s; }
+  function setLabel(s){ if (label) label.textContent=s; }
   function calibrate(){
     if (isText || !pdfDoc){ toast('Calibration is for PDFs'); return; }
     const ans=prompt(`Calibration\nThis is PDF page ${currentPage}.\nEnter the BOOK page printed on this page:`); const book=parseInt(ans||'',10);
@@ -369,7 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const t=Math.max(1, Math.min(pdfDoc.numPages, pdfFromBook(book))); queueRender(t);
   }
 
-  // --------- Export ----------
+  // ---------- Export ----------
   async function exportVisibleText(){
     if (isText){
       const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([textContent],{type:'text/plain'}));
@@ -382,6 +400,6 @@ document.addEventListener('DOMContentLoaded', () => {
     a.download=`book-p${bookFromPdf(currentPage)}-pdf-p${currentPage}.txt`; a.click(); URL.revokeObjectURL(a.href);
   }
 
-  // --------- helpers ----------
+  // ---------- helpers ----------
   function bind(sel, fn){ const el=$(sel); if (el) el.addEventListener('click', fn); }
 });
