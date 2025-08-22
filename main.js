@@ -1,9 +1,5 @@
-// Trust Law Textbooks — fit-to-width PDF/TXT viewer (min 14cm), brand drawer (LEFT).
-// Fixes:
-//  - Text layer hidden (prevents PDF "overprint").
-//  - TXT wraps within pane width.
-//  - Guarded open/render to avoid double loads.
-//  - Prev/Next = find next/prev when search box has text; otherwise page ±1.
+// Trust Law Textbooks — fit-to-width PDF/TXT viewer (min 14cm), iPad-friendly.
+// Adds: momentum scroll, swipe left/right for prev/next. Text layer hidden (no overprint).
 
 document.addEventListener('DOMContentLoaded', () => {
   // ---- CONFIG ----
@@ -30,11 +26,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const cmToPx = cm => cm*37.7952755906;
   const toast = (m,ms=1500)=>{ const t=$('#toast'); if(!t) return; t.textContent=m; t.hidden=false; clearTimeout(t._tm); t._tm=setTimeout(()=>t.hidden=true,ms); };
 
-  // Toolbar & viewer elements
+  // Toolbar & viewer
   const searchInput = $('#searchInput');
   const scroll = $('#lt-viewer-scroll'), shell = $('#pdfLayerShell');
-  const canvas = $('#pdfCanvas'), textLayer = $('#textLayer'), hlLayer = $('#highlightLayer');
+  const canvas = $('#pdfCanvas'), hlLayer = $('#highlightLayer');
   const label = $('#pageLabel');
+
   scroll.style.minWidth = `${MIN_CM}cm`;
 
   bind('#printBtn', () => window.print());
@@ -48,12 +45,12 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#listFilter')?.addEventListener('input', e=>filterCatalog(e.target.value));
   searchInput?.addEventListener('keydown', e=>{ if(e.key==='Enter') startSearch('new'); });
 
-  // Drawer (LEFT, brand)
+  // Drawer
   $('#reposBtn')?.addEventListener('click', ()=> $('#drawer').classList.add('open'));
   $('#repoClose')?.addEventListener('click', ()=> $('#drawer').classList.remove('open'));
   $('#repoFilter')?.addEventListener('input', e=>filterRepos(e.target.value));
 
-  // PDF.js worker: prefer local vendor; otherwise run without worker (quiet & supported)
+  // PDF.js worker: use local if present; otherwise main-thread (quiet & supported)
   (async () => {
     try{
       const local = './vendor/pdf.worker.min.js';
@@ -67,13 +64,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }catch{ console.log('[pdfjs] main-thread mode'); }
   })();
 
-  // Refit on width changes (debounced)
+  // Refitting on width change (debounced)
   let roTm=null;
   new ResizeObserver(()=> {
     if (!pdfDoc || isText) return;
     clearTimeout(roTm);
     roTm = setTimeout(async ()=>{ await fitScaleToWidth(); queueRender(currentPage); }, 80);
   }).observe(scroll);
+
+  // iPad swipe: left/right to change page (does not block vertical scroll)
+  let tX=0,tY=0,tTime=0;
+  scroll.addEventListener('touchstart', e=>{
+    const t=e.changedTouches[0]; tX=t.clientX; tY=t.clientY; tTime=Date.now();
+  }, {passive:true});
+  scroll.addEventListener('touchend', e=>{
+    const t=e.changedTouches[0]; const dx=t.clientX-tX; const dy=t.clientY-tY; const dt=Date.now()-tTime;
+    if (dt<600 && Math.abs(dx)>60 && Math.abs(dx)>Math.abs(dy)) { // horizontal swipe
+      if (dx<0) nextAction(); else prevAction();
+    }
+  }, {passive:true});
 
   // Boot
   (async function init(){
@@ -101,9 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
             li.classList.add('active');
             openDocument(it.url);
           });
-        } else {
-          li.style.opacity='.6'; li.style.cursor='not-allowed';
-        }
+        } else { li.style.opacity='.6'; li.style.cursor='not-allowed'; }
         list.appendChild(li);
       });
 
@@ -212,11 +219,13 @@ document.addEventListener('DOMContentLoaded', () => {
       canvas.height = Math.floor(view.height);
       await page.render({ canvasContext: ctx, viewport: view }).promise;
 
+      // size the layers to the page
+      const shell = $('#pdfLayerShell'), hlLayer = $('#highlightLayer');
       shell.style.width  = canvas.width+'px';
       shell.style.height = canvas.height+'px';
-      hlLayer.innerHTML=''; // keep textLayer hidden (no overprint)
+      hlLayer.innerHTML=''; // (textLayer remains hidden)
 
-      // Cache text for search/highlight
+      // cache text for searching
       const tc = await page.getTextContent();
       pageTextCache.set(num, tc);
 
@@ -238,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function showPdfLayers(show){
-    shell.style.display = show ? 'block' : 'none';
+    $('#pdfLayerShell').style.display = show ? 'block' : 'none';
     const v = $('#textViewer'); if (v) v.style.display = show ? 'none' : 'block';
   }
 
@@ -253,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ---------- Search & highlight ----------
-  function resetSearchState(){ searchTerm=''; matches=[]; matchIdx=-1; hlLayer.innerHTML=''; pageTextCache.clear(); }
+  function resetSearchState(){ searchTerm=''; matches=[]; matchIdx=-1; $('#highlightLayer').innerHTML=''; pageTextCache.clear(); }
 
   async function startSearch(mode){
     const q=(searchInput?.value||'').trim();
@@ -283,7 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
           if (matches.length>=MAX_MATCHES) break;
         }
-        if (!matches.length){ toast('No matches'); hlLayer.innerHTML=''; return; }
+        if (!matches.length){ toast('No matches'); $('#highlightLayer').innerHTML=''; return; }
         matchIdx=0; const m=matches[0]; if (currentPage!==m.page) queueRender(m.page); else highlightPdf(m);
         return;
       }
@@ -327,7 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const page=await pdfDoc.getPage(currentPage);
     const view=page.getViewport({ scale });
-    hlLayer.innerHTML='';
+    const hlLayer = $('#highlightLayer'); hlLayer.innerHTML='';
 
     for (let i=sItem;i<=eItem;i++){
       const it=tc.items[i];
