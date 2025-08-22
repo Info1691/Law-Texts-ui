@@ -9,9 +9,9 @@
     :root{
       --brand:#0b3b67; --ink:#1f2937; --ink2:#6b7280;
       --line:#e5e7eb; --bg:#f8fafc; --btn:#f1f5f9; --btn-ink:#0f172a;
-      --logoTile:40px;      /* size of the white brand tile */
+      --logoTile:40px;      /* brand tile size */
       --logoImg:28px;       /* inner logo height */
-      --minPaneWidth:14cm;  /* min reading width */
+      --minPaneWidth:14cm;  /* minimum readable width */
     }
     *{box-sizing:border-box}
     html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
@@ -47,22 +47,22 @@
     #pageHeader{background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 12px}
     #viewerShell{flex:1;background:#fff;border:1px solid var(--line);border-radius:8px;display:flex;flex-direction:column;overflow:hidden;min-height:0}
 
-    /* SCROLLER (made non-flex to avoid Safari flex/overflow bug) */
+    /* Continuous SCROLLER (non-flex to avoid iOS flex/overflow bug) */
     #lt-viewer-scroll{
       flex:1; min-width:var(--minPaneWidth);
       height:100%; overflow-y:auto; overflow-x:hidden;
       display:block; background:#fff; -webkit-overflow-scrolling:touch;
       touch-action:pan-y; overscroll-behavior-y:contain; min-height:0;
     }
-    #pdfLayerShell{position:relative; display:block; margin:0 auto;} /* center the page */
-    #pdfCanvas{display:block;margin:0 auto}
-    #textLayer{position:absolute;left:0;top:0;display:none}  /* hide text layer (prevents overprint) */
-    #highlightLayer{position:absolute;left:0;top:0}
-    #pager{display:flex;justify-content:center;gap:8px;border-top:1px solid var(--line);padding:8px;background:#fff}
-    .btn{padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--btn);color:var(--btn-ink);cursor:pointer}
-    .btn:active{transform:translateY(1px)}
 
-    /* TXT viewer wraps in pane */
+    /* multipage layout */
+    #pdfPages{margin:16px auto; position:relative}
+    .page{position:relative; margin:0 auto 16px auto; background:#fff}
+    .page canvas{display:block; width:100%}
+    .hl-layer{position:absolute; left:0; top:0; right:0; bottom:0; pointer-events:none}
+    .hl {position:absolute;background:rgba(255,213,77,.35);border-radius:2px}
+
+    /* TXT viewer wraps inside pane */
     #textViewer{
       white-space:pre-wrap; word-break:break-word;
       padding:16px; font-family:serif; margin:16px auto;
@@ -70,9 +70,12 @@
       background:#fff; border-radius:8px;
     }
     .txt-hl{background:#ffd54d66;box-shadow:0 0 0 2px #ffd54d66 inset}
-    #highlightLayer .hl{position:absolute;background:rgba(255,213,77,.35);border-radius:2px}
 
-    /* Drawer (left, brand matched) */
+    #pager{display:flex;justify-content:center;gap:8px;border-top:1px solid var(--line);padding:8px;background:#fff}
+    .btn{padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--btn);color:var(--btn-ink);cursor:pointer}
+    .btn:active{transform:translateY(1px)}
+
+    /* Drawer (left, brand-matched) */
     #drawer{position:fixed;inset:0;background:rgba(2,6,23,.45);display:none;z-index:60}
     #drawer.open{display:block}
     #drawer .panel{
@@ -126,11 +129,8 @@
       <div id="pageHeader"></div>
       <div id="viewerShell">
         <div id="lt-viewer-scroll">
-          <div id="pdfLayerShell">
-            <canvas id="pdfCanvas"></canvas>
-            <div id="textLayer"></div>
-            <div id="highlightLayer"></div>
-          </div>
+          <!-- multipage stack goes here -->
+          <div id="pdfPages" hidden></div>
           <!-- TXT viewer appears as <pre id="textViewer"> when needed -->
         </div>
         <div id="pager">
@@ -155,7 +155,7 @@
 
   <div id="toast" hidden></div>
 
-  <!-- PDF.js (core only, once) -->
+  <!-- PDF.js core -->
   <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
   <script src="main.js"></script>
 </body>
