@@ -12,10 +12,15 @@
     }
     *{box-sizing:border-box}
     html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+
     /* Header / branding */
     header{background:var(--brand);color:#fff;padding:14px 16px}
     header .brand{display:flex;align-items:center;gap:12px;font-weight:700;font-size:20px}
-    header img{height:24px;width:24px}
+    /* Transparent PNG/SVG recommended. If your current logo has a white box, swap the asset. */
+    header .brand img{
+      height:28px; width:auto; display:block; object-fit:contain; background:transparent;
+      image-rendering:-webkit-optimize-contrast; image-rendering:crisp-edges;
+    }
 
     /* Toolbar */
     .toolbar{display:flex;gap:8px;align-items:center;padding:8px 12px;background:#fff;border-bottom:1px solid var(--line)}
@@ -37,17 +42,21 @@
     section#centerPane{flex:1;min-width:14cm;display:flex;flex-direction:column;gap:8px}
     #pageHeader{background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 12px}
     #viewerShell{flex:1;background:#fff;border:1px solid var(--line);border-radius:8px;display:flex;flex-direction:column;overflow:hidden}
-    #lt-viewer-scroll{flex:1;min-width:14cm;overflow:auto;display:flex;justify-content:center;align-items:flex-start;background:#fff}
+    #lt-viewer-scroll{
+      flex:1; min-width:14cm; overflow:auto; display:flex; justify-content:center; align-items:flex-start; background:#fff;
+      -webkit-overflow-scrolling:touch; /* iOS momentum scrolling */
+      touch-action:pan-y; /* allow vertical pan by default */
+    }
     #pdfLayerShell{position:relative}
     #pdfCanvas{display:block;margin:0 auto}
-    /* Keep textLayer invisible so the PDF is not “overprinted” */
+    /* Keep textLayer invisible to avoid overprint; highlightLayer draws boxes */
     #textLayer{position:absolute;left:0;top:0;display:none}
     #highlightLayer{position:absolute;left:0;top:0}
     #pager{display:flex;justify-content:center;gap:8px;border-top:1px solid var(--line);padding:8px;background:#fff}
     .btn{padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--btn);color:var(--btn-ink);cursor:pointer}
     .btn:active{transform:translateY(1px)}
 
-    /* TXT viewer wraps inside the pane width */
+    /* TXT viewer wraps neatly inside the pane width */
     #textViewer{
       white-space:pre-wrap; word-break:break-word;
       padding:16px; font-family:serif; margin:16px auto;
@@ -55,8 +64,6 @@
       background:#fff; border-radius:8px;
     }
     .txt-hl{background:#ffd54d66;box-shadow:0 0 0 2px #ffd54d66 inset}
-
-    /* Highlight rectangles */
     #highlightLayer .hl{position:absolute;background:rgba(255,213,77,.35);border-radius:2px}
 
     /* Brand-matched LEFT drawer */
@@ -115,7 +122,7 @@
         <div id="lt-viewer-scroll">
           <div id="pdfLayerShell">
             <canvas id="pdfCanvas"></canvas>
-            <div id="textLayer"></div>       <!-- invisible, kept for future select/copy -->
+            <div id="textLayer"></div> <!-- invisible, kept for future select/copy -->
             <div id="highlightLayer"></div>
           </div>
           <!-- TXT viewer injected as #textViewer when needed -->
