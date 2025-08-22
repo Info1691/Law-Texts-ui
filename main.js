@@ -1,7 +1,9 @@
-// Trust Law Textbooks — Phase 1 viewer
-// Fit-to-width PDF/TXT (min 14cm), left drawer, no right pane.
-// Prev/Next does find-next/find-prev when the search box has text; otherwise page ±1.
-// Guarded to avoid duplicate opens/renders.
+// Trust Law Textbooks — fit-to-width PDF/TXT viewer (min 14cm), brand drawer (LEFT).
+// Fixes:
+//  - Text layer hidden (prevents PDF "overprint").
+//  - TXT wraps within pane width.
+//  - Guarded open/render to avoid double loads.
+//  - Prev/Next = find next/prev when search box has text; otherwise page ±1.
 
 document.addEventListener('DOMContentLoaded', () => {
   // ---- CONFIG ----
@@ -16,29 +18,25 @@ document.addEventListener('DOMContentLoaded', () => {
   let pdfDoc = null, currentUrl = null, currentPage = 1;
   let rendering = false, pendingPage = null, scale = 1;
   let isText = false, textContent = '';
-  let opening = false;                 // prevents double-open
-  let openedOnce = false;              // prevents auto-open twice
-  const pageTextCache = new Map();     // page -> textContent
+  let opening = false, openedOnce = false;
+  const pageTextCache = new Map();
   let searchTerm = '', matches = [], matchIdx = -1;
 
-  // ---- DOM helpers ----
+  // ---- DOM ----
   const $  = s => document.querySelector(s);
   const $$ = s => Array.from(document.querySelectorAll(s));
   const esc = s => String(s).replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
   const key = s => STORAGE_NS + (currentUrl || '') + ':' + s;
-  const toast = (m,ms=1600)=>{ const t=$('#toast'); if(!t) return; t.textContent=m; t.hidden=false; clearTimeout(t._tm); t._tm=setTimeout(()=>t.hidden=true,ms); };
   const cmToPx = cm => cm*37.7952755906;
+  const toast = (m,ms=1500)=>{ const t=$('#toast'); if(!t) return; t.textContent=m; t.hidden=false; clearTimeout(t._tm); t._tm=setTimeout(()=>t.hidden=true,ms); };
 
-  // ---- Elements ----
+  // Toolbar & viewer elements
   const searchInput = $('#searchInput');
   const scroll = $('#lt-viewer-scroll'), shell = $('#pdfLayerShell');
   const canvas = $('#pdfCanvas'), textLayer = $('#textLayer'), hlLayer = $('#highlightLayer');
   const label = $('#pageLabel');
-
-  // enforce min width
   scroll.style.minWidth = `${MIN_CM}cm`;
 
-  // Toolbar binds
   bind('#printBtn', () => window.print());
   bind('#exportTxtBtn', exportVisibleText);
   bind('#goBtn', () => { const n=parseInt($('#bookPageInput')?.value||'',10); if(Number.isInteger(n)) jumpBookPage(n); });
@@ -50,30 +48,34 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#listFilter')?.addEventListener('input', e=>filterCatalog(e.target.value));
   searchInput?.addEventListener('keydown', e=>{ if(e.key==='Enter') startSearch('new'); });
 
-  // Drawer (LEFT)
+  // Drawer (LEFT, brand)
   $('#reposBtn')?.addEventListener('click', ()=> $('#drawer').classList.add('open'));
   $('#repoClose')?.addEventListener('click', ()=> $('#drawer').classList.remove('open'));
   $('#repoFilter')?.addEventListener('input', e=>filterRepos(e.target.value));
 
-  // PDF.js worker (quiet on Safari)
-  if (window.pdfjsLib){
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
-  } else {
-    alert('PDF.js failed to load');
-  }
+  // PDF.js worker: prefer local vendor; otherwise run without worker (quiet & supported)
+  (async () => {
+    try{
+      const local = './vendor/pdf.worker.min.js';
+      const h = await fetch(local, { method:'HEAD', cache:'no-store' });
+      if (h.ok && window.pdfjsLib){
+        pdfjsLib.GlobalWorkerOptions.workerSrc = local;
+        console.log('[pdfjs] using local worker');
+      } else {
+        console.log('[pdfjs] main-thread mode');
+      }
+    }catch{ console.log('[pdfjs] main-thread mode'); }
+  })();
 
-  // Refitting current page on width change (debounced + guarded)
-  let roTimer=null;
-  new ResizeObserver(() => {
+  // Refit on width changes (debounced)
+  let roTm=null;
+  new ResizeObserver(()=> {
     if (!pdfDoc || isText) return;
-    clearTimeout(roTimer);
-    roTimer = setTimeout(async () => {
-      await fitScaleToWidth();
-      queueRender(currentPage);
-    }, 80);
+    clearTimeout(roTm);
+    roTm = setTimeout(async ()=>{ await fitScaleToWidth(); queueRender(currentPage); }, 80);
   }).observe(scroll);
 
-  // ---- Boot ----
+  // Boot
   (async function init(){
     await loadRepos();
     await loadCatalog();
@@ -88,13 +90,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const list = $('#catalogList'); list.innerHTML='';
       items.forEach(it => {
-        const li = document.createElement('li');
+        const li=document.createElement('li');
         li.innerHTML = `<div><strong>${esc(it.title||'')}</strong>${it.subtitle?`<div class="sub">${esc(it.subtitle)}</div>`:''}</div>`;
-        li.dataset.title = (it.title||'').toLowerCase();
-        li.dataset.url   = it.url || '';
+        li.dataset.title=(it.title||'').toLowerCase();
+        li.dataset.url=it.url || '';
         if (it.url){
           li.addEventListener('click', () => {
-            if (li.classList.contains('active')) return; // avoid reopen same
+            if (li.classList.contains('active')) return;
             [...list.children].forEach(n=>n.classList.remove('active'));
             li.classList.add('active');
             openDocument(it.url);
@@ -107,15 +109,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!openedOnce){
         const first = Array.from(list.children).find(n=>n.dataset.url);
-        if (first){ first.classList.add('active'); openedOnce = true; openDocument(first.dataset.url); }
+        if (first){ first.classList.add('active'); openedOnce=true; openDocument(first.dataset.url); }
       }
     }catch(e){ console.error(e); toast('catalog.json error'); }
   }
   function filterCatalog(q){
-    const needle=(q||'').toLowerCase();
-    [...$('#catalogList').children].forEach(li=>{
-      li.style.display = (li.dataset.title||'').includes(needle) ? '' : 'none';
-    });
+    const n=(q||'').toLowerCase();
+    [...$('#catalogList').children].forEach(li => li.style.display = (li.dataset.title||'').includes(n) ? '' : 'none');
   }
 
   // ---------- Repos ----------
@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   function filterRepos(q){
     const n=(q||'').toLowerCase();
-    $$('.repo-item').forEach(li=> li.style.display = (li.dataset.name||'').includes(n) ? '' : 'none');
+    $$('.repo-item').forEach(li => li.style.display = (li.dataset.name||'').includes(n) ? '' : 'none');
   }
 
   // ---------- Open document ----------
@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function openDocument(url){
     if (opening) return;
-    if (url === currentUrl && (pdfDoc || isText)) return; // guard
+    if (url === currentUrl && (pdfDoc || isText)) return;
     opening = true;
     try{
       currentUrl = url;
@@ -152,16 +152,10 @@ document.addEventListener('DOMContentLoaded', () => {
       clearTextViewer();
       showPdfLayers(true);
 
-      if (isPdf(url)){
-        await openPdf(url);
-      } else if (isTxt(url) || !/\.[a-z0-9]+$/i.test(url)){
-        await openTxt(url);
-      } else {
-        toast('Unsupported file: '+url);
-      }
-    } finally {
-      opening = false;
-    }
+      if (isPdf(url)) await openPdf(url);
+      else if (isTxt(url) || !/\.[a-z0-9]+$/i.test(url)) await openTxt(url);
+      else toast('Unsupported file: '+url);
+    } finally { opening = false; }
   }
 
   // ---------- TXT ----------
@@ -171,7 +165,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!r.ok) throw new Error(`HTTP ${r.status} for ${url}`);
       textContent = await r.text();
       isText = true;
-      ensureTextViewer().textContent = textContent;
+      const v = ensureTextViewer();
+      v.textContent = textContent;
       showPdfLayers(false);
       setLabel(url.split('/').pop() || 'Text');
       toast('Loaded text file');
@@ -215,25 +210,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
       canvas.width  = Math.floor(view.width);
       canvas.height = Math.floor(view.height);
-
       await page.render({ canvasContext: ctx, viewport: view }).promise;
 
       shell.style.width  = canvas.width+'px';
       shell.style.height = canvas.height+'px';
-      Object.assign(textLayer.style, { width:canvas.width+'px', height:canvas.height+'px' });
-      Object.assign(hlLayer.style,   { width:canvas.width+'px', height:canvas.height+'px' });
-      textLayer.innerHTML=''; hlLayer.innerHTML='';
+      hlLayer.innerHTML=''; // keep textLayer hidden (no overprint)
 
+      // Cache text for search/highlight
       const tc = await page.getTextContent();
       pageTextCache.set(num, tc);
-      for (const item of tc.items){
-        const span = document.createElement('span'); span.textContent=item.str;
-        const tr = pdfjsLib.Util.transform(pdfjsLib.Util.transform(view.transform, item.transform), [1,0,0,-1,0,0]);
-        const [a,b,c,d,e,f] = tr; const fs = Math.hypot(a,b);
-        span.style.left = e+'px'; span.style.top = (f - fs)+'px'; span.style.fontSize = fs+'px';
-        span.style.transform = `matrix(${a/fs},${b/fs},${c/fs},${d/fs},0,0)`;
-        textLayer.appendChild(span);
-      }
 
       updateLabel();
       if (searchTerm) await highlightCurrentMatchIfOnThisPage();
