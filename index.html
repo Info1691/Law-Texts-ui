@@ -1,44 +1,83 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Trust Law Textbooks</title>
   <link rel="stylesheet" href="style.css" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <!-- Core PDF.js lib (worker handled in main.js for Safari) -->
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
 </head>
 <body>
-  <div class="container">
-    <header class="header">
-      <img src="logo.png" alt="Logo" class="logo" />
-      <h1>Trust Law Textbooks</h1>
-    </header>
+  <header class="app-header">
+    <img src="logo.png" alt="BB" class="logo" />
+    <h1>Trust Law Textbooks</h1>
+  </header>
 
-    <div class="toolbar">
-      <button id="drawerToggle">Repos</button>
-      <input id="searchBox" type="text" placeholder="Search within text…" />
-      <button id="prevBtn">Prev</button>
-      <button id="nextBtn">Next</button>
-      <span>Book p.<input id="pageInput" type="number" min="1" value="1" /></span>
-      <button id="goBtn">Go</button>
-      <button id="calibrateBtn">Calibrate</button>
-      <button id="printBtn">Print</button>
-      <button id="exportBtn">Export to TXT</button>
+  <nav class="toolbar">
+    <button id="reposBtn" class="btn">Repos</button>
+    <input id="searchInput" class="input" placeholder="Search within text…" />
+    <button id="findPrevBtn" class="btn">Prev</button>
+    <button id="findNextBtn" class="btn">Next</button>
+
+    <span class="sep"></span>
+
+    <span class="label">Book p.</span>
+    <input id="bookPageInput" class="input small" type="number" min="1" />
+    <button id="goBtn" class="btn">Go</button>
+    <button id="calibrateBtn" class="btn">Calibrate</button>
+
+    <span class="grow"></span>
+
+    <button id="printBtn" class="btn">Print</button>
+    <button id="exportTxtBtn" class="btn">Export to TXT</button>
+  </nav>
+
+  <main class="layout">
+    <!-- LEFT: Catalog -->
+    <aside class="pane left">
+      <input id="listFilter" class="input" placeholder="Filter list…" />
+      <ul id="catalogList" class="list"></ul>
+    </aside>
+
+    <!-- CENTER: Viewer -->
+    <section class="pane center">
+      <div class="viewer-head">
+        <span id="pageLabel"></span>
+      </div>
+      <div id="viewerScroll" class="viewer-scroll">
+        <!-- main.js creates the PDF canvas + layers OR a <pre id="textViewer"> here -->
+      </div>
+
+      <div class="pager">
+        <button id="prevBtn" class="btn">Prev</button>
+        <button id="nextBtn" class="btn">Next</button>
+      </div>
+    </section>
+
+    <!-- RIGHT: Matches -->
+    <aside class="pane right">
+      <div class="matches-head">
+        <strong>Matches</strong> <span id="matchCount" class="muted"></span>
+      </div>
+      <ul id="matchesList" class="matches"></ul>
+    </aside>
+  </main>
+
+  <!-- Drawer (Repos) -->
+  <div id="drawer" class="drawer">
+    <div class="drawer-card">
+      <div class="drawer-head">
+        <strong>Repositories</strong>
+        <button id="drawerClose" class="btn lite">Close</button>
+      </div>
+      <input id="repoFilter" class="input" placeholder="Filter repos…" />
+      <ul id="repoList" class="list"></ul>
     </div>
-
-    <main class="main">
-      <aside class="sidebar">
-        <input id="filterBox" type="text" placeholder="Filter list…" />
-        <ul id="bookList"></ul>
-      </aside>
-      <section class="viewer">
-        <div id="pdfViewer" class="pdf-viewer"></div>
-        <div id="matches" class="matches"></div>
-      </section>
-    </main>
   </div>
 
-  <script src="drawer.js"></script>
+  <div id="toast" class="toast" hidden></div>
+
   <script src="main.js"></script>
 </body>
 </html>
