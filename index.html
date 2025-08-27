@@ -2,59 +2,59 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Trust Law Textbooks — Reader</title>
-  <link rel="preload" as="style" href="app.css" />
-  <link rel="stylesheet" href="app.css" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Trust Law Textbooks — Catalog</title>
+
+  <!-- Branding -->
   <link rel="icon" href="logo.png" />
-  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#0b3954" />
+
+  <!-- Styles already in this repo -->
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header class="topbar">
+  <header class="appbar">
     <div class="brand">
-      <img src="logo.png" alt="Logo" class="logo" />
-      <span>Trust Law Textbooks — Reader</span>
+      <img src="logo.png" alt="BB" class="logo" />
+      <div class="brand-text">
+        <div class="brand-title">Trust Law Textbooks</div>
+        <div class="brand-sub">Catalog</div>
+      </div>
     </div>
-    <div class="findbar">
-      <input id="searchInput" class="search" type="search" placeholder="Find in document…" />
-      <span id="findCount" class="count"></span>
-      <button id="findPrev" title="Previous match">◀</button>
-      <button id="findNext" title="Next match">▶</button>
-    </div>
+    <div id="status" class="status" aria-live="polite"></div>
   </header>
 
-  <main class="wrap">
+  <main class="layout">
     <aside class="sidebar">
-      <section class="panel">
-        <h3>Repos</h3>
-        <nav class="repos">
-          <a class="repo" href="https://info1691.github.io/law-index/">Public: law-index</a>
-          <a class="repo" href="https://github.com/Info1691/lex-jsy-forensics">Agent 2: lex-jsy-forensics</a>
-          <a class="repo" href="https://github.com/Info1691/lex-ci-harvest">Agent (crawler): lex-ci-harvest</a>
-          <a class="repo" href="https://github.com/Info1691/lex-ingest-local">Agent 1: lex-ingest-local</a>
-          <a class="repo" href="https://github.com/Info1691/Law-Texts-ui">This UI: Law-Texts-ui</a>
-        </nav>
-      </section>
+      <h2 class="h">Library</h2>
+      <nav id="library" class="list">
+        <!-- Filled by catalog.js -->
+      </nav>
 
-      <section class="panel">
-        <h3>Library</h3>
-        <div id="library" class="list">Loading catalog…</div>
-      </section>
-
-      <section class="panel">
-        <div id="status" class="status"></div>
-      </section>
+      <h2 class="h space">Repos</h2>
+      <nav class="links">
+        <a class="link" href="https://info1691.github.io/law-index/">Public: law-index</a>
+        <a class="link" href="https://github.com/Info1691/lex-jsy-forensics">Agent 2: lex-jsy-forensics</a>
+        <a class="link" href="https://github.com/Info1691/lex-ci-harvest">Agent (crawler): lex-ci-harvest</a>
+        <a class="link" href="https://github.com/Info1691/lex-ingest-local">Agent 1: lex-ingest-local</a>
+        <a class="link" href="./">This UI: Law-Texts-ui</a>
+      </nav>
     </aside>
 
     <section class="content">
-      <pre id="doc" class="doc">Select a book from the Library…</pre>
+      <div id="catalogList" class="cards">
+        <!-- Cards filled by catalog.js -->
+      </div>
+      <footer class="footnote">
+        Source: <code>catalogs/ingest-catalog.json</code> (with local fallback <code>texts/catalog.json</code>)
+      </footer>
     </section>
   </main>
 
-  <!-- RULE 10: full file. Set explicit base for law-index; app.js also has a safe fallback. -->
-  <script>
-    window.LAW_INDEX_BASE = 'https://info1691.github.io/law-index';
-  </script>
-  <script src="app.js"></script>
+  <!-- Optional: override where to read public artifacts from -->
+  <!-- <script>window.LAW_INDEX_BASE='https://info1691.github.io/law-index';</script> -->
+
+  <!-- Remote-first catalog loader (adds TXT & Page-map buttons and de-dupes by slug) -->
+  <script defer src="catalog.js"></script>
 </body>
 </html>
