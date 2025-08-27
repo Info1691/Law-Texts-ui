@@ -1,0 +1,44 @@
+:root{
+  --ink:#0b355b; --bg:#f5f7fb; --panel:#ffffff; --muted:#6b7280;
+  --accent:#3b82f6; --border:#e5e7eb;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font:15px/1.5 ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial;
+  display:grid; grid-template-rows:auto 1fr; grid-template-columns:260px 1fr;
+  grid-template-areas:"top top" "drawer content";
+}
+
+.topbar{ grid-area:top; display:flex; justify-content:space-between; align-items:center;
+  padding:10px 14px; background:var(--ink); color:#fff; }
+.brand{display:flex; align-items:center; gap:10px}
+.brand img{width:40px; height:40px; background:#fff; border-radius:6px; padding:3px}
+.brand .title{font-weight:600}
+
+.actions{display:flex; align-items:center; gap:6px}
+.actions input[type=search]{ width:280px; max-width:45vw; padding:8px 10px; border:1px solid var(--border);
+  border-radius:8px; outline:none; background:#fff; }
+.actions button{ padding:6px 10px; border:1px solid var(--border); background:#fff; border-radius:8px; cursor:pointer; }
+.actions button:hover{border-color:#93c5fd}
+.muted{color:var(--muted); font-size:12px}
+
+.drawer{ grid-area:drawer; padding:12px; border-right:1px solid var(--border); background:#fff; overflow:auto; }
+.drawer .drawer-title{font-weight:600; margin:6px 0 8px}
+.drawer nav{display:grid; gap:6px}
+.drawer nav a{ display:block; color:var(--ink); text-decoration:none; padding:8px 10px;
+  border:1px solid var(--border); border-radius:8px; background:#fff; }
+.drawer nav a:hover{border-color:#93c5fd; background:#f8fbff}
+
+.library{display:grid; gap:6px}
+.library .item{ display:block; text-decoration:none; color:var(--ink); background:#fff;
+  border:1px solid var(--border); border-radius:8px; padding:8px 10px; }
+.library .item:hover{border-color:#93c5fd; background:#f0f7ff}
+
+.content{ grid-area:content; padding:12px; overflow:auto; position:relative; }
+.doc{ background:#fff; border:1px solid var(--border); border-radius:12px; padding:16px;
+  min-height:60vh; white-space:pre-wrap; word-wrap:break-word; }
+.status{margin-top:8px}
+
+mark.hl{ background:#fff59d; padding:0 2px; border-radius:3px; }
