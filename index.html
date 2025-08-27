@@ -1,49 +1,47 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Trust Law Textbooks — Catalog</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="style.css" rel="stylesheet">
+  <link rel="icon" href="logo.png">
+  <link rel="stylesheet" href="style.css" />
+  <!-- Brand base (do not add trailing slash). Deployed law-index lives at /law-index -->
+  <script>window.LAW_INDEX_BASE = '/law-index';</script>
 </head>
 <body>
   <header class="brand">
-    <div class="brand-inner">
-      <img src="logo.png" alt="Trust Law mark" class="logo">
-      <div class="titles">
+    <div class="brand__inner">
+      <img src="logo.png" alt="Brand" class="brand__logo" />
+      <div class="brand__titles">
         <h1>Trust Law Textbooks</h1>
-        <p class="subtitle">Catalog</p>
+        <p id="status" class="muted"></p>
       </div>
     </div>
   </header>
 
   <main class="container">
-    <aside class="sidebar">
+    <aside class="side">
       <nav class="repos">
-        <h3>Repos</h3>
-        <ul>
-          <li><a href="https://info1691.github.io/law-index/" target="_blank" rel="noopener">Public: law-index</a></li>
-          <li><a href="https://github.com/Info1691/lex-jsy-forensics" target="_blank" rel="noopener">Agent 2: lex-jsy-forensics</a></li>
-          <li><a href="https://github.com/Info1691/lex-ci-harvest" target="_blank" rel="noopener">Agent (crawler): lex-ci-harvest</a></li>
-          <li><a href="https://github.com/Info1691/lex-ingest-local" target="_blank" rel="noopener">Agent 1: lex-ingest-local</a></li>
-          <li><a href="./" aria-current="page">This UI: Law-Texts-ui</a></li>
-        </ul>
+        <div class="repos__title">Repos</div>
+        <a class="repo" href="/law-index/">Public: law-index</a>
+        <a class="repo" href="https://github.com/Info1691/lex-jsy-forensics" target="_blank" rel="noopener">Agent 2: lex-jsy-forensics</a>
+        <a class="repo" href="https://github.com/Info1691/lex-ci-harvest" target="_blank" rel="noopener">Agent (crawler): lex-ci-harvest</a>
+        <a class="repo" href="https://github.com/Info1691/lex-ingest-local" target="_blank" rel="noopener">Agent 1: lex-ingest-local</a>
+        <a class="repo" href="https://github.com/Info1691/Law-Texts-ui" target="_blank" rel="noopener">This UI: Law-Texts-ui</a>
       </nav>
-      <div class="note" id="status">Loading…</div>
     </aside>
 
     <section class="content">
-      <div id="library" class="library" aria-live="polite"></div>
-      <footer class="source">
-        Source: <code id="srcPath">catalogs/ingest-catalog.json</code>
+      <h2>Catalog</h2>
+      <div id="library" class="library" role="list" aria-live="polite">Loading…</div>
+      <footer class="foot muted">
+        Source: <code>catalogs/ingest-catalog.json</code>
+        <span id="fallbackNote" hidden> (using local fallback <code>texts/catalog.json</code>)</span>
       </footer>
     </section>
   </main>
 
-  <!-- Set this base if you ever move the law-index site; leave unchanged otherwise -->
-  <script>
-    window.LAW_INDEX_BASE = 'https://info1691.github.io/law-index';
-  </script>
   <script src="app.js"></script>
 </body>
 </html>
