@@ -1,52 +1,47 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Trust Law Textbooks — Catalog</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="icon" href="logo.png">
-  <link rel="stylesheet" href="style.css">
-  <!-- Optional: force artifacts base if needed -->
-  <!-- <script>window.LAW_INDEX_BASE='https://info1691.github.io/law-index/';</script> -->
+  <link rel="icon" href="logo.svg" />
+  <link rel="stylesheet" href="style.css" />
+  <!-- Configure where the UI should read artifacts from. -->
+  <script>
+    /* By default read from the public law-index pages repo.                 */
+    /* If you fork or change the org/user, edit this to your Pages base.    */
+    window.LAW_INDEX_BASE = "https://info1691.github.io/law-index/";
+  </script>
 </head>
 <body>
-  <header class="masthead">
+  <header class="appbar">
     <div class="brand">
-      <svg class="brandmark" viewBox="0 0 64 64" aria-hidden="true">
-        <circle cx="32" cy="32" r="32" fill="#0f3a5d"/>
-        <text x="17" y="42" font-size="28" font-family="Georgia, 'Times New Roman', serif" fill="#f7f7f7">BB</text>
-      </svg>
-      <div class="brandtext">
+      <img class="logo" src="logo.svg" alt="BB logo" />
+      <div class="titles">
         <div class="title">Trust Law Textbooks</div>
         <div class="subtitle">Catalog</div>
       </div>
     </div>
+    <nav class="repos">
+      <a href="https://info1691.github.io/law-index/" target="_blank" rel="noopener">Public: law-index</a>
+      <a href="https://github.com/Info1691/lex-jsy-forensics" target="_blank" rel="noopener">Agent 2: lex-jsy-forensics</a>
+      <a href="https://github.com/Info1691/lex-ci-harvest" target="_blank" rel="noopener">Agent (crawler): lex-ci-harvest</a>
+      <a href="https://github.com/Info1691/lex-ingest-local" target="_blank" rel="noopener">Agent 1: lex-ingest-local</a>
+      <a href="https://info1691.github.io/Law-Texts-ui/" target="_blank" rel="noopener">This UI: Law-Texts-ui</a>
+    </nav>
   </header>
 
-  <main class="layout">
-    <aside class="sidebar">
-      <div class="panel">
-        <div class="panel-title">Repos</div>
-        <nav class="repo-links">
-          <a href="https://info1691.github.io/law-index/" target="_blank" rel="noopener">Public: law-index</a>
-          <a href="https://github.com/Info1691/lex-jsy-forensics" target="_blank" rel="noopener">Agent 2: lex-jsy-forensics</a>
-          <a href="https://github.com/Info1691/lex-ci-harvest" target="_blank" rel="noopener">Agent (crawler): lex-ci-harvest</a>
-          <a href="https://github.com/Info1691/lex-ingest-local" target="_blank" rel="noopener">Agent 1: lex-ingest-local</a>
-          <a href="https://info1691.github.io/Law-Texts-ui/" target="_blank" rel="noopener">This UI: Law-Texts-ui</a>
-        </nav>
-      </div>
-      <div class="panel">
-        <div class="panel-title">Status</div>
-        <div id="status" class="status muted">Loading…</div>
-      </div>
-    </aside>
-
-    <section class="content">
-      <div id="catalog" class="catalog"></div>
-      <div class="source-note">Source: <code id="sourcePath">catalogs/ingest-catalog.json</code></div>
+  <main class="wrap">
+    <section id="library" class="library" aria-live="polite">
+      <!-- catalog cards injected here -->
     </section>
   </main>
 
-  <script src="app.js"></script>
+  <footer class="statusbar">
+    <span id="status"></span>
+    <span class="source">Source: <code id="sourcePath">catalogs/ingest-catalog.json</code></span>
+  </footer>
+
+  <script src="app.js" defer></script>
 </body>
 </html>
