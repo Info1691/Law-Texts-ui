@@ -5,9 +5,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Trust Law Textbooks — Catalog</title>
   <link rel="icon" href="logo.png">
-  <link rel="stylesheet" href="style.css" />
-  <!-- Brand base (do not add trailing slash). Deployed law-index lives at /law-index -->
-  <script>window.LAW_INDEX_BASE = '/law-index';</script>
+  <!-- Force fresh assets in Safari/iPad -->
+  <link rel="stylesheet" href="style.css?v=20250827a" />
+  <!-- Law-index lives at /law-index on the same domain -->
+  <script>
+    window.LAW_INDEX_BASE = location.origin + '/law-index';
+  </script>
 </head>
 <body>
   <header class="brand">
@@ -36,12 +39,13 @@
       <h2>Catalog</h2>
       <div id="library" class="library" role="list" aria-live="polite">Loading…</div>
       <footer class="foot muted">
-        Source: <code>catalogs/ingest-catalog.json</code>
-        <span id="fallbackNote" hidden> (using local fallback <code>texts/catalog.json</code>)</span>
+        Source: <code>catalogs/ingest-catalog.json</code><span id="fallbackNote" hidden>
+          (using local fallback <code>texts/catalog.json</code>)
+        </span>
       </footer>
     </section>
   </main>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=20250827a"></script>
 </body>
 </html>
