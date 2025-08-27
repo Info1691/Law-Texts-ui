@@ -1,40 +1,77 @@
-* { box-sizing: border-box; }
-html, body { height: 100%; }
-body {
-  margin: 0;
-  font: 16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-  color: #0f172a;
-  background: #f7fafc;
+/* Law-Texts-ui — brand, light theme */
+
+:root{
+  --brand:#113b5b;          /* header/nav blue */
+  --ink:#1f2937;            /* body text */
+  --muted:#6b7280;          /* subtle text */
+  --bg:#ffffff;             /* page background */
+  --card:#ffffff;           /* card background */
+  --ring:#e5e7eb;           /* borders */
+  --chip:#111827;           /* chip text */
 }
 
-.masthead { background:#0f3a5d; color:#fff; padding:14px 18px; border-bottom:4px solid #d9e3ee; }
-.brand{ display:flex; align-items:center; gap:12px; }
-.brandmark{ width:40px; height:40px; border-radius:6px; }
-.brandtext .title{ font-weight:700; }
-.brandtext .subtitle{ opacity:.85; font-size:13px; }
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Helvetica,Arial,sans-serif;
+  color:var(--ink);
+  background:var(--bg);
+}
 
-.layout{ display:grid; grid-template-columns:280px 1fr; gap:18px; padding:18px; }
-@media (max-width:880px){ .layout{ grid-template-columns:1fr; } }
+/* Header */
+.header{
+  background:var(--brand);
+  color:#fff;
+  padding:14px 18px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.header .logo{
+  width:28px;height:28px;display:block;flex:0 0 28px;
+}
+.header h1{
+  margin:0;font-size:16px;font-weight:600;letter-spacing:.2px;
+}
+.header small{ opacity:.85; font-weight:400; }
 
-.sidebar .panel{ background:#fff; border:1px solid #e5e7eb; border-radius:10px; margin-bottom:14px; }
-.panel-title{ font-weight:700; font-size:14px; padding:10px 12px; border-bottom:1px solid #eef2f7; }
-.repo-links{ display:grid; gap:8px; padding:10px 12px 14px; }
-.repo-links a{ color:#0f3a5d; text-decoration:none; }
-.repo-links a:hover{ text-decoration:underline; }
+/* Layout */
+.container{ max-width:980px; margin:22px auto; padding:0 16px; }
+.grid{ display:grid; grid-template-columns: 1fr; gap:14px; }
+@media (min-width:860px){ .grid{ grid-template-columns: 1fr; } }
 
-.status{ padding:12px; }
-.muted{ color:#6b7280; }
+/* Cards */
+.card{
+  background:var(--card);
+  border:1px solid var(--ring);
+  border-radius:12px;
+  padding:16px 18px;
+}
+.card h3{ margin:0 0 6px; font-size:16px; }
+.meta{ color:var(--muted); font-size:12px; }
 
-.content .catalog{ display:grid; gap:16px; }
-.source-note{ margin-top:18px; color:#6b7280; font-size:13px; }
+/* Chips (buttons) */
+.chips{ margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; }
+.chip{
+  display:inline-block;
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid var(--ring);
+  text-decoration:none;
+  color:var(--chip);
+  background:#fff;
+  font-size:12px;
+}
+.chip:hover{ border-color:#cbd5e1; }
+.chip.disabled{ opacity:.45; pointer-events:none; }
+.chip.soft{ background:#f3f4f6; color:#374151; }
 
-.card{ background:#fff; border:1px solid #e5e7eb; border-radius:14px; padding:14px 16px; }
-.card h3{ margin:0 0 6px; font-size:18px; }
-.meta{ color:#475569; font-size:13px; margin-bottom:8px; }
-.pills{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
-.pill{ font-size:12px; border:1px solid #e5e7eb; background:#f8fafc; color:#334155; padding:3px 8px; border-radius:999px; }
+/* Sidebar (repo list) */
+.sidebar{ margin-bottom:18px; }
+.sidebar a{ color:var(--brand); text-decoration:none; }
+.sidebar a:hover{ text-decoration:underline; }
 
-.actions{ display:flex; gap:8px; }
-.btn{ display:inline-block; font-size:13px; padding:7px 10px; border-radius:8px; border:1px solid #0f3a5d; color:#0f3a5d; background:#fff; text-decoration:none; }
-.btn:hover{ background:#0f3a5d; color:#fff; }
-.btn[aria-disabled="true"]{ border-color:#cbd5e1; color:#94a3b8; pointer-events:none; background:#f8fafc; }
+/* Status footer */
+footer{ color:var(--muted); font-size:12px; margin:18px 0; }
+footer code{ background:#f3f4f6; padding:2px 6px; border-radius:6px; }
