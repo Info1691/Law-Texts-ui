@@ -1,9 +1,9 @@
 <script>
-/* Trust Law Textbooks — Reader (remote-catalog, deduped) */
+/* Trust Law Textbooks — Reader (resilient catalog fetch + dedupe) */
 
-/* Where the public artifacts live (law-index on gh-pages) */
-const LAW_INDEX = (window.LAW_INDEX_BASE || 'https://info1691.github.io/law-index').replace(/\/+$/, '');
-const CATALOG_URL = LAW_INDEX + '/catalogs/ingest-catalog.json';
+/* Preferred public base for artifacts (can be overridden by window.LAW_INDEX_BASE) */
+const DEFAULT_BASE = 'https://info1691.github.io/law-index';
+const LAW_INDEX = (window.LAW_INDEX_BASE || DEFAULT_BASE).replace(/\/+$/, '');
 
 const elLib   = document.getElementById('library');
 const elDoc   = document.getElementById('doc');
@@ -28,28 +28,45 @@ function slugKey(s){
     .replace(/^-+|-+$/g,'');
 }
 
+async function fetchFirstJSON(urls){
+  for(const url of urls){
+    try{
+      const res = await fetch(url, { cache:'no-store' });
+      if(res.ok){
+        setStatus(`Catalog: ${new URL(url).pathname}`);
+        return await res.json();
+      }
+    }catch(_){ /* keep trying */ }
+  }
+  throw new Error('404 on all candidate catalog URLs');
+}
+
 async function loadCatalog(){
   try{
-    const res = await fetch(CATALOG_URL, { cache: 'no-store' });
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    const raw = await res.json();
-
-    // Defensive coercion
+    // Try the common placements (any one of these succeeding is enough)
+    const candidates = [
+      `${LAW_INDEX}/catalogs/ingest-catalog.json`,
+      `${LAW_INDEX}/ingest-catalog.json`,
+      `${LAW_INDEX}/law-index/catalogs/ingest-catalog.json`,
+      `${LAW_INDEX}/law-index/ingest-catalog.json`,
+      // absolute fallback if someone serves catalog alongside the UI
+      `${location.origin}/texts/catalog.json`
+    ];
+    const raw = await fetchFirstJSON(candidates);
     const list = Array.isArray(raw) ? raw : [];
-    // Dedupe by normalized slug; prefer the item that has a proper title/year/txt
+
+    // Dedupe by normalized slug/title; prefer the richer record
     const keep = new Map();
+    const score = (x)=> (x?.title?1:0) + (x?.year?1:0) + (x?.txt?1:0);
     for(const it of list){
       const key =
         slugKey(it.slug) ||
         slugKey(it.title) ||
         slugKey(it.txt || it.reference || Math.random().toString(36).slice(2));
-
-      const current = keep.get(key);
-      const score = (x)=> (x?.title?1:0) + (x?.year?1:0) + (x?.txt?1:0);
-      if(!current || score(it) >= score(current)) keep.set(key, it);
+      const cur = keep.get(key);
+      if(!cur || score(it) >= score(cur)) keep.set(key, it);
     }
-    const items = Array.from(keep.values());
-    renderLibrary(items);
+    renderLibrary([...keep.values()]);
   }catch(e){
     elLib.textContent = 'Failed to load catalog.';
     setStatus(`Catalog error: ${e.message}`, true);
@@ -73,10 +90,10 @@ function renderLibrary(items){
 
 async function openItem(item){
   resetSearch();
-  // Accept absolute URLs from catalog; otherwise treat as path within law-index
   let url = item.txt || '';
   if(!url){ elDoc.textContent = 'This item has no TXT artifact.'; setStatus(''); return; }
-  if(!/^https?:\/\//i.test(url)) url = LAW_INDEX + '/' + url.replace(/^\/+/, '');
+  if(!/^https?:\/\//i.test(url)) url = `${LAW_INDEX}/${url.replace(/^\/+/, '')}`;
+
   elDoc.textContent = 'Loading…';
   setStatus(`Fetching ${item.title || item.slug}…`);
   try{
