@@ -1,12 +1,23 @@
 [
   {
-    "slug": "litigating-trust-disputes-in-jersey",
-    "title": "Litigating Trust Disputes in Jersey",
-    "reference": "Sheedy–Baker",
-    "jurisdiction": "jersey",
+    "slug": "lewin-on-trusts-20e",
+    "title": "Lewin on Trusts (20th ed)",
+    "reference": "Lewin",
+    "jurisdiction": "uk",
     "kind": "txt",
-    "pageOffset": -83,
-    "txt": "texts/jersey/Litigating-Trust-Disputes-in-Jersey.txt"
+    "pageOffset": 0,
+    "year": 2020,
+    "txt": "texts/uk/Lewin-on-Trusts.txt"
+  },
+  {
+    "slug": "underhill-hayton-20e",
+    "title": "Underhill & Hayton: Law of Trusts (20th ed)",
+    "reference": "Underhill & Hayton",
+    "jurisdiction": "uk",
+    "kind": "txt",
+    "pageOffset": 0,
+    "year": 2020,
+    "txt": "texts/uk/Underhill-20.txt"
   },
   {
     "slug": "breach-of-trust-birks-pretto",
@@ -15,7 +26,18 @@
     "jurisdiction": "uk",
     "kind": "txt",
     "pageOffset": 0,
+    "year": 2002,
     "txt": "texts/uk/Breach-of-Trust-Birks-Pretto.txt"
+  },
+  {
+    "slug": "litigating-trust-disputes-in-jersey",
+    "title": "Litigating Trust Disputes in Jersey",
+    "reference": "Sheedy–Baker",
+    "jurisdiction": "jersey",
+    "kind": "txt",
+    "pageOffset": -83,
+    "year": 2020,
+    "txt": "texts/jersey/Litigating-Trust-Disputes-in-Jersey.txt"
   },
   {
     "slug": "demo-jersey",
