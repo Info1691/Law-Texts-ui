@@ -6,13 +6,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="icon" href="logo.png">
   <link rel="stylesheet" href="style.css">
-  <!-- Optional: hard-set the artifacts base. Otherwise app.js defaults to https://<host>/law-index/ -->
-  <!-- <script>window.LAW_INDEX_BASE = 'https://info1691.github.io/law-index/';</script> -->
+  <!-- Optional: force artifacts base if needed -->
+  <!-- <script>window.LAW_INDEX_BASE='https://info1691.github.io/law-index/';</script> -->
 </head>
 <body>
   <header class="masthead">
     <div class="brand">
-      <!-- Inline SVG so we’re not dependent on an external image loading -->
       <svg class="brandmark" viewBox="0 0 64 64" aria-hidden="true">
         <circle cx="32" cy="32" r="32" fill="#0f3a5d"/>
         <text x="17" y="42" font-size="28" font-family="Georgia, 'Times New Roman', serif" fill="#f7f7f7">BB</text>
@@ -36,7 +35,6 @@
           <a href="https://info1691.github.io/Law-Texts-ui/" target="_blank" rel="noopener">This UI: Law-Texts-ui</a>
         </nav>
       </div>
-
       <div class="panel">
         <div class="panel-title">Status</div>
         <div id="status" class="status muted">Loading…</div>
