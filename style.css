@@ -1,77 +1,46 @@
-/* Law-Texts-ui — brand, light theme */
-
-:root{
-  --brand:#113b5b;          /* header/nav blue */
-  --ink:#1f2937;            /* body text */
-  --muted:#6b7280;          /* subtle text */
-  --bg:#ffffff;             /* page background */
-  --card:#ffffff;           /* card background */
-  --ring:#e5e7eb;           /* borders */
-  --chip:#111827;           /* chip text */
+:root {
+  --bg: #ffffff;
+  --ink: #0f172a;         /* slate-900 */
+  --muted: #64748b;       /* slate-500 */
+  --panel: #f8fafc;       /* slate-50 */
+  --line: #e2e8f0;        /* slate-200 */
+  --brand: #0b4666;       /* deep blue */
+  --badge: #eef2ff;       /* indigo-50 */
+  --badge-ink: #3730a3;   /* indigo-700 */
 }
 
-*{ box-sizing:border-box; }
-html,body{ height:100%; }
-body{
-  margin:0;
-  font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Helvetica,Arial,sans-serif;
-  color:var(--ink);
-  background:var(--bg);
-}
+* { box-sizing: border-box; }
+html, body { margin:0; padding:0; background:var(--bg); color:var(--ink); font: 16px/1.45 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji"; }
 
-/* Header */
-.header{
-  background:var(--brand);
-  color:#fff;
-  padding:14px 18px;
-  display:flex;
-  align-items:center;
-  gap:12px;
+.topbar {
+  display:flex; align-items:center; gap:16px;
+  padding:14px 18px; border-bottom:1px solid var(--line); background:#fff;
 }
-.header .logo{
-  width:28px;height:28px;display:block;flex:0 0 28px;
+.brand { width:38px; height:38px; display:block; }
+.titles h1 { font-size:18px; margin:0; }
+.subtitle { color:var(--muted); font-size:12px; }
+
+.wrap { display:grid; grid-template-columns: 260px 1fr; gap:16px; padding:16px; max-width:1200px; margin:0 auto; }
+.sidebar .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:12px; }
+.card-title { font-weight:600; margin-bottom:6px; }
+.links { list-style:none; padding:0; margin:0; }
+.links li { margin:4px 0; }
+.links a { color:var(--brand); text-decoration:none; }
+.links a:hover { text-decoration:underline; }
+
+.muted { color:var(--muted); }
+.small { font-size:12px; }
+code { background:#f1f5f9; border:1px solid var(--line); border-radius:6px; padding:0 4px; }
+
+.catalog-list { display:flex; flex-direction:column; gap:12px; }
+.card-item {
+  border:1px solid var(--line); border-radius:12px; padding:14px; background:#fff;
 }
-.header h1{
-  margin:0;font-size:16px;font-weight:600;letter-spacing:.2px;
+.item-title { font-weight:700; margin-bottom:2px; }
+.item-meta { font-size:12px; color:var(--muted); margin-bottom:8px; display:flex; gap:12px; flex-wrap:wrap; }
+.badges { display:flex; gap:8px; flex-wrap:wrap; }
+.badge {
+  background:var(--badge); color:var(--badge-ink);
+  padding:3px 8px; border-radius:20px; font-size:12px; text-decoration:none; border:1px solid #e0e7ff;
 }
-.header small{ opacity:.85; font-weight:400; }
-
-/* Layout */
-.container{ max-width:980px; margin:22px auto; padding:0 16px; }
-.grid{ display:grid; grid-template-columns: 1fr; gap:14px; }
-@media (min-width:860px){ .grid{ grid-template-columns: 1fr; } }
-
-/* Cards */
-.card{
-  background:var(--card);
-  border:1px solid var(--ring);
-  border-radius:12px;
-  padding:16px 18px;
-}
-.card h3{ margin:0 0 6px; font-size:16px; }
-.meta{ color:var(--muted); font-size:12px; }
-
-/* Chips (buttons) */
-.chips{ margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; }
-.chip{
-  display:inline-block;
-  padding:6px 10px;
-  border-radius:999px;
-  border:1px solid var(--ring);
-  text-decoration:none;
-  color:var(--chip);
-  background:#fff;
-  font-size:12px;
-}
-.chip:hover{ border-color:#cbd5e1; }
-.chip.disabled{ opacity:.45; pointer-events:none; }
-.chip.soft{ background:#f3f4f6; color:#374151; }
-
-/* Sidebar (repo list) */
-.sidebar{ margin-bottom:18px; }
-.sidebar a{ color:var(--brand); text-decoration:none; }
-.sidebar a:hover{ text-decoration:underline; }
-
-/* Status footer */
-footer{ color:var(--muted); font-size:12px; margin:18px 0; }
-footer code{ background:#f3f4f6; padding:2px 6px; border-radius:6px; }
+.badge:hover { filter:brightness(0.96); }
