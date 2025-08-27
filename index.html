@@ -2,46 +2,48 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Trust Law Textbooks — Catalog</title>
   <link rel="icon" href="logo.svg" />
   <link rel="stylesheet" href="style.css" />
-  <!-- Configure where the UI should read artifacts from. -->
-  <script>
-    /* By default read from the public law-index pages repo.                 */
-    /* If you fork or change the org/user, edit this to your Pages base.    */
-    window.LAW_INDEX_BASE = "https://info1691.github.io/law-index/";
-  </script>
 </head>
 <body>
-  <header class="appbar">
-    <div class="brand">
-      <img class="logo" src="logo.svg" alt="BB logo" />
-      <div class="titles">
-        <div class="title">Trust Law Textbooks</div>
-        <div class="subtitle">Catalog</div>
-      </div>
-    </div>
-    <nav class="repos">
-      <a href="https://info1691.github.io/law-index/" target="_blank" rel="noopener">Public: law-index</a>
-      <a href="https://github.com/Info1691/lex-jsy-forensics" target="_blank" rel="noopener">Agent 2: lex-jsy-forensics</a>
-      <a href="https://github.com/Info1691/lex-ci-harvest" target="_blank" rel="noopener">Agent (crawler): lex-ci-harvest</a>
-      <a href="https://github.com/Info1691/lex-ingest-local" target="_blank" rel="noopener">Agent 1: lex-ingest-local</a>
-      <a href="https://info1691.github.io/Law-Texts-ui/" target="_blank" rel="noopener">This UI: Law-Texts-ui</a>
-    </nav>
+
+  <!-- Header -->
+  <header class="header">
+    <img class="logo" src="logo.svg" alt="BB logo" />
+    <h1>Trust Law Textbooks <small>Catalog</small></h1>
   </header>
 
-  <main class="wrap">
-    <section id="library" class="library" aria-live="polite">
-      <!-- catalog cards injected here -->
+  <!-- Main -->
+  <main class="container">
+    <section class="sidebar card">
+      <h3>Repos</h3>
+      <div id="repos">
+        <p><a href="https://info1691.github.io/law-index/">Public: law-index</a></p>
+        <p><a href="https://github.com/Info1691/lex-jsy-forensics">Agent 2: lex-jsy-forensics</a></p>
+        <p><a href="https://github.com/Info1691/lex-ci-harvest">Agent (crawler): lex-ci-harvest</a></p>
+        <p><a href="https://github.com/Info1691/lex-ingest-local">Agent 1: lex-ingest-local</a></p>
+        <p><a href="./">This UI: Law-Texts-ui</a></p>
+      </div>
     </section>
+
+    <section class="grid" id="library">
+      <!-- Cards are injected here by app.js -->
+    </section>
+
+    <footer>
+      <div id="status"></div>
+    </footer>
   </main>
 
-  <footer class="statusbar">
-    <span id="status"></span>
-    <span class="source">Source: <code id="sourcePath">catalogs/ingest-catalog.json</code></span>
-  </footer>
-
-  <script src="app.js" defer></script>
+  <!-- Set the artifact base ONCE, then load the app -->
+  <script>
+    /* Where the UI should read public artifacts (catalogs/, texts/, page-maps/) */
+    window.LAW_INDEX_BASE = 'https://info1691.github.io/law-index/';
+    /* If you prefer a relative path on the same origin, use:
+       window.LAW_INDEX_BASE = '/law-index/'; */
+  </script>
+  <script src="app.js"></script>
 </body>
 </html>
