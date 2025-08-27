@@ -1,87 +1,62 @@
-/* Trust Law Textbooks — UI (light brand) */
-:root{
+/* Brand reset / light theme */
+:root {
   --bg: #ffffff;
-  --ink: #0f172a;
-  --muted: #475569;
-  --brand-bg: #ffffff;
-  --brand-border: #e5e7eb;
-  --card-bg: #ffffff;
-  --card-border: #e5e7eb;
-  --chip-bg: #f1f5f9;
-  --chip-ink: #0f172a;
-  --link: #0e7490;
-  --link-hover: #155e75;
-  --btn-bg: #f8fafc;
-  --btn-border: #cbd5e1;
+  --fg: #0b2239;
+  --muted: #597089;
+  --card: #ffffff;
+  --edge: #e7edf3;
+  --accent: #1e64d6;
+  --accent-fg: #fff;
+  color-scheme: light;
 }
 
-*{ box-sizing:border-box; }
-html,body{ height:100%; }
-body{
-  margin:0;
-  color:var(--ink);
-  background:var(--bg);
-  font: 16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, sans-serif;
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font: 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
 }
 
-/* Brand header */
-.brand{
-  background:var(--brand-bg);
-  border-bottom:1px solid var(--brand-border);
+/* Header / brand */
+.brand { background: #fff; border-bottom: 1px solid var(--edge); }
+.brand__inner {
+  max-width: 1100px; margin: 0 auto; padding: 14px 20px; display: flex; align-items: center; gap: 14px;
 }
-.brand-inner{
-  max-width:1100px;
-  margin:0 auto;
-  padding:16px 20px;
-  display:flex; align-items:center; gap:16px;
+.brand__logo {
+  width: 64px; height: 64px; object-fit: contain;
+  background:#fff; border-radius: 8px; border:1px solid var(--edge);
+  box-shadow: 0 1px 2px rgba(0,0,0,.05);
 }
-.logo{
-  width:64px; height:64px; object-fit:contain;
-  background:#fff; /* ensure logo sits on white regardless of image */
-  border-radius:6px; border:1px solid var(--brand-border);
-  padding:4px;
-}
-.titles h1{ margin:0 0 2px; font-size:22px; font-weight:700; }
-.subtitle{ margin:0; color:var(--muted); }
+.brand__titles h1 { margin: 0 0 4px 0; font-size: 20px; }
+.muted { color: var(--muted); }
 
 /* Layout */
-.container{
-  max-width:1100px; margin:0 auto; padding:20px;
-  display:grid; grid-template-columns:260px 1fr; gap:20px;
+.container { max-width: 1100px; margin: 0 auto; padding: 18px 20px; display: grid; grid-template-columns: 260px 1fr; gap: 20px; }
+.side .repos__title { font-weight: 600; margin-bottom: 8px; }
+.repo {
+  display: block; padding: 8px 10px; margin: 0 0 6px 0; color: var(--fg); text-decoration: none;
+  border:1px solid var(--edge); border-radius: 8px; background: var(--card);
 }
-.sidebar .repos h3{ margin:0 0 8px; font-size:14px; color:var(--muted); }
-.sidebar .repos ul{ list-style:none; padding:0; margin:0 0 16px; }
-.sidebar .repos li{ margin:6px 0; }
-.sidebar .repos a{ color:var(--link); text-decoration:none; }
-.sidebar .repos a:hover{ color:var(--link-hover); text-decoration:underline; }
-.note{ color:var(--muted); font-size:14px; }
+.repo:hover { border-color:#cfd9e3; }
 
-/* Library cards */
-.library{ display:flex; flex-direction:column; gap:12px; }
-.card{
-  background:var(--card-bg);
-  border:1px solid var(--card-border);
-  border-radius:10px; padding:14px 16px;
-}
-.card h2{
-  margin:0 0 4px; font-size:18px; font-weight:700;
-}
-.meta{ margin:0 0 10px; color:var(--muted); font-size:14px; }
-.actions{ display:flex; gap:8px; flex-wrap:wrap; }
-.btn{
-  display:inline-block; padding:6px 10px; border-radius:999px;
-  background:var(--btn-bg); border:1px solid var(--btn-border);
-  color:var(--ink); text-decoration:none; font-size:13px;
-}
-.btn:hover{ filter:brightness(0.98); }
-.badge{
-  display:inline-block; padding:2px 8px; border-radius:999px;
-  background:var(--chip-bg); color:var(--chip-ink); font-size:12px;
-}
+.content h2 { margin: 0 0 10px; }
 
-.source{ margin-top:16px; color:var(--muted); font-size:13px; }
-code{ background:#f8fafc; padding:2px 6px; border-radius:6px; border:1px solid #e5e7eb; }
-
-@media (max-width: 880px){
-  .container{ grid-template-columns:1fr; }
+/* Catalog list */
+.library { display: grid; gap: 12px; }
+.card {
+  border:1px solid var(--edge); border-radius: 12px; background: var(--card); padding: 14px 14px 12px;
 }
+.card__title { margin: 0 0 4px; font-size: 18px; }
+.card__meta { margin: 0 0 10px; color: var(--muted); font-size: 13px; }
+.actions { display: flex; gap: 8px; }
+
+.btn {
+  display:inline-block; border:1px solid var(--edge); border-radius: 8px; padding:6px 10px;
+  font-size: 13px; text-decoration: none; color: var(--fg); background:#f7fafe;
+}
+.btn--primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+.btn[disabled] { opacity:.5; pointer-events:none; }
+
+.foot { margin-top: 12px; font-size: 12px; }
+code { background:#f5f7fb; padding: 1px 4px; border-radius: 4px; border:1px solid var(--edge); }
