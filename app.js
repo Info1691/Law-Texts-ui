@@ -1,120 +1,119 @@
-/* Law-Texts-ui – minimal, robust catalog renderer */
+/* Trust Law Textbooks UI (robust) */
 
-const LAW_INDEX = (window.LAW_INDEX_BASE || '').replace(/\/+$/,'');          // e.g. /law-index
-const REMOTE_CATALOG = `${LAW_INDEX}/catalogs/ingest-catalog.json`;
-const LOCAL_FALLBACK = `texts/catalog.json`;
+const BASE = (window.LAW_INDEX_BASE || '').replace(/\/+$/,''); // https://…/law-index
+const REMOTE = `${BASE}/catalogs/ingest-catalog.json`;
+const LOCAL  = `texts/catalog.json`; // fallback only if remote fails
 
 const elLib = document.getElementById('library');
 const elStatus = document.getElementById('status');
 const elFallback = document.getElementById('fallbackNote');
 
-const setStatus = (msg, isError=false) => {
-  elStatus.textContent = msg || '';
-  elStatus.classList.toggle('error', !!isError);
-};
+const status = (msg, bad=false)=>{ elStatus.textContent=msg||''; elStatus.style.color=bad?'#b91c1c':'#597089'; };
 
-init().catch(err => setStatus(`Init error: ${err.message}`, true));
+init().catch(err=>status(`Init error: ${err.message}`,true));
 
 async function init(){
-  setStatus('Loading catalog…');
-  let items, usedFallback = false;
+  status('Loading catalog…');
+  let items = [], usedFallback = false;
 
-  // 1) Prefer remote catalog
-  try {
-    const r = await fetch(REMOTE_CATALOG, {cache:'no-store'});
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  try{
+    const r = await fetch(REMOTE, {cache:'no-store'});
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
     items = await r.json();
-  } catch (e) {
-    // 2) Fallback only if remote fails
-    const r2 = await fetch(LOCAL_FALLBACK, {cache:'no-store'});
-    if (!r2.ok) throw new Error(`Catalog fetch failed (${e.message}); fallback also HTTP ${r2.status}`);
+  }catch(e){
+    const r2 = await fetch(LOCAL, {cache:'no-store'});
+    if(!r2.ok) throw new Error(`Catalog fetch failed (${e.message}); fallback also HTTP ${r2.status}`);
     items = await r2.json();
     usedFallback = true;
   }
 
-  // Normalize -> array
-  if (!Array.isArray(items)) items = [];
-  // De-duplicate by slug (case-insensitive) or by normalized title
-  const seen = new Map();
+  if(!Array.isArray(items)) items = [];
+
+  // De-dup: by slug (case-insensitive) then by normalized title+jurisdiction+year
   const norm = s => String(s||'').trim().toLowerCase().replace(/\s+/g,' ');
-  for (const it of items) {
-    const key = (it.slug ? norm(it.slug) : `t:${norm(it.title)}`);
-    if (!seen.has(key)) seen.set(key, it);
+  const seen = new Set();
+  const deduped = [];
+  for(const it of items){
+    const k1 = it.slug ? `s:${norm(it.slug)}` : '';
+    const k2 = `t:${norm(it.title)}|j:${norm(it.jurisdiction)}|y:${it.year||0}`;
+    const key = k1 || k2;
+    if(seen.has(key)) continue;
+    seen.add(key); deduped.push(it);
   }
-  items = [...seen.values()];
 
-  // Sort newest first, then title
-  items.sort((a,b)=> (b.year||0)-(a.year||0) || String(a.title).localeCompare(b.title));
+  // Sort newest first then title
+  deduped.sort((a,b)=>(b.year||0)-(a.year||0) || String(a.title).localeCompare(b.title));
 
-  render(items);
+  render(deduped);
   elFallback.hidden = !usedFallback;
-  setStatus(`Loaded ${items.length} item(s).`);
+  status(`Loaded ${deduped.length} item(s).`);
 }
 
 function render(items){
-  if (!items.length){ elLib.textContent = 'No items published yet.'; return; }
-  elLib.innerHTML = '';
-  items.forEach(async (it) => {
-    const card = document.createElement('div');
-    card.className = 'card';
+  if(!items.length){ elLib.textContent='No items published yet.'; return; }
+  elLib.innerHTML='';
+  items.forEach(async it=>{
+    const card = document.createElement('div'); card.className='card';
 
-    const h = document.createElement('h3');
-    h.className = 'card__title';
+    const h = document.createElement('h3'); h.className='card__title';
     h.textContent = String(it.title || it.slug || 'Untitled');
 
-    const meta = document.createElement('div');
-    meta.className = 'card__meta';
-    const j = (it.jurisdiction || '').toUpperCase();
-    const y = it.year ? ` · ${it.year}` : '';
+    const meta = document.createElement('div'); meta.className='card__meta';
+    const j = (it.jurisdiction||'').toUpperCase();
+    const yr = it.year ? ` · ${it.year}` : '';
     const ref = it.reference ? ` — ${it.reference}` : '';
-    meta.textContent = `${j}${y}${ref}`;
+    meta.textContent = `${j}${yr}${ref}`;
 
-    const actions = document.createElement('div');
-    actions.className = 'actions';
+    const actions = document.createElement('div'); actions.className='actions';
 
-    // TXT button – always constructed from catalog field
-    if (it.txt){
-      const url = joinURL(LAW_INDEX, it.txt);
-      const a = document.createElement('a');
-      a.className = 'btn btn--primary';
-      a.href = url;
-      a.target = '_blank'; a.rel = 'noopener';
-      a.textContent = 'TXT';
-      actions.appendChild(a);
+    // TXT button: use catalog-provided path exactly
+    if(it.txt){
+      const txtUrl = join(BASE, it.txt);
+      actions.appendChild(makeLink('TXT', txtUrl, true));
     }
 
-    // Page-map button – only show if the file exists
-    const pmUrl = pageMapURL(it);
-    if (pmUrl){
-      const a2 = document.createElement('a');
-      a2.className = 'btn';
-      a2.textContent = 'Page-map';
-      a2.href = pmUrl; a2.target = '_blank'; a2.rel = 'noopener';
-      // verify exists (avoid 404 buttons)
-      try {
-        const head = await fetch(pmUrl, {method:'HEAD', cache:'no-store'});
-        if (head.ok) actions.appendChild(a2);
-      } catch { /* ignore */ }
+    // Page-map button: show only if exists; try common variants if none supplied
+    const candidates = [];
+    if(it.pageMap) candidates.push(join(BASE, it.pageMap));
+    else if(it.jurisdiction && it.slug){
+      const j = String(it.jurisdiction).trim();
+      const s = String(it.slug).trim();
+      candidates.push(`${BASE}/page-maps/${j}/${s}.page-map.json`);
+      candidates.push(`${BASE}/page-maps/${j}/${s}-law.page-map.json`); // common variant
     }
+    const pmUrl = await firstExisting(candidates);
+    if(pmUrl) actions.appendChild(makeLink('Page-map', pmUrl, true));
 
-    card.appendChild(h);
-    card.appendChild(meta);
-    card.appendChild(actions);
+    card.appendChild(h); card.appendChild(meta); card.appendChild(actions);
     elLib.appendChild(card);
   });
 }
 
-function pageMapURL(it){
-  // Prefer explicit pageMap property if present
-  if (it.pageMap) return joinURL(LAW_INDEX, it.pageMap);
-  // Otherwise, infer conventional location; caller will verify with HEAD.
-  if (it.jurisdiction && it.slug){
-    return `${LAW_INDEX}/page-maps/${it.jurisdiction}/${it.slug}.page-map.json`;
+/* Helpers */
+function join(base, path){
+  const p = String(path||'').replace(/^\/+/,''); return `${base}/${p}`;
+}
+async function firstExisting(urls){
+  for(const u of urls){
+    try{
+      const r = await fetch(u, {method:'HEAD', cache:'no-store'});
+      if(r.ok) return u;
+    }catch{/* ignore */}
   }
   return '';
 }
-
-function joinURL(base, path){
-  const p = String(path||'').replace(/^\/+/, '');
-  return `${base}/${p}`;
+function makeLink(label, url, newTab=false){
+  const a = document.createElement('a');
+  a.className = label==='TXT' ? 'btn btn--primary' : 'btn';
+  a.textContent = label;
+  a.href = url;
+  if(newTab){ a.target = '_blank'; a.rel = 'noopener'; }
+  // Explicit open for iPad/Safari quirks
+  a.addEventListener('click', (e)=>{
+    if(newTab){
+      e.preventDefault();
+      window.open(url, '_blank', 'noopener');
+    }
+  });
+  return a;
 }
