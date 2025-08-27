@@ -1,44 +1,72 @@
-/* Brand: light theme */
-:root{
-  --bg:#ffffff; --fg:#0b2239; --muted:#597089;
-  --edge:#e7edf3; --card:#ffffff; --accent:#1e64d6; --accent-fg:#fff;
-  color-scheme: light;
+/* Reset-ish */
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font: 16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+  color: #0f172a;              /* slate-900 */
+  background: #f7fafc;         /* light */
 }
-*{box-sizing:border-box}
-html,body{margin:0;padding:0}
-body{background:var(--bg);color:var(--fg);
-  font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
 
-/* Header */
-.brand{background:#fff;border-bottom:1px solid var(--edge)}
-.brand__inner{max-width:1100px;margin:0 auto;padding:14px 20px;
-  display:flex;align-items:center;gap:14px}
-.brand__logo{width:64px;height:64px;object-fit:contain;background:#fff;
-  border:1px solid var(--edge);border-radius:8px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
-.brand__titles h1{margin:0 0 4px;font-size:20px}
-.muted{color:var(--muted)}
+/* Masthead */
+.masthead {
+  background: #0f3a5d;         /* brand blue */
+  color: #fff;
+  padding: 14px 18px;
+  border-bottom: 4px solid #d9e3ee;
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.brandmark { width: 40px; height: 40px; border-radius: 6px; flex: 0 0 auto; }
+.brandtext .title { font-weight: 700; letter-spacing: .2px; }
+.brandtext .subtitle { opacity: .85; font-size: 13px; }
 
 /* Layout */
-.container{max-width:1100px;margin:0 auto;padding:18px 20px;display:grid;
-  grid-template-columns:260px 1fr;gap:20px}
-.side .repos__title{font-weight:600;margin-bottom:8px}
-.repo{display:block;padding:8px 10px;margin:0 0 6px;color:var(--fg);text-decoration:none;
-  border:1px solid var(--edge);border-radius:8px;background:var(--card)}
-.repo:hover{border-color:#cfd9e3}
+.layout { display: grid; grid-template-columns: 280px 1fr; gap: 18px; padding: 18px; }
+@media (max-width: 880px) { .layout { grid-template-columns: 1fr; } }
 
-.content h2{margin:0 0 10px}
+.sidebar .panel { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 14px; }
+.panel-title { font-weight: 700; font-size: 14px; padding: 10px 12px; border-bottom: 1px solid #eef2f7; }
+.repo-links { display: grid; gap: 8px; padding: 10px 12px 14px; }
+.repo-links a { text-decoration: none; color: #0f3a5d; }
+.repo-links a:hover { text-decoration: underline; }
 
-/* Catalog */
-.library{display:grid;gap:12px}
-.card{border:1px solid var(--edge);border-radius:12px;background:var(--card);padding:14px}
-.card__title{margin:0 0 4px;font-size:18px}
-.card__meta{margin:0 0 10px;color:var(--muted);font-size:13px}
-.actions{display:flex;gap:8px;flex-wrap:wrap}
+.status { padding: 12px; }
+.muted { color: #6b7280; }
 
-.btn{display:inline-block;border:1px solid var(--edge);border-radius:8px;padding:6px 10px;
-  font-size:13px;text-decoration:none;color:var(--fg);background:#f7fafe}
-.btn--primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
-.btn[disabled]{opacity:.5;pointer-events:none}
+.content .catalog { display: grid; gap: 16px; }
+.source-note { margin-top: 18px; color: #6b7280; font-size: 13px; }
 
-.foot{margin-top:12px;font-size:12px}
-code{background:#f5f7fb;padding:1px 4px;border-radius:4px;border:1px solid var(--edge)}
+/* Cards */
+.card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+.card h3 { margin: 0 0 6px; font-size: 18px; }
+.meta { color: #475569; font-size: 13px; margin-bottom: 8px; }
+.pills { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.pill {
+  font-size: 12px;
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+  color: #334155;
+  padding: 3px 8px; border-radius: 999px;
+}
+
+/* Buttons */
+.actions { display: flex; gap: 8px; }
+.btn {
+  display: inline-block;
+  font-size: 13px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid #0f3a5d;
+  color: #0f3a5d;
+  text-decoration: none;
+  background: #ffffff;
+}
+.btn:hover { background: #0f3a5d; color: #ffffff; }
+.btn[aria-disabled="true"] {
+  border-color: #cbd5e1; color: #94a3b8; pointer-events: none; background: #f8fafc;
+}
