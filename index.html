@@ -1,28 +1,46 @@
 <!doctype html>
-<meta charset="utf-8">
-<title>law-index</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<style>
-  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:0;background:#f5f7fb;color:#243042}
-  main{max-width:820px;margin:40px auto;padding:0 16px}
-  h1{font-size:24px;margin:0 0 16px}
-  ul{list-style:none;padding:0;margin:12px 0}
-  li{margin:10px 0}
-  a{color:#0b63ce;text-decoration:none} a:hover{text-decoration:underline}
-  code{background:#eef2f8;padding:2px 6px;border-radius:6px}
-</style>
-<main>
-  <h1>law-index</h1>
-  <p>Published artifacts from the harvest & forensic index.</p>
-  <h2>Harvest</h2>
-  <ul>
-    <li><a href="harvest/catalog.json">harvest/catalog.json</a></li>
-    <li><a href="harvest/catalog-approved.json">harvest/catalog-approved.json</a></li>
-    <li><a href="harvest-manifest.json">harvest-manifest.json</a></li>
-  </ul>
-  <h2>Indexes</h2>
-  <ul>
-    <li><a href="manifest.json">manifest.json</a> (from indexer)</li>
-    <li><a href="lexical.index.json">lexical.index.json</a> (from indexer)</li>
-  </ul>
-</main>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Law-Texts — Reader</title>
+<link rel="icon" href="./logo.png">
+<link rel="stylesheet" href="./app.css">
+<script>/* BRAND + DATA SOURCE */ window.LAW_INDEX_BASE = "https://info1691.github.io/law-index/";</script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="./logo.png" alt="logo" />
+      <div class="title">Trust Law Textbooks — Reader</div>
+    </div>
+    <div class="actions">
+      <input id="searchInput" type="search" placeholder="Find in document…" />
+      <button id="findPrev" title="Previous">◀</button>
+      <button id="findNext" title="Next">▶</button>
+      <span id="findCount" class="muted"></span>
+    </div>
+  </header>
+
+  <aside class="drawer" id="drawer">
+    <div class="drawer-title">Repos</div>
+    <nav>
+      <a href="https://info1691.github.io/law-index/" target="_blank">Public: law-index</a>
+      <a href="https://github.com/Info1691/lex-jsy-forensics" target="_blank">Agent 2: lex-jsy-forensics</a>
+      <a href="https://github.com/Info1691/lex-ci-harvest" target="_blank">Agent (crawler): lex-ci-harvest</a>
+      <a href="https://github.com/Info1691/lex-ingest-local" target="_blank">Agent 1: lex-ingest-local</a>
+      <a href="https://github.com/Info1691/Law-Texts-ui" target="_blank">This UI: Law-Texts-ui</a>
+    </nav>
+
+    <div class="drawer-title" style="margin-top:16px;">Library</div>
+    <div id="library" class="library">Loading catalog…</div>
+  </aside>
+
+  <main class="content">
+    <div id="doc" class="doc" aria-live="polite">Select a book from the Library…</div>
+    <div id="status" class="status muted"></div>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>
