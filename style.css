@@ -1,258 +1,87 @@
-/* ==========================================================================
-   Trust Law Textbooks — Reader (Law-Texts-ui)
-   Full stylesheet (Rule 10: whole file, no diffs needed)
-   ========================================================================== */
-
-/* ---------- CSS variables ---------- */
+/* Trust Law Textbooks — UI (light brand) */
 :root{
-  --bg:            #0b1220;      /* page background (navy) */
-  --panel:         #0f172a;      /* panels / cards */
-  --panel-2:       #111827;
-  --ink:           #e5e7eb;      /* main text */
-  --muted:         #9ca3af;      /* secondary text */
-  --border:        #23304d;
-  --brand:         #e5e7eb;      /* brand text */
-  --accent:        #60a5fa;      /* buttons / links */
-  --accent-2:      #93c5fd;
-  --danger:        #ef4444;
-  --ok:            #34d399;
-  --hl:            #fff3b0;      /* highlight mark */
-  --radius:        12px;
-  --radius-sm:     8px;
-  --shadow:        0 6px 24px rgba(0,0,0,.25);
+  --bg: #ffffff;
+  --ink: #0f172a;
+  --muted: #475569;
+  --brand-bg: #ffffff;
+  --brand-border: #e5e7eb;
+  --card-bg: #ffffff;
+  --card-border: #e5e7eb;
+  --chip-bg: #f1f5f9;
+  --chip-ink: #0f172a;
+  --link: #0e7490;
+  --link-hover: #155e75;
+  --btn-bg: #f8fafc;
+  --btn-border: #cbd5e1;
 }
 
-/* ---------- Reset / base ---------- */
-* { box-sizing: border-box; }
-html, body { height: 100%; }
-html { color-scheme: dark; }
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
 body{
-  margin: 0;
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
-  color: var(--ink);
-  background: radial-gradient(1200px 700px at 20% -10%, #1b2540 0%, #0b1220 55%, #050812 100%);
+  margin:0;
+  color:var(--ink);
+  background:var(--bg);
+  font: 16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, sans-serif;
 }
 
-/* Links */
-a{ color: var(--accent); text-decoration: none; }
-a:hover{ color: var(--accent-2); }
-
-/* Buttons (generic) */
-.btn{
-  display:inline-flex; align-items:center; gap:.5rem;
-  height:34px; padding:0 .8rem;
-  border-radius: 8px; border:1px solid var(--border);
-  background: linear-gradient(180deg, #1f2937, #111827);
-  color:#e5e7eb; cursor:pointer;
-  font: 500 14px/1 ui-sans-serif, system-ui;
-  user-select:none;
+/* Brand header */
+.brand{
+  background:var(--brand-bg);
+  border-bottom:1px solid var(--brand-border);
 }
-.btn:active{ transform: translateY(1px); }
-.btn[disabled]{ opacity:.5; cursor:not-allowed; }
-
-/* Badges / pills */
-.badge{
-  display:inline-block; padding:.2rem .5rem; border-radius:999px;
-  border:1px solid var(--border); background:#0c1222; color:var(--muted);
-  font:600 12px/1 ui-sans-serif, system-ui; letter-spacing:.02em;
+.brand-inner{
+  max-width:1100px;
+  margin:0 auto;
+  padding:16px 20px;
+  display:flex; align-items:center; gap:16px;
 }
+.logo{
+  width:64px; height:64px; object-fit:contain;
+  background:#fff; /* ensure logo sits on white regardless of image */
+  border-radius:6px; border:1px solid var(--brand-border);
+  padding:4px;
+}
+.titles h1{ margin:0 0 2px; font-size:22px; font-weight:700; }
+.subtitle{ margin:0; color:var(--muted); }
 
-/* Cards */
+/* Layout */
+.container{
+  max-width:1100px; margin:0 auto; padding:20px;
+  display:grid; grid-template-columns:260px 1fr; gap:20px;
+}
+.sidebar .repos h3{ margin:0 0 8px; font-size:14px; color:var(--muted); }
+.sidebar .repos ul{ list-style:none; padding:0; margin:0 0 16px; }
+.sidebar .repos li{ margin:6px 0; }
+.sidebar .repos a{ color:var(--link); text-decoration:none; }
+.sidebar .repos a:hover{ color:var(--link-hover); text-decoration:underline; }
+.note{ color:var(--muted); font-size:14px; }
+
+/* Library cards */
+.library{ display:flex; flex-direction:column; gap:12px; }
 .card{
-  background: linear-gradient(180deg, #0f172a, #0c1426);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow);
-  border-radius: var(--radius);
+  background:var(--card-bg);
+  border:1px solid var(--card-border);
+  border-radius:10px; padding:14px 16px;
+}
+.card h2{
+  margin:0 0 4px; font-size:18px; font-weight:700;
+}
+.meta{ margin:0 0 10px; color:var(--muted); font-size:14px; }
+.actions{ display:flex; gap:8px; flex-wrap:wrap; }
+.btn{
+  display:inline-block; padding:6px 10px; border-radius:999px;
+  background:var(--btn-bg); border:1px solid var(--btn-border);
+  color:var(--ink); text-decoration:none; font-size:13px;
+}
+.btn:hover{ filter:brightness(0.98); }
+.badge{
+  display:inline-block; padding:2px 8px; border-radius:999px;
+  background:var(--chip-bg); color:var(--chip-ink); font-size:12px;
 }
 
-/* ---------- App layout ---------- */
-.app{
-  display: grid;
-  grid-template-rows: 60px 1fr;
-  grid-template-columns: 320px 1fr;
-  grid-template-areas:
-    "header header"
-    "side   main";
-  min-height: 100vh;
-  gap: 18px;
-  padding: 18px 18px 28px;
-}
+.source{ margin-top:16px; color:var(--muted); font-size:13px; }
+code{ background:#f8fafc; padding:2px 6px; border-radius:6px; border:1px solid #e5e7eb; }
 
-/* ---------- Header ---------- */
-.header{
-  grid-area: header;
-  display:flex; align-items:center; justify-content:space-between;
-  padding: 10px 14px;
-  border-radius: var(--radius);
-  border:1px solid var(--border);
-  background: linear-gradient(180deg, #121a2f, #0e1527);
-  box-shadow: 0 8px 24px rgba(0,0,0,.25);
-}
-
-.header .brand{
-  display:inline-flex; align-items:center; gap:.6rem;
-  font-weight:700; color:var(--brand); letter-spacing:.02em;
-}
-.header .brand img{
-  width:28px; height:28px; display:block;
-}
-
-.header .tools{
-  display:flex; align-items:center; gap:.5rem;
-}
-
-/* Search control */
-#searchInput{
-  width: 380px; max-width: 44vw;
-  height:34px; padding:0 .8rem;
-  border-radius: 8px; border:1px solid var(--border);
-  background: #0b1221; color: var(--ink);
-  font: 500 14px/1 ui-sans-serif, system-ui;
-  outline: none;
-}
-#searchInput::placeholder{ color: #6b7280; }
-
-/* Prev/Next + counter + status */
-#findCount{ color:var(--muted); font: 600 12px/1 ui-sans-serif; margin:0 .4rem; }
-#status{ color:var(--muted); font: 500 13px/1.2 ui-sans-serif; }
-
-/* ---------- Sidebar ---------- */
-.sidebar{
-  grid-area: side;
-  display: flex; flex-direction: column; gap: 14px;
-}
-
-.panel{
-  padding: 12px;
-  background: linear-gradient(180deg, #0e162a, #0b1222);
-  border:1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-}
-
-/* Panel headings */
-.panel h3{
-  margin:6px 6px 10px; font:700 13px/1 ui-sans-serif;
-  color:#cdd5e1; letter-spacing:.06em; text-transform: uppercase;
-}
-
-/* Repos list */
-.repos{
-  display:flex; flex-direction:column; gap:8px;
-}
-.repo-link{
-  display:flex; align-items:center; gap:.6rem;
-  padding:10px 12px; border-radius:10px;
-  border:1px solid var(--border);
-  background: #0b1221; color:var(--ink);
-}
-.repo-link:hover{ background:#0e172a; }
-
-/* Library list */
-#library{
-  display:flex; flex-direction:column; gap:8px; margin-top:4px;
-}
-#library .item{
-  display:block; padding:10px 12px;
-  border-radius:10px; border:1px solid var(--border);
-  color:var(--ink); background:#0b1221;
-}
-#library .item:hover{ background:#0e172a; }
-
-/* ---------- Main content ---------- */
-.main{
-  grid-area: main;
-  display:flex; flex-direction:column; gap:14px;
-}
-
-/* Document viewer */
-.viewer{
-  padding: 14px 16px;
-  border-radius: var(--radius);
-  border:1px solid var(--border);
-  background: linear-gradient(180deg, #0d1527, #0b1221);
-  box-shadow: var(--shadow);
-  min-height: 420px;
-}
-
-/* The document text area */
-#doc{
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  font-family: ui-serif, Georgia, Cambria, "Times New Roman", serif;
-  font-size: 16.5px;
-  line-height: 1.55;
-}
-
-/* Inline highlight marks (from JS search) */
-mark.hl{
-  background: var(--hl);
-  color: #1f2937;
-  padding: 0 .12em;
-  border-radius: 3px;
-  box-shadow: inset 0 -2px 0 rgba(0,0,0,.12);
-}
-
-/* Helper: small monospace blocks (paths, etc.) */
-.code{
-  font: 600 12px/1.3 ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-  color:#cbd5e1;
-  background:#0c1222; border:1px solid var(--border); border-radius:8px;
-  padding:.35rem .5rem;
-}
-
-/* Inline notices */
-.notice{
-  padding:.6rem .8rem; border-radius:10px; border:1px solid var(--border);
-  background:#0c1426; color:var(--muted);
-}
-
-/* ---------- Catalog cards (if you have a catalog page) ---------- */
-.catalog{
-  display:flex; flex-direction:column; gap:14px;
-}
-.catalog .book{
-  padding:14px; display:flex; align-items:center; justify-content:space-between;
-}
-.catalog .meta{
-  display:flex; flex-direction:column; gap:.3rem;
-}
-.catalog .title{ font:700 16px/1.2 ui-sans-serif; color:#e7ecf5; }
-.catalog .byline{ color:var(--muted); font:600 12px/1 ui-sans-serif; }
-.catalog .actions{ display:flex; align-items:center; gap:.5rem; }
-
-/* ---------- Tables (rare) ---------- */
-table{
-  width:100%; border-collapse: collapse; margin: .3rem 0 1rem;
-  font-size: 14px;
-}
-th, td{
-  border:1px solid var(--border); padding:.5rem .6rem;
-}
-th{ text-align:left; background:#0c1426; color:#cfd8e3; }
-
-/* ---------- Footer (if present) ---------- */
-.footer{
-  margin-top:auto; color:var(--muted); font:500 12px/1.4 ui-sans-serif;
-}
-
-/* ---------- Responsive ---------- */
-@media (max-width: 1024px){
-  .app{
-    grid-template-columns: 280px 1fr;
-  }
-  #searchInput{ width: 300px; }
-}
-@media (max-width: 860px){
-  .app{
-    grid-template-rows: 56px auto auto;
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      "header"
-      "side"
-      "main";
-  }
-  .sidebar{ order: 1; }
-  .main{ order: 2; }
-  #searchInput{ width: min(520px, 80vw); }
+@media (max-width: 880px){
+  .container{ grid-template-columns:1fr; }
 }
