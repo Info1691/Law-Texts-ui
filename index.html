@@ -1,51 +1,54 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8">
   <title>Trust Law Textbooks — Catalog</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="icon" href="logo.png">
-  <!-- Force fresh assets in Safari/iPad -->
-  <link rel="stylesheet" href="style.css?v=20250827a" />
-  <!-- Law-index lives at /law-index on the same domain -->
-  <script>
-    window.LAW_INDEX_BASE = location.origin + '/law-index';
-  </script>
+  <link rel="stylesheet" href="style.css">
+  <!-- Optional: hard-set the artifacts base. Otherwise app.js defaults to https://<host>/law-index/ -->
+  <!-- <script>window.LAW_INDEX_BASE = 'https://info1691.github.io/law-index/';</script> -->
 </head>
 <body>
-  <header class="brand">
-    <div class="brand__inner">
-      <img src="logo.png" alt="Brand" class="brand__logo" />
-      <div class="brand__titles">
-        <h1>Trust Law Textbooks</h1>
-        <p id="status" class="muted"></p>
+  <header class="masthead">
+    <div class="brand">
+      <!-- Inline SVG so we’re not dependent on an external image loading -->
+      <svg class="brandmark" viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="32" fill="#0f3a5d"/>
+        <text x="17" y="42" font-size="28" font-family="Georgia, 'Times New Roman', serif" fill="#f7f7f7">BB</text>
+      </svg>
+      <div class="brandtext">
+        <div class="title">Trust Law Textbooks</div>
+        <div class="subtitle">Catalog</div>
       </div>
     </div>
   </header>
 
-  <main class="container">
-    <aside class="side">
-      <nav class="repos">
-        <div class="repos__title">Repos</div>
-        <a class="repo" href="/law-index/">Public: law-index</a>
-        <a class="repo" href="https://github.com/Info1691/lex-jsy-forensics" target="_blank" rel="noopener">Agent 2: lex-jsy-forensics</a>
-        <a class="repo" href="https://github.com/Info1691/lex-ci-harvest" target="_blank" rel="noopener">Agent (crawler): lex-ci-harvest</a>
-        <a class="repo" href="https://github.com/Info1691/lex-ingest-local" target="_blank" rel="noopener">Agent 1: lex-ingest-local</a>
-        <a class="repo" href="https://github.com/Info1691/Law-Texts-ui" target="_blank" rel="noopener">This UI: Law-Texts-ui</a>
-      </nav>
+  <main class="layout">
+    <aside class="sidebar">
+      <div class="panel">
+        <div class="panel-title">Repos</div>
+        <nav class="repo-links">
+          <a href="https://info1691.github.io/law-index/" target="_blank" rel="noopener">Public: law-index</a>
+          <a href="https://github.com/Info1691/lex-jsy-forensics" target="_blank" rel="noopener">Agent 2: lex-jsy-forensics</a>
+          <a href="https://github.com/Info1691/lex-ci-harvest" target="_blank" rel="noopener">Agent (crawler): lex-ci-harvest</a>
+          <a href="https://github.com/Info1691/lex-ingest-local" target="_blank" rel="noopener">Agent 1: lex-ingest-local</a>
+          <a href="https://info1691.github.io/Law-Texts-ui/" target="_blank" rel="noopener">This UI: Law-Texts-ui</a>
+        </nav>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Status</div>
+        <div id="status" class="status muted">Loading…</div>
+      </div>
     </aside>
 
     <section class="content">
-      <h2>Catalog</h2>
-      <div id="library" class="library" role="list" aria-live="polite">Loading…</div>
-      <footer class="foot muted">
-        Source: <code>catalogs/ingest-catalog.json</code><span id="fallbackNote" hidden>
-          (using local fallback <code>texts/catalog.json</code>)
-        </span>
-      </footer>
+      <div id="catalog" class="catalog"></div>
+      <div class="source-note">Source: <code id="sourcePath">catalogs/ingest-catalog.json</code></div>
     </section>
   </main>
 
-  <script src="app.js?v=20250827a"></script>
+  <script src="app.js"></script>
 </body>
 </html>
