@@ -9,10 +9,12 @@
 </head>
 <body>
   <header class="topbar">
-    <img src="logo.svg" class="brand" alt="BB">
-    <div class="titles">
-      <h1>Trust Law Textbooks</h1>
-      <div class="subtitle">Catalog</div>
+    <div class="brandwrap">
+      <img src="logo.svg" class="brand" alt="BB">
+      <div class="titles">
+        <h1>Trust Law Textbooks</h1>
+        <div class="subtitle">Catalog</div>
+      </div>
     </div>
   </header>
 
@@ -38,12 +40,10 @@
     </section>
   </main>
 
-  <!-- Configure the single data source the UI will read -->
+  <!-- SINGLE data source: the public artifacts site -->
   <script>
-    // Public artifacts base in the law-index site
     window.LAW_INDEX_BASE = 'https://info1691.github.io/law-index';
   </script>
-
   <script src="app.js"></script>
 </body>
 </html>
