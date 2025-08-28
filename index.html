@@ -1,20 +1,23 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Trust Law Textbooks — Catalog</title>
+  <meta charset="utf-8">
+  <title>Trust Law Textbooks</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="icon" href="logo.svg">
   <link rel="stylesheet" href="style.css">
+  <script>
+    /* Where the UI reads published artifacts from */
+    window.LAW_INDEX_BASE = 'law-index';  // → https://info1691.github.io/law-index/
+    window.CATALOG_OVERRIDE = null;       // leave null to read catalogs/ingest-catalog.json
+  </script>
 </head>
 <body>
   <header class="topbar">
-    <div class="brandwrap">
-      <img src="logo.svg" class="brand" alt="BB">
-      <div class="titles">
-        <h1>Trust Law Textbooks</h1>
-        <div class="subtitle">Catalog</div>
-      </div>
+    <img class="brand-logo" src="logo.svg" alt="BB">
+    <div class="brand">
+      <h1>Trust Law Textbooks</h1>
+      <div class="subtitle">Catalog</div>
     </div>
   </header>
 
@@ -22,28 +25,23 @@
     <aside class="sidebar">
       <div class="card">
         <div class="card-title">Repos</div>
-        <ul class="links">
-          <li><a href="https://info1691.github.io/law-index/">Public: law-index</a></li>
-          <li><a href="https://github.com/Info1691/lex-jsy-forensics">Agent 2: lex-jsy-forensics</a></li>
-          <li><a href="https://github.com/Info1691/lex-ci-harvest">Agent (crawler): lex-ci-harvest</a></li>
-          <li><a href="https://github.com/Info1691/lex-ingest-local">Agent 1: lex-ingest-local</a></li>
-          <li><a href="https://info1691.github.io/Law-Texts-ui/">This UI: Law-Texts-ui</a></li>
-        </ul>
+        <nav class="repo-list">
+          <a href="https://info1691.github.io/law-index/" target="_blank">Public: law-index</a>
+          <a href="https://github.com/Info1691/lex-jsy-forensics" target="_blank">Agent 2: lex-jsy-forensics</a>
+          <a href="https://github.com/Info1691/lex-ci-harvest" target="_blank">Agent (crawler): lex-ci-harvest</a>
+          <a href="https://github.com/Info1691/lex-ingest-local" target="_blank">Agent 1: lex-ingest-local</a>
+          <a href="https://github.com/Info1691/Law-Texts-ui" target="_blank">This UI: Law-Texts-ui</a>
+        </nav>
+        <div id="sourceHint" class="muted"></div>
       </div>
-
-      <div class="muted small" id="status"></div>
-      <div class="muted small">Source: <code id="sourcePath"></code></div>
     </aside>
 
     <section class="content">
-      <div id="catalog" class="catalog-list"></div>
+      <div id="catalog" class="catalog"></div>
+      <div id="status" class="status"></div>
     </section>
   </main>
 
-  <!-- SINGLE data source: the public artifacts site -->
-  <script>
-    window.LAW_INDEX_BASE = 'https://info1691.github.io/law-index';
-  </script>
   <script src="app.js"></script>
 </body>
 </html>
