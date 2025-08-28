@@ -1,47 +1,209 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Trust Law Textbooks</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="icon" href="logo.svg">
-  <link rel="stylesheet" href="style.css">
-  <script>
-    /* Where the UI reads published artifacts from */
-    window.LAW_INDEX_BASE = 'law-index';  // → https://info1691.github.io/law-index/
-    window.CATALOG_OVERRIDE = null;       // leave null to read catalogs/ingest-catalog.json
-  </script>
+  <meta charset="utf-8" />
+  <title>Trust Law Textbooks — Catalog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --blue:#0f3c59; /* header */
+      --ink:#0b1220;  /* text */
+      --muted:#64748b; /* captions */
+      --bg:#ffffff;   /* page */
+      --card:#ffffff; /* cards */
+      --border:#e5e7eb;
+      --accent:#2563eb;
+      --chip:#eef2ff;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font:16px/1.5 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+    a{color:var(--accent);text-decoration:none}
+    a:hover{text-decoration:underline}
+
+    /* Header */
+    .topbar{
+      background:var(--blue); color:#fff;
+      padding:14px 18px; display:flex; align-items:center; gap:12px;
+    }
+    .logo-wrap{
+      width:44px; height:44px; border-radius:50%;
+      background:#0e3a57; display:grid; place-items:center;
+      overflow:hidden;
+    }
+    .logo-wrap img{width:100%; height:100%; object-fit:cover; background:#fff}
+    .brand{font-weight:700; font-size:20px; letter-spacing:.2px}
+
+    /* Layout */
+    .container{display:grid; grid-template-columns:280px 1fr; gap:18px; padding:18px; max-width:1100px; margin:0 auto}
+    @media (max-width:900px){ .container{grid-template-columns:1fr} }
+
+    /* Sidebar */
+    .panel{
+      border:1px solid var(--border); background:#fff; border-radius:10px; padding:14px;
+    }
+    .panel h3{margin:4px 0 10px 0; font-size:14px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em}
+    .repos a{display:block; padding:6px 8px; border-radius:8px}
+    .repos a:hover{background:#f9fafb}
+    .status{margin-top:12px; font-size:12px; color:var(--muted)}
+    .status b{color:var(--ink)}
+
+    /* Catalog list */
+    .list{display:grid; gap:12px}
+    .card{
+      background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px;
+    }
+    .title{font-weight:700; margin:0 0 2px 0}
+    .meta{font-size:12px; color:var(--muted); margin-bottom:8px}
+    .chips{display:flex; flex-wrap:wrap; gap:8px}
+    .chip{
+      font-size:12px; background:var(--chip); border:1px solid #dbeafe; color:#1e40af;
+      padding:4px 8px; border-radius:999px; display:inline-flex; align-items:center; gap:6px;
+    }
+    .chip button{
+      font:inherit; border:0; background:transparent; color:inherit; cursor:pointer; padding:0; margin:0;
+    }
+    .empty{padding:22px; color:var(--muted)}
+    .error{color:#b91c1c}
+  </style>
 </head>
 <body>
+  <!-- Set the data source here; you can change the base once and the page will follow -->
+  <script>
+    window.LAW_INDEX_BASE = window.LAW_INDEX_BASE || 'https://info1691.github.io/law-index';
+  </script>
+
   <header class="topbar">
-    <img class="brand-logo" src="logo.svg" alt="BB">
-    <div class="brand">
-      <h1>Trust Law Textbooks</h1>
-      <div class="subtitle">Catalog</div>
+    <div class="logo-wrap">
+      <!-- Your logo.svg in this repo root. If missing, the text fallback appears -->
+      <img src="logo.svg" alt="Logo" onerror="this.remove(); this.insertAdjacentHTML('afterend','<span style=&quot;color:#fff;font-weight:800;font-size:18px&quot;>BB</span>')">
     </div>
+    <div class="brand">Trust Law Textbooks</div>
   </header>
 
-  <main class="wrap">
-    <aside class="sidebar">
-      <div class="card">
-        <div class="card-title">Repos</div>
-        <nav class="repo-list">
-          <a href="https://info1691.github.io/law-index/" target="_blank">Public: law-index</a>
-          <a href="https://github.com/Info1691/lex-jsy-forensics" target="_blank">Agent 2: lex-jsy-forensics</a>
-          <a href="https://github.com/Info1691/lex-ci-harvest" target="_blank">Agent (crawler): lex-ci-harvest</a>
-          <a href="https://github.com/Info1691/lex-ingest-local" target="_blank">Agent 1: lex-ingest-local</a>
-          <a href="https://github.com/Info1691/Law-Texts-ui" target="_blank">This UI: Law-Texts-ui</a>
-        </nav>
-        <div id="sourceHint" class="muted"></div>
+  <main class="container">
+    <aside class="panel">
+      <h3>Repos</h3>
+      <div class="repos">
+        <a href="https://info1691.github.io/law-index/" target="_blank" rel="noopener">Public: law-index</a>
+        <a href="https://github.com/Info1691/lex-jsy-forensics" target="_blank" rel="noopener">Agent 2: lex-jsy-forensics</a>
+        <a href="https://github.com/Info1691/lex-ci-harvest" target="_blank" rel="noopener">Agent (crawler): lex-ci-harvest</a>
+        <a href="https://github.com/Info1691/lex-ingest-local/actions" target="_blank" rel="noopener">Agent 1: lex-ingest-local</a>
+        <a href="https://info1691.github.io/Law-Texts-ui/" target="_blank" rel="noopener">This UI: Law-Texts-ui</a>
       </div>
+      <div id="status" class="status"></div>
     </aside>
 
-    <section class="content">
-      <div id="catalog" class="catalog"></div>
-      <div id="status" class="status"></div>
-    </section>
+    <section id="catalog" class="list" aria-live="polite"></section>
   </main>
 
-  <script src="app.js"></script>
+  <script>
+  (async function(){
+    const elList = document.getElementById('catalog');
+    const elStatus = document.getElementById('status');
+    const BASE = (window.LAW_INDEX_BASE || '').replace(/\/+$/,'');
+    const primary = `${BASE}/catalogs/ingest-catalog.json`;
+    const fallback = `${BASE}/texts/catalog.json`;
+
+    function setStatus(msg, isErr=false, src=''){
+      elStatus.innerHTML = (msg ? (isErr?'<span class="error">'+msg+'</span>':msg) : '') +
+        (src ? `<div style="margin-top:6px">Source: <b>${src}</b></div>` : '');
+    }
+
+    function normKey(it){
+      const j = (it.jurisdiction||'').toLowerCase().trim();
+      const s = (it.title || it.slug || '').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+      return j+':'+s;
+    }
+
+    async function fetchJSON(url){
+      const r = await fetch(url, {cache:'no-store'});
+      if(!r.ok) throw Object.assign(new Error('HTTP '+r.status), {status:r.status});
+      return r.json();
+    }
+
+    async function loadCatalog(){
+      try{
+        let data, srcUsed;
+        try{ data = await fetchJSON(primary); srcUsed = primary; }
+        catch(e1){
+          // only fall back for 404/403; rethrow other failures
+          if(e1.status===404 || e1.status===403){
+            data = await fetchJSON(fallback); srcUsed = `${fallback} (fallback)`;
+          }else{ throw e1; }
+        }
+        // Normalise: ensure array
+        const items = Array.isArray(data) ? data : (Array.isArray(data.items)? data.items : []);
+        // De-duplicate by normalised (jurisdiction + title/slug)
+        const seen = new Map();
+        for(const it of items){
+          const k = normKey(it);
+          if(!seen.has(k)) seen.set(k, it);
+        }
+        const deduped = Array.from(seen.values())
+          .sort((a,b)=>(b.year||0)-(a.year||0) || String(a.title).localeCompare(b.title));
+        render(deduped);
+        setStatus(`Loaded ${deduped.length} item(s).`, false, srcUsed.replace(/^https:\/\/info1691\.github\.io\//,''));
+      }catch(err){
+        setStatus('Catalog error: '+err.message, true, primary.replace(/^https:\/\/info1691\.github\.io\//,''));
+        elList.innerHTML = `<div class="empty">No catalog could be loaded.</div>`;
+      }
+    }
+
+    function openURL(u){
+      // Ensure no double slashes, encode path safely
+      const full = (BASE + '/' + String(u||'').replace(/^\/+/,'')).replace(/([^:]\/)\/+/g,'$1');
+      window.open(encodeURI(full), '_blank', 'noopener');
+    }
+
+    function render(items){
+      if(!items.length){ elList.innerHTML = `<div class="empty">No items published yet.</div>`; return; }
+      elList.innerHTML = '';
+      for(const it of items){
+        const card = document.createElement('article');
+        card.className = 'card';
+
+        const title = document.createElement('h2');
+        title.className = 'title';
+        title.textContent = it.title || it.slug || '(untitled)';
+
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+        const bits = [];
+        if(it.jurisdiction) bits.push(String(it.jurisdiction).toUpperCase());
+        if(it.year) bits.push(String(it.year));
+        if(bits.length) meta.textContent = bits.join(' · ');
+        if(it.reference){
+          const ref = document.createElement('div');
+          ref.className = 'meta';
+          ref.textContent = String(it.reference);
+          meta.appendChild(document.createElement('br'));
+          meta.appendChild(ref);
+        }
+
+        const chips = document.createElement('div'); chips.className = 'chips';
+        if(it.txt){
+          const btn = document.createElement('span'); btn.className = 'chip';
+          btn.innerHTML = 'TXT';
+          btn.addEventListener('click', ()=> openURL(it.txt));
+          chips.appendChild(btn);
+        }
+        if(it.pageMap || it['page-map'] || it.pagemap){
+          const pm = it.pageMap || it['page-map'] || it.pagemap;
+          const btn = document.createElement('span'); btn.className = 'chip';
+          btn.innerHTML = 'Page-map';
+          btn.addEventListener('click', ()=> openURL(pm));
+          chips.appendChild(btn);
+        }
+
+        card.appendChild(title);
+        card.appendChild(meta);
+        if(chips.children.length) card.appendChild(chips);
+        elList.appendChild(card);
+      }
+    }
+
+    loadCatalog();
+  })();
+  </script>
 </body>
 </html>
