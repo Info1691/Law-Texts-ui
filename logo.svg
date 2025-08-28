@@ -1,6 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
-  <rect x="1.5" y="1.5" width="45" height="45" rx="6" fill="none" stroke="#1f2937" stroke-width="3"/>
-  <text x="50%" y="52%" text-anchor="middle" dominant-baseline="middle"
-        font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto" font-size="20"
-        fill="#1f2937">BB</text>
+<svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="BB">
+  <defs>
+    <linearGradient id="g" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#0b4666"/>
+      <stop offset="1" stop-color="#135b86"/>
+    </linearGradient>
+  </defs>
+  <circle cx="64" cy="64" r="64" fill="url(#g)"/>
+  <g fill="#ffffff">
+    <path d="M29 98V30h26c9 0 15 6 15 14c0 6-3 10-8 12c7 2 11 7 11 15c0 10-7 17-18 17H29zm14-38h10c5 0 8-3 8-7c0-4-3-7-8-7H43v14zm0 25h12c6 0 10-3 10-8c0-5-4-9-10-9H43v17z"/>
+    <path d="M68 98V30h26c9 0 15 6 15 14c0 6-3 10-8 12c7 2 11 7 11 15c0 10-7 17-18 17H68zm14-38h10c5 0 8-3 8-7c0-4-3-7-8-7H82v14zm0 25h12c6 0 10-3 10-8c0-5-4-9-10-9H82v17z"/>
+  </g>
 </svg>
