@@ -2,69 +2,46 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Trust Law Textbooks</title>
+  <title>Trust Law Textbooks — Search</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="style.css" />
+  <style>
+    .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+    header { display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+    header a { text-decoration:none; }
+    h1 { margin:0; font-size: 22px; }
+    .controls { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+    input[type="search"] { flex:1; padding:10px 12px; font-size:16px; }
+    select { padding:10px 12px; }
+    .result { background:#fff; border:1px solid #e8e8e8; border-radius:10px; padding:14px; margin-bottom:12px; }
+    .result h3 { margin:0 0 6px 0; font-size:18px; }
+    .meta { color:#6b7280; font-size:13px; margin-bottom:6px; }
+    .badges { display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
+    .badge { font-size:12px; background:#f3f4f6; border-radius:999px; padding:4px 8px; }
+    .empty { color:#6b7280; margin-top:20px; }
+  </style>
 </head>
 <body>
-  <!-- Configure data source once -->
-  <script>
-    // Primary public artifact base (point this to your domain if you mapped law-index)
-    window.LAW_INDEX_BASE = 'https://info1691.github.io/law-index/';
-    // If you later mapped to Cloudflare+custom domain, flip to:
-    // window.LAW_INDEX_BASE = 'https://index.wwwbcb.org/';
+  <div class="container">
+    <header>
+      <a href="index.html" title="Back to catalog">← Catalog</a>
+      <h1>Search textbooks</h1>
+    </header>
 
-    // Optional: where to send sidebar links
-    window.REPO_LINKS = {
-      "Public: law-index": (new URL(window.LAW_INDEX_BASE)).origin + "/law-index/",
-      "Agent 2: lex-jsy-forensics": "https://agent2.wwwbcb.org/",
-      "Agent (crawler): lex-ci-harvest": "https://agent2.wwwbcb.org/",     // placeholder
-      "Agent 1: lex-ingest-local": "https://github.com/Info1691/lex-ingest-local/actions",
-      "This UI: Law-Texts-ui": location.origin + location.pathname.replace(/\/[^/]*$/, '/') // self
-    };
-  </script>
-
-  <header class="topbar">
-    <div class="brand">
-      <span class="logo">BB</span>
-      <div>
-        <div class="title">Trust Law Textbooks</div>
-        <div class="subtitle">Catalog</div>
-      </div>
+    <div class="controls">
+      <input id="q" type="search" placeholder="Try: trustee film producer client money" />
+      <select id="jur">
+        <option value="">All jurisdictions</option>
+        <option value="jersey">Jersey</option>
+        <option value="uk">UK</option>
+      </select>
+      <button id="go">Search</button>
+      <span id="status" class="meta"></span>
     </div>
-    <div class="search-wrap">
-      <input id="find" placeholder="Filter by title / reference / jurisdiction…" aria-label="Filter" />
-    </div>
-  </header>
 
-  <div class="layout">
-    <aside class="side">
-      <div class="card">
-        <div class="side-title">REPOS</div>
-        <nav id="repos"></nav>
-        <div id="sourceNote" class="note"></div>
-      </div>
-      <div id="status" class="status"></div>
-    </aside>
-
-    <main class="main">
-      <div id="library" class="list"></div>
-    </main>
+    <div id="results"></div>
   </div>
 
-  <template id="item-tpl">
-    <article class="item">
-      <div class="item-head">
-        <div class="item-title"></div>
-      </div>
-      <div class="item-meta"></div>
-      <div class="item-actions">
-        <button class="btn btn-txt">TXT</button>
-        <a class="btn btn-pmap" target="_blank" rel="noopener">Page-map</a>
-      </div>
-    </article>
-  </template>
-
-  <script src="app.js"></script>
+  <script src="search.js"></script>
 </body>
 </html>
