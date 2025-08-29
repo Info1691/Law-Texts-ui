@@ -1,125 +1,139 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Global Search — Trust Law Library</title>
-<link rel="icon" href="logo.png">
-<style>
-  :root{--bg:#0f3a5a;--panel:#fff;--muted:#6b7280;}
-  body{margin:0;background:#f3f4f6;font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Helvetica,Arial,sans-serif;}
-  header{background:var(--bg);color:#fff;padding:10px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  header .title{font-weight:600}
-  header input{flex:1;min-width:220px;padding:8px;border-radius:6px;border:1px solid #d1d5db}
-  header button{padding:8px 12px;border-radius:6px;border:0;background:#2563eb;color:#fff;cursor:pointer}
-  #status{font-size:12px;opacity:.85}
-  main{display:grid;grid-template-columns:320px 1fr;gap:14px;padding:14px;max-width:1200px;margin:0 auto}
-  .panel{background:var(--panel);border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 1px 0 rgba(0,0,0,.03)}
-  #docs{padding:8px;max-height:72vh;overflow:auto}
-  .doc{padding:10px;border-radius:8px;cursor:pointer}
-  .doc:hover{background:#f3f4f6}
-  .doc.active{background:#e5f0ff}
-  .doc .meta{color:var(--muted);font-size:12px}
-  #hits{padding:14px;max-height:72vh;overflow:auto}
-  .hit{padding:12px 10px;border-bottom:1px solid #eee}
-  .hit .meta{color:var(--muted);font-size:12px;margin-bottom:6px}
-  mark{background:#ffeb3b}
-  .muted{color:var(--muted)}
-  @media (max-width:860px){ main{grid-template-columns:1fr} }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trust Law Textbooks — Forensic Search</title>
+  <link rel="icon" href="logo.png">
+  <style>
+    :root{
+      --ink:#0f172a; --muted:#475569; --bg:#f8fafc; --card:#ffffff; --brand:#0b4d6d;
+      --ring:rgba(2,132,199,.25);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+    header{background:#0a3651;color:#fff;padding:16px 20px;display:flex;align-items:center;gap:12px}
+    header img{width:28px;height:28px}
+    header h1{margin:0;font-size:18px;font-weight:600}
+    main{max-width:980px;margin:24px auto;padding:0 16px}
+    .row{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+    input[type="search"]{
+      flex:1;min-width:280px;padding:12px 14px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;
+      outline:none;box-shadow:0 1px 0 rgba(0,0,0,.02)
+    }
+    input[type="search"]:focus{border-color:#0284c7;box-shadow:0 0 0 4px var(--ring)}
+    .hint{color:var(--muted);font-size:13px}
+    .count{color:var(--muted);font-size:13px;margin-left:auto}
+    .card{
+      background:var(--card);border:1px solid #e2e8f0;border-radius:14px;padding:14px 16px;
+      margin:12px 0;box-shadow:0 1px 2px rgba(0,0,0,.03)
+    }
+    .title{font-weight:600;margin:0 0 4px 0}
+    .meta{color:var(--muted);font-size:13px;margin:0 0 8px 0}
+    .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+    .chip{font-size:12px;border:1px solid #e2e8f0;border-radius:999px;padding:4px 8px;background:#f8fafc}
+    .btn{
+      appearance:none;border:0;border-radius:10px;background:var(--brand);color:#fff;
+      padding:8px 12px;font-size:14px;cursor:pointer
+    }
+    .btn.secondary{background:#0a3651}
+    .src{margin-top:24px;color:var(--muted);font-size:12px}
+  </style>
 </head>
 <body>
-<header>
-  <div class="title">Global Search</div>
-  <input id="q" type="search" placeholder="Search all Textbooks • Laws • Rules • Harvest…">
-  <button id="go">Search</button>
-  <div id="status"></div>
-</header>
-<main>
-  <div id="docs" class="panel"></div>
-  <div id="hits" class="panel"></div>
-</main>
+  <header>
+    <img src="logo.png" alt="BB">
+    <h1>Forensic search (Agent 2)</h1>
+  </header>
 
-<!-- MiniSearch -->
-<script src="https://cdn.jsdelivr.net/npm/minisearch@6.3.0/dist/umd/index.min.js"></script>
-<!-- Indexed client -->
+  <main>
+    <div class="row">
+      <input id="q" type="search" placeholder="Search titles, references, keywords (e.g., trustee producer film)…" autofocus />
+      <div class="count" id="count"></div>
+    </div>
+    <p class="hint">Results are built from the Agent-2 index and open the canonical TXT for each book.</p>
+
+    <div id="results"></div>
+
+    <p class="src" id="src"></p>
+  </main>
+
 <script>
-const INDEX_BASE = 'https://info1691.github.io/law-index/';
-const MANIFEST_URL = INDEX_BASE + 'manifest.json';
-const INDEX_URL    = INDEX_BASE + 'lexical.index.json';
+/* ---------- configuration: choose one URL ---------- */
+const INDEX_URL =
+  // Prefer GitHub Pages if enabled:
+  // 'https://info1691.github.io/lex-jsy-forensics/dist/index.json';
+  // Otherwise, raw content works too:
+  'https://raw.githubusercontent.com/Info1691/lex-jsy-forensics/main/dist/index.json';
+/* --------------------------------------------------- */
 
-(async function () {
-  const $ = s => document.querySelector(s);
-  const esc = s => String(s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
-  const status=$('#status'), docsBox=$('#docs'), hitsBox=$('#hits'), qInp=$('#q');
-  $('#go').addEventListener('click', run);
-  qInp.addEventListener('keydown',e=>{ if(e.key==='Enter') run(); });
+const $q = document.getElementById('q');
+const $res = document.getElementById('results');
+const $count = document.getElementById('count');
+const $src = document.getElementById('src');
 
-  status.textContent='Loading index…';
-  const [manifest,indexJson]=await Promise.all([
-    fetch(MANIFEST_URL,{cache:'no-store'}).then(r=>r.json()),
-    fetch(INDEX_URL,{cache:'no-store'}).then(r=>r.json())
-  ]);
-  const mini=MiniSearch.loadJSON(indexJson);
-  status.textContent='Ready.';
+let INDEX = [];
 
-  function baseKey(url,title){ return (url||'')+'|'+(title||''); }
-  function isPdf(u){ return /\.pdf(?:[#?].*)?$/i.test(u||''); }
-  function escapeRx(s){ return String(s||'').replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
-  function viewerLink(docUrl, hit){
-    const p=new URLSearchParams(); p.set('doc',docUrl);
-    if(hit?.pdfPage) p.set('pdfp',String(hit.pdfPage));
-    if(hit?.q) p.set('q',hit.q);
-    return `./index.html?${p.toString()}`; // your viewer’s main page
-  }
+function norm(s){ return String(s||'').toLowerCase(); }
 
-  async function run(){
-    const q=(qInp.value||'').trim(); if(!q) return;
-    status.textContent='Searching…';
-    const results=mini.search(q,{prefix:true,fuzzy:0.1,boost:{title:4,subtitle:2}});
-    const byDoc=new Map();
-    for(const r of results){
-      const row=(manifest.docs||[]).find(d=>d.docId===r.doc.docId);
-      if(!row) continue;
-      const k=baseKey(row.url,row.title);
-      if(!byDoc.has(k)) byDoc.set(k,{title:row.title,url:row.url,hits:[],subtitle:r.doc.subtitle||'',source:r.doc.source||''});
-      byDoc.get(k).hits.push({page:row.page,bookPage:row.bookPage,snippet:row.snippet||''});
+function score(hit, terms){
+  // naive scoring: +3 in title, +2 in reference, +1 per keyword match
+  let s = 0;
+  const t = norm(hit.title), r = norm(hit.reference);
+  for(const term of terms){
+    if(!term) continue;
+    if(t.includes(term)) s += 3;
+    if(r.includes(term)) s += 2;
+    if(Array.isArray(hit.keywords)){
+      for(const k of hit.keywords) if(norm(k).includes(term)) s += 1;
     }
-    const list=Array.from(byDoc.values()).sort((a,b)=>b.hits.length-a.hits.length);
-    docsBox.innerHTML = list.length
-      ? list.map((d,i)=>`<div class="doc" data-i="${i}">
-            <div><strong>${esc(d.title)}</strong></div>
-            <div class="meta">${esc([d.subtitle,d.source].filter(Boolean).join(' — '))}</div>
-            <div class="meta">${d.hits.length} match${d.hits.length!==1?'es':''}</div>
-         </div>`).join('')
-      : `<div class="doc"><strong>No matches</strong></div>`;
-    hitsBox.innerHTML='';
-    status.textContent = list.length ? `Matches in ${list.length} document${list.length!==1?'s':''}.` : 'No results.';
-
-    const first=docsBox.querySelector('.doc'); if(first){ first.classList.add('active'); showHits(list[0], q); }
-    docsBox.onclick = e=>{
-      const li=e.target.closest('.doc'); if(!li) return;
-      docsBox.querySelectorAll('.doc').forEach(n=>n.classList.remove('active'));
-      li.classList.add('active'); const idx=+li.dataset.i; showHits(list[idx], q);
-    };
   }
+  return s;
+}
 
-  function showHits(doc,q){
-    const qrx=new RegExp(escapeRx(q),'ig');
-    hitsBox.innerHTML = doc.hits.map(h=>{
-      const where=`PDF p.${h.page}${Number.isFinite(h.bookPage)?` (book p.${h.bookPage})`:''}`;
-      const snippet=esc(h.snippet).replace(qrx,m=>`<mark>${m}</mark>`);
-      const openViewer=viewerLink(doc.url,{pdfPage:h.page,q});
-      const openDirect=doc.url+(isPdf(doc.url)?`#page=${h.page}`:'');
-      return `<div class="hit">
-        <div class="meta">${esc(doc.title)} — ${where}</div>
-        <div>${snippet}</div>
-        <div class="meta"><a href="${openViewer}">Open in Viewer</a> · <a href="${openDirect}" target="_blank">Open source</a></div>
-      </div>`;
-    }).join('');
-    hitsBox.scrollTop=0;
+function render(list){
+  $res.innerHTML = '';
+  $count.textContent = list.length ? `${list.length} result${list.length>1?'s':''}` : '0 results';
+  for(const it of list){
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <p class="title">${it.title}</p>
+      <p class="meta">${(it.jurisdiction||'').toUpperCase()} • ${it.year||''} • ${it.reference||''}</p>
+      <div class="chips">${(it.keywords||[]).slice(0,12).map(k=>`<span class="chip">${k}</span>`).join('')}</div>
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+        <a class="btn" href="${it.url_txt}" target="_blank" rel="noopener">Open TXT</a>
+      </div>
+    `;
+    $res.appendChild(card);
   }
-})();
+}
+
+async function boot(){
+  $src.textContent = `Source: ${INDEX_URL}`;
+  try{
+    const res = await fetch(INDEX_URL, {cache:'no-store'});
+    const data = await res.json();
+    INDEX = Array.isArray(data) ? data : [];
+    render(INDEX);
+  }catch(e){
+    $res.innerHTML = `<div class="card"><p class="meta">Failed to load index: ${e.message}</p></div>`;
+  }
+}
+
+$q.addEventListener('input', () => {
+  const q = norm($q.value).trim();
+  if(!q){ render(INDEX); return; }
+  const terms = q.split(/\s+/).filter(Boolean);
+  const hits = INDEX
+    .map(item => ({ item, s: score(item, terms)}))
+    .filter(x => x.s > 0)
+    .sort((a,b)=>b.s-a.s)
+    .map(x => x.item);
+  render(hits);
+});
+
+boot();
 </script>
 </body>
 </html>
