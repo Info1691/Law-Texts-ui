@@ -2,46 +2,87 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Trust Law Textbooks — Search</title>
+  <title>Trust Law Textbooks — Catalog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="logo.svg" />
   <link rel="stylesheet" href="style.css" />
   <style>
-    .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
-    header { display:flex; align-items:center; gap:12px; margin-bottom:18px; }
-    header a { text-decoration:none; }
-    h1 { margin:0; font-size: 22px; }
-    .controls { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
-    input[type="search"] { flex:1; padding:10px 12px; font-size:16px; }
-    select { padding:10px 12px; }
-    .result { background:#fff; border:1px solid #e8e8e8; border-radius:10px; padding:14px; margin-bottom:12px; }
-    .result h3 { margin:0 0 6px 0; font-size:18px; }
-    .meta { color:#6b7280; font-size:13px; margin-bottom:6px; }
-    .badges { display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
-    .badge { font-size:12px; background:#f3f4f6; border-radius:999px; padding:4px 8px; }
-    .empty { color:#6b7280; margin-top:20px; }
+    /* minimal layout helpers (keeps existing style.css untouched) */
+    body { margin:0; background:#f7f8fa; color:#0f172a; font:14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+    .topbar { background:#113a5a; color:#fff; }
+    .topbar-inner { max-width:1160px; margin:0 auto; padding:12px 16px; display:flex; align-items:center; gap:12px; }
+    .topbar img { width:28px; height:28px; }
+    .layout { max-width:1160px; margin:0 auto; padding:20px 16px; display:grid; grid-template-columns:280px 1fr; gap:18px; }
+    .card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:14px; }
+    .muted { color:#6b7280; font-size:12px; }
+    .repo-list { list-style:none; padding:0; margin:6px 0 0 0; display:flex; flex-direction:column; gap:6px; }
+    .repo-list a { color:#0f172a; text-decoration:none; }
+    .repo-list a:hover { text-decoration:underline; }
+    .pill { display:inline-block; font-size:11px; background:#eef2f7; border-radius:999px; padding:2px 8px; margin-top:6px; }
+    @media (max-width:880px){ .layout{ grid-template-columns:1fr; } }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <a href="index.html" title="Back to catalog">← Catalog</a>
-      <h1>Search textbooks</h1>
-    </header>
 
-    <div class="controls">
-      <input id="q" type="search" placeholder="Try: trustee film producer client money" />
-      <select id="jur">
-        <option value="">All jurisdictions</option>
-        <option value="jersey">Jersey</option>
-        <option value="uk">UK</option>
-      </select>
-      <button id="go">Search</button>
-      <span id="status" class="meta"></span>
+  <!-- Header -->
+  <div class="topbar">
+    <div class="topbar-inner">
+      <img src="logo.svg" alt="BB" />
+      <strong>Trust Law Textbooks</strong>
+      <span class="muted">Catalog</span>
     </div>
-
-    <div id="results"></div>
   </div>
 
-  <script src="search.js"></script>
+  <!-- Main -->
+  <main class="layout">
+
+    <!-- LEFT: Repos box (with Search link added) -->
+    <aside>
+      <div class="card">
+        <div style="font-weight:600; letter-spacing:.02em;">REPOS</div>
+        <ul class="repo-list" id="repo-list">
+          <li><a href="https://info1691.github.io/law-index/">Public: law-index</a></li>
+          <li><a href="https://github.com/Info1691/lex-jsy-forensics">Agent 2: lex-jsy-forensics</a></li>
+          <li><a href="https://github.com/Info1691/lex-ci-harvest">Agent (crawler): lex-ci-harvest</a></li>
+          <li><a href="https://github.com/Info1691/lex-ingest-local">Agent 1: lex-ingest-local</a></li>
+          <li><a href="./">This UI: Law-Texts-ui</a></li>
+          <!-- 🔎 Added per Rule 10 -->
+          <li><a href="search.html">🔎 Search (beta)</a></li>
+        </ul>
+        <div class="muted" style="margin-top:10px;">
+          Source: <span id="source-label">law-index/catalogs/ingest-catalog.json</span>
+        </div>
+        <div class="muted" id="loaded-count" style="margin-top:6px;">Loaded 0 item(s).</div>
+      </div>
+    </aside>
+
+    <!-- RIGHT: Catalog list renders here -->
+    <section>
+      <div id="catalog" class="card">
+        <!-- app.js will render the catalog cards here -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Data source configuration (kept here so app.js can read it) -->
+  <script>
+    // Primary public artifacts
+    window.LAW_INDEX_BASE = "https://info1691.github.io/law-index";
+    window.CATALOG_URL_PRIMARY   = window.LAW_INDEX_BASE + "/catalogs/ingest-catalog.json";
+    window.TEXTS_BASE_PUBLIC     = window.LAW_INDEX_BASE + "/texts";
+
+    // Local fallback (works if public catalog is unavailable)
+    window.CATALOG_URL_FALLBACK  = "texts/catalog.json";
+
+    // Some app.js variants expect DATA_SOURCE; provide both styles
+    window.DATA_SOURCE = {
+      catalogs: [window.CATALOG_URL_PRIMARY, window.CATALOG_URL_FALLBACK],
+      textsBase: window.TEXTS_BASE_PUBLIC
+    };
+  </script>
+
+  <!-- App -->
+  <script src="app.js"></script>
 </body>
 </html>
