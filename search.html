@@ -2,46 +2,67 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Search — Trust Law Textbooks</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Trust Law Textbooks — Search (beta)</title>
   <link rel="icon" href="./logo.png" />
+  <link rel="preconnect" href="https://info1691.github.io" crossorigin>
   <link rel="stylesheet" href="./style.css" />
   <style>
-    /* minimal page-local polish that won't fight your theme */
-    .container{max-width:1040px;margin:0 auto;padding:1.25rem}
-    .hstack{display:flex;gap:.5rem;align-items:center}
-    .query{flex:1;border:1px solid #d9dde7;border-radius:10px;padding:.8rem 1rem}
-    .muted{opacity:.7;font-size:.9rem}
-    .pill{display:inline-block;border:1px solid #d9dde7;border-radius:999px;padding:.1rem .5rem;font-size:.75rem}
-    .result{background:#fff;border:1px solid #eef2f7;border-radius:12px;padding:1rem 1rem 0;margin:.75rem 0}
-    .result h3{margin:.2rem 0 .4rem 0;font-size:1.05rem}
-    .src{font-weight:600;opacity:.75}
-    .snippet{white-space:pre-wrap;margin:.5rem 0 1rem 0}
-    mark{background:#fff3a6;padding:0 .15rem;border-radius:.15rem}
-    .group{margin-top:1.25rem}
-    .group h2{font-size:1rem;opacity:.8;margin:.25rem 0}
-    .hdr{background:#0f3b58;color:#fff;padding:.6rem 0}
-    .hdr .brand{max-width:1040px;margin:0 auto;padding:0 1.25rem;font-weight:600}
-    a:hover{text-decoration:underline}
+    /* page-scoped helpers so we don’t touch your main CSS */
+    .page { max-width: 1080px; margin: 2rem auto; padding: 0 1rem; }
+    .crumbs { color:#6b7280; font-size:.875rem; margin-bottom:.5rem; }
+    .title { display:flex; align-items:center; gap:.75rem; }
+    .title h1 { font-size:1.25rem; margin:0; }
+    form.searchbar { display:flex; gap:.5rem; margin:1rem 0; }
+    form.searchbar input[type="text"]{
+      flex:1; padding:.7rem .9rem; border:1px solid #e5e7eb; border-radius:.6rem;
+      font-size:1rem; outline:none;
+    }
+    form.searchbar button{
+      padding:.7rem .9rem; border:1px solid #e5e7eb; background:#0b5cab;
+      color:#fff; border-radius:.6rem; cursor:pointer;
+    }
+    .hint { font-size:.9rem; color:#6b7280; margin:.5rem 0 1rem; }
+    .source-note{ font-size:.85rem; color:#6b7280; margin:.25rem 0 1rem; }
+    .group { margin:1.25rem 0 2rem; }
+    .group h2 { font-size:1rem; color:#111827; margin:0 0 .5rem; }
+    .hit{
+      background:#fff; border:1px solid #e5e7eb; border-radius:.8rem;
+      padding:1rem 1rem .75rem; margin:.6rem 0;
+    }
+    .hit .docline{ display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; }
+    .pill{ font-size:.7rem; padding:.2rem .45rem; border-radius:.7rem; border:1px solid #e5e7eb; color:#374151; }
+    .hit h3{ font-size:1rem; margin:.25rem 0 .35rem; }
+    .snippet{ color:#374151; font-size:.95rem; line-height:1.45; }
+    mark{ background:#fff3a3; }
+    .cite{ margin-top:.4rem; font-size:.8rem; color:#6b7280; display:flex; gap:.6rem; flex-wrap:wrap; }
+    .cite a{ color:#0b5cab; text-decoration:none; }
+    .empty{ color:#6b7280; margin:2rem 0; }
   </style>
 </head>
 <body>
-  <div class="hdr"><div class="brand">Trust Law Textbooks — Search (beta)</div></div>
-  <div class="container">
-    <div class="hstack">
-      <input id="q" class="query" type="search" placeholder="Search texts, laws & rules… (e.g. beddoe order trustee litigation consent)" />
-      <button id="go" class="pill" title="Search">Search</button>
-      <a class="pill" href="./index.html" title="Back to catalog">Catalog</a>
-    </div>
-    <div class="muted" style="margin:.5rem 0 1rem">
-      Searches: Textbooks (public catalog) + Laws (laws-ui) + Rules (rules-ui). Results show a short snippet; click the title to open the full TXT.
+  <div class="page">
+    <div class="crumbs"><a href="./index.html">Catalog</a> &nbsp;/&nbsp; Search (beta)</div>
+    <div class="title">
+      <img src="./logo.png" alt="" width="28" height="28" />
+      <h1>Trust Law Textbooks — Search (beta)</h1>
     </div>
 
-    <div id="status" class="muted">Loading sources…</div>
+    <form class="searchbar" id="form">
+      <input id="q" type="text" placeholder="Search textbooks + laws + rules… e.g., Beddoe, beneficiaries' consent, litigation costs" />
+      <button type="submit">Search</button>
+    </form>
+
+    <div class="hint">
+      Searches: <strong>Textbooks</strong> (public catalog) + <strong>Laws</strong> (laws-ui) + <strong>Rules</strong> (rules-ui).
+      Results show quotable snippets; click the title to open the full TXT.
+    </div>
+
+    <div id="status" class="source-note"></div>
 
     <div id="results"></div>
   </div>
 
-  <script src="./search.js" defer></script>
+  <script src="./search.js" type="module"></script>
 </body>
 </html>
