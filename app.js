@@ -1,96 +1,136 @@
-/* Law-Texts-ui – simple catalog viewer */
+/* Law-Texts-ui — minimal, robust */
+(function(){
+  const LAW = (window.LAW_INDEX_BASE || '').replace(/\/+$/, '') + '/';
+  const INGEST = LAW + 'catalogs/ingest-catalog.json';
+  const FALLBACK_LOCAL = 'texts/catalog.json'; // optional placeholders you maintain
 
-const LAW_INDEX = (window.LAW_INDEX_BASE || '').replace(/\/+$/,'');
-const CATALOG_URL = window.CATALOG_OVERRIDE
-  || (LAW_INDEX ? `${LAW_INDEX}/catalogs/ingest-catalog.json` : 'texts/catalog.json');
+  const elRepos = document.getElementById('repos');
+  const elSource = document.getElementById('sourceNote');
+  const elStatus = document.getElementById('status');
+  const elList = document.getElementById('library');
+  const elFind = document.getElementById('find');
+  const tpl = document.getElementById('item-tpl');
 
-const elCatalog = document.getElementById('catalog');
-const elStatus  = document.getElementById('status');
-const elSourceHint = document.getElementById('sourceHint');
+  let items = [];
+  let filtered = [];
 
-function setStatus(msg,isErr=false){
-  elStatus.textContent = msg || '';
-  elStatus.style.color = isErr ? '#b91c1c' : 'var(--muted)';
-}
-
-function escapeHTML(s){ return String(s).replace(/[&<>]/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;' }[m])); }
-
-/* Defensive de-duplication (case-insensitive by slug or title) */
-function dedupe(items){
-  const seen = new Set();
-  const out = [];
-  for(const it of items){
-    const key = ((it.slug || it.title || '').trim()).toLowerCase();
-    if(!key) continue;
-    if(seen.has(key)) continue;
-    seen.add(key);
-    out.push(it);
-  }
-  return out;
-}
-
-async function loadCatalog(){
-  elSourceHint.textContent = `Source: ${CATALOG_URL}${window.CATALOG_OVERRIDE?' (override)':''}`;
-  try{
-    const res = await fetch(CATALOG_URL, {cache:'no-store'});
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    const raw = await res.json();
-    const items = Array.isArray(raw) ? raw : (raw.items || []);
-    render(dedupe(items));
-    setStatus(`Loaded ${items.length} item(s).`);
-  }catch(e){
-    setStatus(`Catalog error: ${e.message}`, true);
-  }
-}
-
-function render(items){
-  elCatalog.innerHTML = '';
-  if(!items.length){ elCatalog.innerHTML = '<div class="muted">No items published yet.</div>'; return; }
-
-  items.sort((a,b)=>(b.year||0)-(a.year||0)
-                 || String(a.jurisdiction||'').localeCompare(String(b.jurisdiction||''))
-                 || String(a.title||'').localeCompare(String(b.title||'')));
-
-  for(const it of items){
-    const div = document.createElement('div');
-    div.className = 'item';
-
-    const title = escapeHTML(it.title || it.slug || 'Untitled');
-    const juris = escapeHTML((it.jurisdiction||'').toUpperCase());
-    const by    = escapeHTML(it.reference || '');
-    const year  = it.year ? ` • ${it.year}` : '';
-
-    div.innerHTML = `
-      <div class="title">${title}</div>
-      <div class="meta">${juris}${year}${by ? ' • ' + by : ''}</div>
-      <div class="pills"></div>
-      <div class="slug">${escapeHTML(it.slug||'')}</div>
-    `;
-
-    const pills = div.querySelector('.pills');
-
-    // TXT pill: use a real link so it works on iOS Safari
-    if(it.txt){
+  // Sidebar links
+  (function renderRepos(){
+    const links = window.REPO_LINKS || {};
+    elRepos.innerHTML = '';
+    Object.entries(links).forEach(([label,href])=>{
       const a = document.createElement('a');
-      a.className = 'pill';
-      a.textContent = 'TXT';
-      a.href = (LAW_INDEX ? `/${LAW_INDEX}` : '') + '/' + String(it.txt).replace(/^\/+/,'');
-      a.target = '_blank'; a.rel = 'noopener';
-      pills.appendChild(a);
-    }
+      a.href = href; a.textContent = label; a.className = 'chiplink';
+      const wrap = document.createElement('div'); wrap.appendChild(a);
+      elRepos.appendChild(wrap);
+    });
+  })();
 
-    // Page-map pill (optional)
-    if(it.pageMap){
-      const a = document.createElement('a');
-      a.className = 'pill';
-      a.textContent = 'Page-map';
-      a.href = (LAW_INDEX ? `/${LAW_INDEX}` : '') + '/' + String(it.pageMap).replace(/^\/+/,'');
-      a.target = '_blank'; a.rel = 'noopener';
-      pills.appendChild(a);
+  // Load catalog with graceful fallback
+  (async function init(){
+    try{
+      const a = await fetchJSON(INGEST);
+      elSource.textContent = 'Source: law-index/catalogs/ingest-catalog.json';
+      items = normalize(a);
+    }catch(e){
+      warn('Primary catalog not available; using local fallback catalog.json');
+      elSource.textContent = 'Source: texts/catalog.json (fallback)';
+      try{
+        const b = await fetchJSON(FALLBACK_LOCAL);
+        items = normalize(b);
+      }catch(e2){
+        error('Failed to load any catalog: '+e2.message);
+        return;
+      }
     }
+    // De-dupe by (jurisdiction + title lower + txt url lower)
+    const seen = new Set();
+    items = items.filter(it=>{
+      const key = [it.jurisdiction||'', it.title.toLowerCase(), (it.txt||'').toLowerCase()].join('|');
+      if(seen.has(key)) return false; seen.add(key); return true;
+    });
+    render(items);
+  })();
 
-    elCatalog.appendChild(div);
+  // Search/filter
+  elFind.addEventListener('input', ()=>{
+    const q = elFind.value.trim().toLowerCase();
+    if(!q){ render(items); return; }
+    const bits = q.split(/\s+/);
+    filtered = items.filter(it=>{
+      const hay = [it.title, it.reference, it.jurisdiction, it.slug].join(' ').toLowerCase();
+      return bits.every(b=>hay.includes(b));
+    });
+    render(filtered);
+  });
+
+  function render(arr){
+    elList.innerHTML = '';
+    if(!arr.length){ elList.textContent = 'No items.'; return; }
+    arr.forEach(it=>{
+      const node = tpl.content.firstElementChild.cloneNode(true);
+      node.querySelector('.item-title').textContent = it.title || '(untitled)';
+      node.querySelector('.item-meta').textContent =
+        `${(it.jurisdiction||'').toUpperCase()}${it.year? ' · '+it.year:''}  ${it.reference? ' · '+it.reference:''}`;
+
+      const btnTxt = node.querySelector('.btn-txt');
+      if(it.txt){
+        btnTxt.addEventListener('click', () => openTXT(it));
+      }else{
+        btnTxt.disabled = true; btnTxt.title = 'No TXT available';
+      }
+
+      const aMap = node.querySelector('.btn-pmap');
+      if(it.pageMap){
+        aMap.href = it.pageMap;
+      }else{
+        aMap.style.display = 'none';
+      }
+
+      elList.appendChild(node);
+    });
+    ok(`Loaded ${arr.length} item(s).`);
   }
-}
 
-loadCatalog();
+  function openTXT(it){
+    // Ingest format uses relative 'txt' like 'texts/uk/Breach-of-Trust-Birks-Pretto.txt'
+    const path = String(it.txt || '').replace(/^\/+/, '');
+    const url = path.startsWith('http') ? path : (LAW + path);
+    window.open(url, '_blank', 'noopener');
+  }
+
+  function normalize(raw){
+    // Accept either ingest-catalog array or our own lightweight array
+    const list = Array.isArray(raw) ? raw : [];
+    return list.map(it=>{
+      // Robust mapping of fields
+      const jurisdiction = it.jurisdiction || it.juris || '';
+      const title = it.title || it.name || it.slug || '(untitled)';
+      const ref = it.reference || it.ref || '';
+      const year = it.year || '';
+      // page-map: allow 'pageMap' absolute/relative
+      let pageMap = it['page-map'] || it.page_map || it.pageMap || '';
+      if(pageMap && !/^(https?:)?\/\//.test(pageMap)){
+        pageMap = LAW + String(pageMap).replace(/^\/+/, '');
+      }
+      return {
+        slug: it.slug || slugify(title),
+        title, reference: ref, jurisdiction, year,
+        txt: it.txt || it.url_txt || '',
+        pageMap
+      };
+    });
+  }
+
+  async function fetchJSON(url){
+    const r = await fetch(url, {cache:'no-store'});
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.json();
+  }
+
+  function slugify(s){ return String(s).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
+
+  function ok(msg){ elStatus.style.color='#166534'; elStatus.textContent=msg; }
+  function warn(msg){ elStatus.style.color='#92400e'; elStatus.textContent=msg; }
+  function error(msg){ elStatus.style.color='#991b1b'; elStatus.textContent=msg; }
+})();
