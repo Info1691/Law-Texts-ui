@@ -2,87 +2,60 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Trust Law Textbooks — Catalog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="icon" href="logo.svg" />
+  <title>Trust Law Textbooks — Catalog</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="logo.png" />
   <style>
-    /* minimal layout helpers (keeps existing style.css untouched) */
-    body { margin:0; background:#f7f8fa; color:#0f172a; font:14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
-    .topbar { background:#113a5a; color:#fff; }
-    .topbar-inner { max-width:1160px; margin:0 auto; padding:12px 16px; display:flex; align-items:center; gap:12px; }
-    .topbar img { width:28px; height:28px; }
-    .layout { max-width:1160px; margin:0 auto; padding:20px 16px; display:grid; grid-template-columns:280px 1fr; gap:18px; }
-    .card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:14px; }
-    .muted { color:#6b7280; font-size:12px; }
-    .repo-list { list-style:none; padding:0; margin:6px 0 0 0; display:flex; flex-direction:column; gap:6px; }
-    .repo-list a { color:#0f172a; text-decoration:none; }
-    .repo-list a:hover { text-decoration:underline; }
-    .pill { display:inline-block; font-size:11px; background:#eef2f7; border-radius:999px; padding:2px 8px; margin-top:6px; }
-    @media (max-width:880px){ .layout{ grid-template-columns:1fr; } }
+    /* tiny safety styles so page isn't blank if CSS fails */
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:0;background:#f7f8fb;color:#0a2540}
+    header{background:#103b5c;color:#fff;padding:12px 16px}
+    .wrap{display:flex;gap:16px;padding:16px}
+    aside{width:260px}
+    .card{background:#fff;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.06);padding:12px;margin-bottom:12px}
+    .pill{display:inline-block;font-size:12px;border:1px solid #d0d7de;border-radius:20px;padding:2px 8px;margin-right:6px}
+    .title{font-weight:700;margin:4px 0 6px 0}
+    .muted{color:#6b7280;font-size:13px}
+    .row{display:flex;gap:8px;margin-top:8px}
+    .btn{font-size:12px;border:1px solid #d0d7de;border-radius:20px;padding:6px 10px;background:#fff;cursor:pointer;text-decoration:none}
+    .btn:hover{background:#f1f5f9}
+    #status{font-size:12px;margin-top:8px}
   </style>
+  <!-- ABSOLUTE bases so custom domain works -->
+  <script>
+    window.LAW_INDEX_BASE = 'https://info1691.github.io/law-index/';
+    window.CATALOG_SRC   = window.LAW_INDEX_BASE + 'catalogs/ingest-catalog.json';
+  </script>
 </head>
 <body>
-
-  <!-- Header -->
-  <div class="topbar">
-    <div class="topbar-inner">
-      <img src="logo.svg" alt="BB" />
-      <strong>Trust Law Textbooks</strong>
-      <span class="muted">Catalog</span>
+  <header>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <img src="logo.png" alt="BB" width="28" height="28" />
+      <div style="font-weight:700">Trust Law Textbooks</div>
+      <div class="muted" id="subtitle">Catalog</div>
     </div>
-  </div>
+  </header>
 
-  <!-- Main -->
-  <main class="layout">
-
-    <!-- LEFT: Repos box (with Search link added) -->
+  <div class="wrap">
     <aside>
       <div class="card">
-        <div style="font-weight:600; letter-spacing:.02em;">REPOS</div>
-        <ul class="repo-list" id="repo-list">
-          <li><a href="https://info1691.github.io/law-index/">Public: law-index</a></li>
-          <li><a href="https://github.com/Info1691/lex-jsy-forensics">Agent 2: lex-jsy-forensics</a></li>
-          <li><a href="https://github.com/Info1691/lex-ci-harvest">Agent (crawler): lex-ci-harvest</a></li>
-          <li><a href="https://github.com/Info1691/lex-ingest-local">Agent 1: lex-ingest-local</a></li>
-          <li><a href="./">This UI: Law-Texts-ui</a></li>
-          <!-- 🔎 Added per Rule 10 -->
-          <li><a href="search.html">🔎 Search (beta)</a></li>
-        </ul>
-        <div class="muted" style="margin-top:10px;">
-          Source: <span id="source-label">law-index/catalogs/ingest-catalog.json</span>
-        </div>
-        <div class="muted" id="loaded-count" style="margin-top:6px;">Loaded 0 item(s).</div>
+        <div class="title">REPOS</div>
+        <div><a href="https://info1691.github.io/law-index/">Public: law-index</a></div>
+        <div><a href="https://github.com/Info1691/lex-jsy-forensics">Agent 2: lex-jsy-forensics</a></div>
+        <div><a href="https://github.com/Info1691/lex-ci-harvest">Agent (crawler): lex-ci-harvest</a></div>
+        <div><a href="https://github.com/Info1691/lex-ingest-local">Agent 1: lex-ingest-local</a></div>
+        <div>This UI: Law-Texts-ui</div>
+        <hr style="border:none;border-top:1px solid #e5e7eb;margin:10px 0;">
+        <div>🔎 <a id="search-link" href="https://info1691.github.io/lex-jsy-forensics/search/" target="_blank" rel="noopener">Search (beta)</a></div>
+        <div class="muted" id="status">Source: …</div>
       </div>
     </aside>
 
-    <!-- RIGHT: Catalog list renders here -->
-    <section>
-      <div id="catalog" class="card">
-        <!-- app.js will render the catalog cards here -->
-      </div>
-    </section>
+    <main style="flex:1">
+      <div id="catalog"></div>
+    </main>
+  </div>
 
-  </main>
-
-  <!-- Data source configuration (kept here so app.js can read it) -->
-  <script>
-    // Primary public artifacts
-    window.LAW_INDEX_BASE = "https://info1691.github.io/law-index";
-    window.CATALOG_URL_PRIMARY   = window.LAW_INDEX_BASE + "/catalogs/ingest-catalog.json";
-    window.TEXTS_BASE_PUBLIC     = window.LAW_INDEX_BASE + "/texts";
-
-    // Local fallback (works if public catalog is unavailable)
-    window.CATALOG_URL_FALLBACK  = "texts/catalog.json";
-
-    // Some app.js variants expect DATA_SOURCE; provide both styles
-    window.DATA_SOURCE = {
-      catalogs: [window.CATALOG_URL_PRIMARY, window.CATALOG_URL_FALLBACK],
-      textsBase: window.TEXTS_BASE_PUBLIC
-    };
-  </script>
-
-  <!-- App -->
-  <script src="app.js"></script>
+  <script src="app.js" defer></script>
 </body>
 </html>
