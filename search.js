@@ -1,137 +1,47 @@
-/* Forensic search (reads the index Agent-2 writes to law-index) */
-const INDEX_URL = "https://info1691.github.io/law-index/forensics/index.json";
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Search — Trust Law Textbooks</title>
+  <link rel="icon" href="./logo.png" />
+  <link rel="stylesheet" href="./style.css" />
+  <style>
+    /* minimal page-local polish that won't fight your theme */
+    .container{max-width:1040px;margin:0 auto;padding:1.25rem}
+    .hstack{display:flex;gap:.5rem;align-items:center}
+    .query{flex:1;border:1px solid #d9dde7;border-radius:10px;padding:.8rem 1rem}
+    .muted{opacity:.7;font-size:.9rem}
+    .pill{display:inline-block;border:1px solid #d9dde7;border-radius:999px;padding:.1rem .5rem;font-size:.75rem}
+    .result{background:#fff;border:1px solid #eef2f7;border-radius:12px;padding:1rem 1rem 0;margin:.75rem 0}
+    .result h3{margin:.2rem 0 .4rem 0;font-size:1.05rem}
+    .src{font-weight:600;opacity:.75}
+    .snippet{white-space:pre-wrap;margin:.5rem 0 1rem 0}
+    mark{background:#fff3a6;padding:0 .15rem;border-radius:.15rem}
+    .group{margin-top:1.25rem}
+    .group h2{font-size:1rem;opacity:.8;margin:.25rem 0}
+    .hdr{background:#0f3b58;color:#fff;padding:.6rem 0}
+    .hdr .brand{max-width:1040px;margin:0 auto;padding:0 1.25rem;font-weight:600}
+    a:hover{text-decoration:underline}
+  </style>
+</head>
+<body>
+  <div class="hdr"><div class="brand">Trust Law Textbooks — Search (beta)</div></div>
+  <div class="container">
+    <div class="hstack">
+      <input id="q" class="query" type="search" placeholder="Search texts, laws & rules… (e.g. beddoe order trustee litigation consent)" />
+      <button id="go" class="pill" title="Search">Search</button>
+      <a class="pill" href="./index.html" title="Back to catalog">Catalog</a>
+    </div>
+    <div class="muted" style="margin:.5rem 0 1rem">
+      Searches: Textbooks (public catalog) + Laws (laws-ui) + Rules (rules-ui). Results show a short snippet; click the title to open the full TXT.
+    </div>
 
-const elQ   = document.getElementById("q");
-const elJur = document.getElementById("jur");
-const elGo  = document.getElementById("go");
-const elRes = document.getElementById("results");
-const elStatus = document.getElementById("status");
+    <div id="status" class="muted">Loading sources…</div>
 
-let INDEX = [];
+    <div id="results"></div>
+  </div>
 
-// very light normalizer: lowercase, strip punctuation, simple plural trim
-function norm(s) {
-  return (s || "")
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}\s-]+/gu, " ") // drop punctuation
-    .replace(/\s+/g, " ")
-    .trim();
-}
-function stem(token) {
-  // naive stemming for s/es
-  if (token.endsWith("ies")) return token.slice(0, -3) + "y";
-  if (token.endsWith("es"))  return token.slice(0, -2);
-  if (token.endsWith("s") && token.length > 3) return token.slice(0, -1);
-  return token;
-}
-
-// small synonym map for early usefulness
-const SYN = {
-  trustee: ["trustee","trustees","trusteeship","fiduciary"],
-  film: ["film","movie","motion","picture","production","feature"],
-  producer: ["producer","production","producing"],
-  money: ["money","funds","assets","property","trust property","trust funds"],
-  breach: ["breach","wrong","misfeasance","malfeasance","dishonesty","default"]
-};
-
-function expandTerms(terms) {
-  const out = new Set();
-  for (const t of terms) {
-    out.add(t);
-    // synonyms
-    for (const [key, arr] of Object.entries(SYN)) {
-      if (t === key || arr.includes(t)) arr.forEach(v => out.add(v));
-    }
-  }
-  return [...out];
-}
-
-function tokenize(s) {
-  return norm(s).split(" ").filter(Boolean).map(stem);
-}
-
-function scoreDoc(doc, qTerms, jur) {
-  if (jur && (doc.jurisdiction || "").toLowerCase() !== jur) return 0;
-
-  // fields to search
-  const hay = [
-    doc.title || "",
-    doc.reference || "",
-    (doc.jurisdiction || ""),
-    (doc.keywords || []).join(" ")
-  ].map(norm).join(" ");
-
-  let score = 0;
-  for (const t of qTerms) {
-    // exact term
-    if (hay.includes(` ${t} `) || hay.endsWith(` ${t}`) || hay.startsWith(`${t} `) ) score += 5;
-    // loose containment
-    if (hay.includes(t)) score += 2;
-  }
-  // small boost for newer material
-  if (Number(doc.year) >= 2020) score += 1;
-
-  return score;
-}
-
-function render(results, ms) {
-  elRes.innerHTML = "";
-  elStatus.textContent = `${results.length} result${results.length!==1?'s':''} • ${ms} ms`;
-
-  if (!results.length) {
-    elRes.innerHTML = `<div class="empty">No results. Try different terms or fewer filters.</div>`;
-    return;
-    }
-
-  for (const r of results) {
-    const div = document.createElement("div");
-    div.className = "result";
-    div.innerHTML = `
-      <h3><a href="${r.url_txt}" target="_blank" rel="noopener">${r.title || r.reference || r.id}</a></h3>
-      <div class="meta">${(r.jurisdiction || "").toUpperCase()} • ${r.reference || ""} ${r.year?("• "+r.year):""}</div>
-      <div class="badges">${(r.keywords||[]).slice(0,6).map(k=>`<span class="badge">${k}</span>`).join("")}</div>
-    `;
-    elRes.appendChild(div);
-  }
-}
-
-async function loadIndex() {
-  try {
-    const r = await fetch(INDEX_URL, { cache: "no-cache" });
-    if (!r.ok) throw new Error(`Fetch ${r.status}`);
-    INDEX = await r.json();
-  } catch (e) {
-    elStatus.textContent = "Failed to load index.";
-    console.error(e);
-  }
-}
-
-async function search() {
-  const t0 = performance.now();
-  const q = elQ.value.trim();
-  const jur = (elJur.value || "").toLowerCase();
-
-  if (!q) { render([], 0); return; }
-
-  const baseTerms = tokenize(q);
-  const terms = expandTerms(baseTerms);
-
-  // score + sort
-  const scored = INDEX
-    .map(d => ({ d, s: scoreDoc(d, terms, jur)}))
-    .filter(x => x.s > 0)
-    .sort((a,b) => b.s - a.s)
-    .map(x => x.d)
-    .slice(0, 100);
-
-  render(scored, Math.round(performance.now() - t0));
-}
-
-elGo.addEventListener("click", search);
-elQ.addEventListener("keydown", (e) => { if (e.key === "Enter") search(); });
-
-loadIndex().then(()=> {
-  // Optional: pre-fill a demo query for first run
-  // elQ.value = "trustee film producer client money";
-  // search();
-});
+  <script src="./search.js" defer></script>
+</body>
+</html>
