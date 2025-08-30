@@ -4,65 +4,55 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Trust Law Textbooks — Search (beta)</title>
-  <link rel="icon" href="./logo.png" />
-  <link rel="preconnect" href="https://info1691.github.io" crossorigin>
   <link rel="stylesheet" href="./style.css" />
   <style>
-    /* page-scoped helpers so we don’t touch your main CSS */
-    .page { max-width: 1080px; margin: 2rem auto; padding: 0 1rem; }
-    .crumbs { color:#6b7280; font-size:.875rem; margin-bottom:.5rem; }
-    .title { display:flex; align-items:center; gap:.75rem; }
-    .title h1 { font-size:1.25rem; margin:0; }
-    form.searchbar { display:flex; gap:.5rem; margin:1rem 0; }
-    form.searchbar input[type="text"]{
-      flex:1; padding:.7rem .9rem; border:1px solid #e5e7eb; border-radius:.6rem;
-      font-size:1rem; outline:none;
-    }
-    form.searchbar button{
-      padding:.7rem .9rem; border:1px solid #e5e7eb; background:#0b5cab;
-      color:#fff; border-radius:.6rem; cursor:pointer;
-    }
-    .hint { font-size:.9rem; color:#6b7280; margin:.5rem 0 1rem; }
-    .source-note{ font-size:.85rem; color:#6b7280; margin:.25rem 0 1rem; }
-    .group { margin:1.25rem 0 2rem; }
-    .group h2 { font-size:1rem; color:#111827; margin:0 0 .5rem; }
-    .hit{
-      background:#fff; border:1px solid #e5e7eb; border-radius:.8rem;
-      padding:1rem 1rem .75rem; margin:.6rem 0;
-    }
-    .hit .docline{ display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; }
-    .pill{ font-size:.7rem; padding:.2rem .45rem; border-radius:.7rem; border:1px solid #e5e7eb; color:#374151; }
-    .hit h3{ font-size:1rem; margin:.25rem 0 .35rem; }
-    .snippet{ color:#374151; font-size:.95rem; line-height:1.45; }
-    mark{ background:#fff3a3; }
-    .cite{ margin-top:.4rem; font-size:.8rem; color:#6b7280; display:flex; gap:.6rem; flex-wrap:wrap; }
-    .cite a{ color:#0b5cab; text-decoration:none; }
-    .empty{ color:#6b7280; margin:2rem 0; }
+    /* minimal safety styling in case style.css is absent */
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:0;background:#0b3150;}
+    header{background:#0b3150;color:#fff;padding:12px 16px;display:flex;align-items:center;gap:.75rem}
+    header a{color:#9ec7ff;text-decoration:none}
+    main{background:#f5f6f8;min-height:100vh;border-top-left-radius:10px;border-top-right-radius:10px;padding:18px 16px}
+    .wrap{max-width:1000px;margin:0 auto}
+    h1{font-size:20px;margin:0}
+    .crumbs{font-size:.9rem;opacity:.8;margin-bottom:8px}
+    form{display:flex;gap:.5rem;margin:.5rem 0 4px 0}
+    input[type="search"]{flex:1;padding:10px 12px;border:1px solid #cfd6de;border-radius:8px;background:#fff;font-size:16px}
+    button{padding:10px 14px;border:0;border-radius:8px;background:#0d6efd;color:#fff;font-weight:600;cursor:pointer}
+    #counts{font-size:.9rem;color:#566577;margin:6px 2px 16px}
+    h2{font-size:1rem;color:#243447;margin:18px 2px 8px}
+    .hit{background:#fff;border:1px solid #e8ecf1;border-radius:12px;padding:14px 14px;margin:10px 0}
+    .hit-hd{display:flex;align-items:center;gap:.5rem;margin-bottom:6px}
+    .pill{display:inline-block;font-size:.75rem;background:#eef5ff;color:#0b60d0;border:1px solid #d0e2ff;border-radius:999px;padding:.15rem .55rem}
+    .hit-title{font-weight:700;text-decoration:none;color:#112}
+    .hit-snippet{margin:6px 0 0 0;color:#2a2a2a;line-height:1.5}
+    .hit-ft{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+    .muted{color:#6b7b8f;font-size:.9rem}
+    .txt-link{font-weight:600;color:#0b60d0;text-decoration:none}
+    mark{background:#fff0a6}
   </style>
 </head>
 <body>
-  <div class="page">
-    <div class="crumbs"><a href="./index.html">Catalog</a> &nbsp;/&nbsp; Search (beta)</div>
-    <div class="title">
-      <img src="./logo.png" alt="" width="28" height="28" />
+  <header>
+    <div style="font-weight:800;font-size:22px;letter-spacing:.2px">📘 Trust Law Textbooks</div>
+    <div style="margin-left:auto"><a href="./index.html">Catalog</a></div>
+  </header>
+
+  <main>
+    <div class="wrap">
+      <div class="crumbs"><a href="./index.html">Catalog</a> / <strong>Search (beta)</strong></div>
       <h1>Trust Law Textbooks — Search (beta)</h1>
+
+      <form id="searchForm">
+        <input id="q" type="search" autocomplete="off"
+               placeholder="Search textbooks + laws + rules… e.g., Beddoe, beneficiaries’ consent, litigation costs" />
+        <button id="go" type="submit">Search</button>
+      </form>
+
+      <div id="counts">Searches: <strong>Textbooks</strong> (public catalog) + <strong>Laws</strong> (laws-ui) + <strong>Rules</strong> (rules-ui). Results show quotable snippets; click the title to open the full TXT.</div>
+
+      <div id="results"></div>
     </div>
+  </main>
 
-    <form class="searchbar" id="form">
-      <input id="q" type="text" placeholder="Search textbooks + laws + rules… e.g., Beddoe, beneficiaries' consent, litigation costs" />
-      <button type="submit">Search</button>
-    </form>
-
-    <div class="hint">
-      Searches: <strong>Textbooks</strong> (public catalog) + <strong>Laws</strong> (laws-ui) + <strong>Rules</strong> (rules-ui).
-      Results show quotable snippets; click the title to open the full TXT.
-    </div>
-
-    <div id="status" class="source-note"></div>
-
-    <div id="results"></div>
-  </div>
-
-  <script src="./search.js" type="module"></script>
+  <script src="./search.js"></script>
 </body>
 </html>
