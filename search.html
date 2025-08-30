@@ -2,57 +2,282 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Trust Law Textbooks — Search (beta)</title>
-  <link rel="stylesheet" href="./style.css" />
+  <link rel="icon" href="logo.svg" />
+  <link rel="stylesheet" href="style.css" />
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:0;background:#0b3150;}
-    header{background:#0b3150;color:#fff;padding:12px 16px;display:flex;align-items:center;gap:.75rem}
-    header a{color:#9ec7ff;text-decoration:none}
-    main{background:#f5f6f8;min-height:100vh;border-top-left-radius:10px;border-top-right-radius:10px;padding:18px 16px}
-    .wrap{max-width:1000px;margin:0 auto}
-    h1{font-size:20px;margin:0}
-    .crumbs{font-size:.9rem;opacity:.8;margin-bottom:8px}
-    .row{display:flex;gap:.5rem;margin:.5rem 0 4px 0}
-    input[type="search"]{flex:1;padding:10px 12px;border:1px solid #cfd6de;border-radius:8px;background:#fff;font-size:16px}
-    button{padding:10px 14px;border:0;border-radius:8px;background:#0d6efd;color:#fff;font-weight:600;cursor:pointer}
-    #counts{font-size:.9rem;color:#566577;margin:6px 2px 16px}
-    h2{font-size:1rem;color:#243447;margin:18px 2px 8px}
-    .hit{background:#fff;border:1px solid #e8ecf1;border-radius:12px;padding:14px 14px;margin:10px 0}
-    .hit-hd{display:flex;align-items:center;gap:.5rem;margin-bottom:6px}
-    .pill{display:inline-block;font-size:.75rem;background:#eef5ff;color:#0b60d0;border:1px solid #d0e2ff;border-radius:999px;padding:.15rem .55rem}
-    .hit-title{font-weight:700;text-decoration:none;color:#112}
-    .hit-snippet{margin:6px 0 0 0;color:#2a2a2a;line-height:1.5}
-    .hit-ft{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
-    .muted{color:#6b7b8f;font-size:.9rem}
-    .txt-link{font-weight:600;color:#0b60d0;text-decoration:none}
-    mark{background:#fff0a6}
+    /* small page-specific touches */
+    .note { font-size:.9rem; opacity:.75; }
+    .pill { display:inline-block; padding:.15rem .45rem; border-radius:999px; border:1px solid #d8dee4; font-size:.75rem; margin-left:.35rem; }
+    .hit { background:#fff; border:1px solid #e6e8eb; border-radius:12px; padding:1rem 1.2rem; margin:.8rem 0; }
+    .hit h3 { margin:0 0 .35rem 0; font-size:1.05rem; }
+    .hit small { display:block; margin:.35rem 0 .2rem; color:#6b7280; }
+    mark { background:#fff3a3; }
+    .err { background:#fff5f5; border:1px solid #ffd7d7; color:#8b0000; padding:.6rem .8rem; border-radius:10px; margin-top:1rem; }
+    .src-line { font-size:.85rem; opacity:.8; margin:.4rem 0 0 0; }
+    .actions { display:flex; gap:.5rem; margin-top:.35rem; }
+    .btn-xs { font-size:.75rem; padding:.2rem .5rem; border:1px solid #cfd8e3; border-radius:8px; background:#f8fafc; text-decoration:none; }
   </style>
 </head>
+
 <body>
-  <header>
-    <div style="font-weight:800;font-size:22px;letter-spacing:.2px">📘 Trust Law Textbooks</div>
-    <div style="margin-left:auto"><a href="./index.html">Catalog</a></div>
+  <header class="appbar">
+    <div class="appbar__left">
+      <img src="logo.svg" alt="" class="appbar__logo" />
+      <div class="appbar__title">Trust Law Textbooks</div>
+      <div class="appbar__crumb">Search (beta)</div>
+    </div>
+    <div class="appbar__right">
+      <a class="btn" href="./index.html">Catalog</a>
+    </div>
   </header>
 
-  <main>
-    <div class="wrap">
-      <div class="crumbs"><a href="./index.html">Catalog</a> / <strong>Search (beta)</strong></div>
-      <h1>Trust Law Textbooks — Search (beta)</h1>
+  <main class="container" style="max-width:1100px;">
+    <form id="qform" class="searchbar" style="margin-top:1rem;">
+      <input id="q" type="search" required placeholder="Search textbooks + laws + rules… e.g., Beddoe, beneficiaries’ consent, litigation costs" />
+      <button class="btn" id="go" type="submit">Search</button>
+    </form>
 
-      <div class="row" role="search">
-        <input id="q" type="search" autocomplete="off" spellcheck="false"
-               placeholder="Search textbooks + laws + rules… e.g., Beddoe, beneficiaries’ consent, litigation costs" />
-        <button id="go" type="button">Search</button>
-      </div>
+    <p class="note">
+      Searches: <strong>Textbooks</strong> (public catalog) + <strong>Laws</strong> (laws-ui) + <strong>Rules</strong> (rules-ui).
+      Results show quotable snippets; click the title to open the full TXT.
+    </p>
 
-      <div id="counts">Searches: <strong>Textbooks</strong> (public catalog) + <strong>Laws</strong> (laws-ui) + <strong>Rules</strong> (rules-ui). Results show quotable snippets; click the title to open the full TXT.</div>
-
-      <div id="results"></div>
-    </div>
+    <div id="status" class="note"></div>
+    <div id="errors"></div>
+    <div id="results"></div>
   </main>
 
-  <!-- cache-bust the JS so an old copy can’t linger -->
-  <script src="./search.js?v=3"></script>
+  <script>
+  // ---------- RULE 10: set data sources once ----------
+  const SOURCES = {
+    textbooksIndex: 'https://info1691.github.io/law-index/catalogs/ingest-catalog.json',
+    lawsIndex:      'https://info1691.github.io/laws-ui/laws.json',
+    rulesIndex:     'https://info1691.github.io/rules-ui/rules.json',
+    // bases used to resolve relative url_txt entries
+    lawsBase:       'https://info1691.github.io/laws-ui/',
+    rulesBase:      'https://info1691.github.io/rules-ui/'
+  };
+
+  // ---------- tiny helpers ----------
+  const $ = sel => document.querySelector(sel);
+  const esc = s => (s+'').replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  const sleep = ms => new Promise(r=>setTimeout(r,ms));
+
+  function normalizeQuery(q) {
+    return q.trim().replace(/\s+/g,' ').toLowerCase();
+  }
+
+  function highlight(text, terms) {
+    if (!terms.length) return esc(text);
+    // build simple word-boundary regex for all terms
+    const re = new RegExp('(' + terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|') + ')', 'gi');
+    return esc(text).replace(re, '<mark>$1</mark>');
+  }
+
+  function andMatch(haystack, terms) {
+    const s = haystack.toLowerCase();
+    return terms.every(t => s.includes(t));
+  }
+
+  function guessTxtUrlFromCatalogItem(item) {
+    // try explicit fields first
+    if (item.url_txt) {
+      return item.url_txt.startsWith('http')
+        ? item.url_txt
+        : new URL(item.url_txt, 'https://info1691.github.io/law-index/').href;
+    }
+    // many of your catalog items have an 'hrefTxt' or a 'paths.txt' flavor; try common fallbacks
+    if (item.hrefTxt) return item.hrefTxt;
+    if (item.paths && item.paths.txt) {
+      return item.paths.txt.startsWith('http')
+        ? item.paths.txt
+        : new URL(item.paths.txt, 'https://info1691.github.io/law-index/').href;
+    }
+    // conservative guess using id/jurisdiction (only if both seem present)
+    if (item.id && item.jurisdiction) {
+      return `https://info1691.github.io/law-index/texts/${item.jurisdiction}/${item.id}.txt`;
+    }
+    return null;
+  }
+
+  function resolveRelative(base, maybeRel) {
+    return maybeRel.startsWith('http') ? maybeRel : new URL(maybeRel, base).href;
+  }
+
+  async function fetchJSON(url) {
+    const r = await fetch(url, { cache:'no-store' });
+    if (!r.ok) throw new Error(`HTTP ${r.status} for ${url}`);
+    return r.json();
+  }
+
+  async function fetchText(url) {
+    const r = await fetch(url, { cache:'no-store' });
+    if (!r.ok) throw new Error(`HTTP ${r.status} for ${url}`);
+    return r.text();
+  }
+
+  function showError(msg) {
+    $('#errors').insertAdjacentHTML('beforeend', `<div class="err">${esc(msg)}</div>`);
+  }
+
+  function setStatus(msg) {
+    $('#status').textContent = msg;
+  }
+
+  // ---------- search pipeline ----------
+  async function runSearch(rawQ) {
+    $('#errors').innerHTML = '';
+    $('#results').innerHTML = '';
+    const q = normalizeQuery(rawQ);
+    if (!q) return;
+    const terms = q.split(' ');
+
+    setStatus('Loading indices…');
+
+    // 1) load indices
+    let textbooks = [];
+    let laws = [];
+    let rules = [];
+
+    try {
+      const cat = await fetchJSON(SOURCES.textbooksIndex);
+      // Expect an array of catalog items; filter those we can resolve to TXT
+      textbooks = (Array.isArray(cat) ? cat : (cat.items || [])).map(it => ({
+        kind: 'Textbooks',
+        title: it.title || it.reference || it.id || 'Untitled',
+        jurisdiction: (it.jurisdiction || '').toUpperCase(),
+        url: guessTxtUrlFromCatalogItem(it)
+      })).filter(x => !!x.url);
+    } catch (e) {
+      showError('Failed loading textbooks index: ' + e.message);
+    }
+
+    try {
+      const arr = await fetchJSON(SOURCES.lawsIndex);
+      laws = arr.map(it => ({
+        kind: 'Laws',
+        title: it.title || it.reference || it.id || 'Untitled',
+        jurisdiction: (it.jurisdiction || '').toUpperCase(),
+        url: resolveRelative(SOURCES.lawsBase, it.url_txt)
+      }));
+    } catch (e) {
+      showError('Failed loading laws index: ' + e.message);
+    }
+
+    try {
+      const arr = await fetchJSON(SOURCES.rulesIndex);
+      rules = arr.map(it => ({
+        kind: 'Rules',
+        title: it.title || it.reference || it.id || 'Untitled',
+        jurisdiction: (it.jurisdiction || '').toUpperCase(),
+        url: resolveRelative(SOURCES.rulesBase, it.url_txt)
+      }));
+    } catch (e) {
+      showError('Failed loading rules index: ' + e.message);
+    }
+
+    const pool = [...textbooks, ...laws, ...rules];
+    if (!pool.length) {
+      setStatus('No sources available.');
+      return;
+    }
+
+    setStatus(`Searching ${pool.length} documents…`);
+    await sleep(10); // allow paint
+
+    // 2) stream through texts, collect hits (very simple full-text scan)
+    const hits = [];
+    for (const doc of pool) {
+      try {
+        const txt = await fetchText(doc.url);
+        // quick AND match gate
+        if (!andMatch(txt, terms)) continue;
+
+        // grab a few snippets
+        const lower = txt.toLowerCase();
+        let pos = 0, found = 0;
+        const snippets = [];
+        while (found < 3) {
+          const idx = lower.indexOf(terms[0], pos);
+          if (idx === -1) break;
+          const start = Math.max(0, idx - 140);
+          const end   = Math.min(txt.length, idx + 140);
+          const chunk = txt.slice(start, end).replace(/\s+/g,' ').trim();
+          if (andMatch(chunk, terms)) {
+            snippets.push(chunk);
+            found++;
+          }
+          pos = idx + terms[0].length;
+        }
+        if (snippets.length) hits.push({ doc, snippets });
+      } catch (e) {
+        // network/file issues shouldn’t kill the whole search
+        showError(`Read failed for ${doc.title}: ${e.message}`);
+      }
+    }
+
+    // 3) render
+    setStatus(`Loaded → Textbooks: ${textbooks.length} • Laws: ${laws.length} • Rules: ${rules.length} • Matches: ${hits.length}`);
+    const out = $('#results');
+    if (!hits.length) {
+      out.innerHTML = `<p class="note">No matches. Try fewer words or different phrasing (e.g., “Beddoe costs consent”).</p>`;
+      return;
+    }
+
+    // group by kind
+    const byKind = hits.reduce((m, h) => {
+      (m[h.doc.kind] ||= []).push(h);
+      return m;
+    }, {});
+
+    for (const kind of ['Laws','Rules','Textbooks']) {
+      const group = byKind[kind] || [];
+      if (!group.length) continue;
+      out.insertAdjacentHTML('beforeend', `<h2 style="margin-top:1.25rem;">${kind}</h2>`);
+      for (const h of group) {
+        const href = h.doc.url;
+        const head =
+          `<div class="hit">
+            <h3><a href="${esc(href)}" target="_blank" rel="noopener">${esc(h.doc.title)}</a>
+              <span class="pill">${esc(h.doc.jurisdiction || '')}</span>
+              <span class="pill">${esc(kind)}</span>
+            </h3>
+            ${h.snippets.map(s => `<p>${highlight(s, terms)}</p>`).join('')}
+            <div class="actions">
+              <a class="btn-xs" href="${esc(href)}" target="_blank" rel="noopener">open TXT</a>
+              <span class="src-line">${esc(href)}</span>
+            </div>
+          </div>`;
+        out.insertAdjacentHTML('beforeend', head);
+      }
+    }
+  }
+
+  // ---------- wire UI ----------
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = $('#qform');
+    const box = $('#q');
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      runSearch(box.value);
+    });
+
+    // allow pressing Enter to fire even without the button
+    box.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        runSearch(box.value);
+      }
+    });
+
+    // if there’s a ?q= param, run immediately (handy for deep-links)
+    const p = new URLSearchParams(location.search);
+    const q0 = p.get('q');
+    if (q0) { box.value = q0; runSearch(q0); }
+  });
+  </script>
 </body>
 </html>
