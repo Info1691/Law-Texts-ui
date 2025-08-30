@@ -1,211 +1,238 @@
-/* ---------------------------------------------------------
-   Trust Law Textbooks — Search (beta)  (v1.1)
-   Unified search over: Textbooks (public catalog) + Laws + Rules
-   - AND with "+" or spaces (beneficiary+consent+litigation)
-   - Phrases with "quotes" (e.g. "beddoe order")
-   - Variants & key phrases (conflict/conflicts/conflicted/conflicting,
-     conflict-of-interest, beneficiaries/beneficiary, consent/consented…)
-   - Matches when ALL terms occur in the SAME passage window
-   - Searches ENTIRE TXT files and shows marked snippets
-   --------------------------------------------------------- */
-
-const ENDPOINTS = {
-  textbooksCatalog: 'https://info1691.github.io/law-index/catalogs/ingest-catalog.json',
-  lawsIndex:        'https://info1691.github.io/laws-ui/laws.json',
-  rulesIndex:       'https://info1691.github.io/rules-ui/rules.json',
+// --- Config ---------------------------------------------------------------
+const CFG = {
+  TEXTBOOKS_JSON: 'https://info1691.github.io/law-index/catalogs/ingest-catalog.json',
+  LAWS_JSON:      'https://info1691.github.io/laws-ui/laws.json',
+  RULES_JSON:     'https://info1691.github.io/rules-ui/rules.json',
+  WINDOW_WORDS: 160,          // co-occurrence window for AND queries
+  MAX_BYTES: 0,               // 0 = read whole file (do not skim)
+  LIMIT_PER_BUCKET: 10
 };
 
-const WINDOW_CHARS = 1600;
-const MAX_SNIPPETS = 6;
-const FETCH_TIMEOUT_MS = 30000;
+// --- Utilities ------------------------------------------------------------
+const $ = sel => document.querySelector(sel);
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;')
+  .replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
-const $ = (s,r=document)=>r.querySelector(s);
-const norm = s => (s||'').toLowerCase().normalize('NFKC');
-const escapeRx = s => s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+// Normalise PDF-ish text so search works reliably (no “hard-wiring”).
+function normalizeText(raw){
+  let t = raw;
 
-function withTimeout(p, ms=FETCH_TIMEOUT_MS){
-  let t; const timeout = new Promise((_,rej)=>t=setTimeout(()=>rej(new Error('timeout')), ms));
-  return Promise.race([p.finally(()=>clearTimeout(t)), timeout]);
+  // 0) Unicode compatibility (helps with odd forms), then strip combining marks
+  t = t.normalize('NFKD').replace(/[\u0300-\u036f]/g,'');
+
+  // 1) expand common Latin ligatures (PDFs often use these)
+  //    \ufb00.. \ufb06 = ﬀ, ﬁ, ﬂ, ﬃ, ﬄ, ﬅ, ﬆ
+  t = t
+    .replace(/\ufb00/g,'ff')
+    .replace(/\ufb01/g,'fi')
+    .replace(/\ufb02/g,'fl')
+    .replace(/\ufb03/g,'ffi')
+    .replace(/\ufb04/g,'ffl')
+    .replace(/\ufb05/g,'ft')
+    .replace(/\ufb06/g,'st');
+
+  // 2) remove soft hyphens
+  t = t.replace(/\u00AD/g, '');
+
+  // 3) join words split by hyphen + newline: foo- \n bar -> foobar
+  t = t.replace(/([A-Za-z])-\s*\n\s*([A-Za-z])/g, '$1$2');
+
+  // 4) join inline hyphens between letters: re-formulation => reformulation
+  //    also handles hyphen variants used as dashes.
+  t = t.replace(/([A-Za-z])[\-\u2010\u2011\u2012\u2013]([A-Za-z])/g, '$1$2');
+
+  // 5) collapse newlines to spaces, tidy quotes, collapse whitespace
+  t = t.replace(/\r?\n+/g, ' ')
+       .replace(/[\u2018\u2019]/g,"'")
+       .replace(/[\u201C\u201D]/g,'"')
+       .replace(/\s+/g,' ')
+       .trim();
+
+  return t;
 }
-async function getJSON(url){ const r=await withTimeout(fetch(url,{cache:'no-store'})); if(!r.ok) throw new Error(`${url} → ${r.status}`); return r.json(); }
-async function getTXT(url){ const r=await withTimeout(fetch(url,{cache:'force-cache'})); if(!r.ok) throw new Error(`${url} → ${r.status}`); return r.text(); }
 
-/* ------------------ Query parsing ------------------ */
-// Core variant dictionary + phrases
-const SYN = {
-  trust:        ['trust','trusts','trustee','trustees'],
-  trustee:      ['trustee','trustees'],
-  beneficiary:  ['beneficiary','beneficiaries'],
-  consent:      ['consent','consented','consenting','consents'],
-  litigation:   ['litigation','litigate','litigated','litigating'],
-  cost:         ['cost','costs','costing','costed'],
-  beddoe:       ['beddoe'],
-  conflict:     ['conflict','conflicts','conflicted','conflicting'],
-};
-// phrases we should match as a whole (allow hyphen OR space between words)
-const PHRASES = [
-  'conflict-of-interest',
-  'conflicts-of-interest',
-];
+// split to tokens (lowercased)
+function toWords(s){ return s.toLowerCase().match(/[a-z0-9']+/g) || []; }
 
-function hyOrSpaceRx(words){
-  // turn "conflict-of-interest" → /conflict(?:-| )of(?:-| )interest/i
-  const parts = words.split('-').map(escapeRx);
-  return new RegExp(String.raw`\b${parts.join('(?:-|\\s+)')}\b`, 'i');
+// tiny stemmer for plurals/ed/ing
+function stem(w){
+  if (w.length <= 3) return w;
+  if (/ies$/.test(w)) return w.replace(/ies$/,'y');
+  if (/ing$/.test(w) && w.length > 5) return w.replace(/ing$/,'');
+  if (/ed$/.test(w)  && w.length > 4) return w.replace(/ed$/,'');
+  if (/es$/.test(w)  && w.length > 4) return w.replace(/es$/,'');
+  if (/s$/.test(w)   && w.length > 4) return w.replace(/s$/,'');
+  return w;
 }
 
-function expandTerm(t){
-  const x = norm(t);
-  const bag = new Set([x]);
-  if(SYN[x]) SYN[x].forEach(v=>bag.add(v));
-  if(!SYN[x]) ['s','es','ed','ing'].forEach(s=>bag.add(x+s));
-  return [...bag];
+// Build regex for a term (supports wildcard: conflict*).
+function termToRegex(term){
+  const hasWC = term.endsWith('*');
+  const base = stem(term.replace(/\*+$/,'').toLowerCase());
+  if (!base) return null;
+  return new RegExp(`\\b${base}${hasWC ? '[a-z]*' : '(?:s|es|ed|ing)?'}\\b`, 'i');
 }
 
 function parseQuery(q){
-  q = norm(q).trim();
-  const phraseLits = [];
-  q = q.replace(/"([^"]+)"/g, (_,m)=>{ phraseLits.push(m.trim()); return ' '; });
-
-  const parts = (q.includes('+') ? q.split('+') : q.split(/\s+/))
-                .map(s=>s.trim()).filter(Boolean);
-
-  const groups = parts.map(p => expandTerm(p).map(v=>new RegExp(`\\b${escapeRx(v)}\\b`,'i')));
-
-  // include built-in phrases + quoted phrases
-  const phraseRx = [
-    ...PHRASES.map(hyOrSpaceRx),
-    ...phraseLits.map(s=>new RegExp(`\\b${escapeRx(s)}\\b`,'i')),
-  ];
-  return {groups, phraseRx};
+  q = (q||'').trim();
+  if (!q) return {parts:[],mode:'AND'};
+  const parts = [];
+  const re = /"([^"]+)"|([^\s+|]+)/g; let m;
+  while ((m=re.exec(q))){
+    if (m[1]) parts.push({type:'phrase',value:m[1]});
+    else parts.push({type:'term',value:m[2]});
+  }
+  const mode = q.includes('|') ? 'OR' : 'AND';
+  return {parts,mode};
 }
 
-function windowHasAll(text, groups, phraseRx){
-  for(const rx of phraseRx){ if(!rx.test(text)) return false; }
-  return groups.every(g => g.some(rx => rx.test(text)));
-}
-function highlight(text, groups, phraseRx){
-  const rxs = [...phraseRx, ...groups.flat()];
-  return rxs.reduce((acc, rx)=>acc.replace(rx, m=>`<mark>${m}</mark>`), text);
-}
-
-/* ------------------ Sources ------------------ */
-function abs(base, rel){
-  if(/^https?:\/\//i.test(rel)) return rel;
-  return `${base.replace(/\/$/,'')}/${rel.replace(/^\.\//,'')}`;
-}
-async function loadTextbooks(){
-  const cat = await getJSON(ENDPOINTS.textbooksCatalog);
-  return cat.map(it=>({
-    type:'textbook',
-    title: it.title || it.id,
-    jurisdiction: it.jurisdiction || '',
-    year: it.year || '',
-    reference: it.reference || '',
-    url: it.url_txt,
-    isPlaceholder: /placeholder/i.test(it.title||'') || /demo/i.test(it.id||''),
-  }));
-}
-async function loadLaws(){
-  const base='https://info1691.github.io/laws-ui';
-  const arr = await getJSON(ENDPOINTS.lawsIndex);
-  return arr.map(it=>({type:'laws', title:it.title||it.id, jurisdiction:it.jurisdiction||'', year:it.year||'', reference:it.reference||'', url:abs(base, it.url_txt)}));
-}
-async function loadRules(){
-  const base='https://info1691.github.io/rules-ui';
-  const arr = await getJSON(ENDPOINTS.rulesIndex);
-  return arr.map(it=>({type:'rules', title:it.title||it.id, jurisdiction:it.jurisdiction||'', year:it.year||'', reference:it.reference||'', url:abs(base, it.url_txt)}));
-}
-
-/* ------------------ Search engine ------------------ */
-async function findInDoc(meta, qMatchers){
-  let hay;
-  try { hay = await getTXT(meta.url); }
-  catch { return []; }
-
-  const anyTokens = [...qMatchers.phraseRx, ...qMatchers.groups.flat()];
-  if(!anyTokens.length) return [];
-
-  const seed = new RegExp(anyTokens.map(rx=>rx.source).join('|'), 'gi');
-
-  const hits=[];
-  let m;
-  while((m = seed.exec(hay)) && hits.length < MAX_SNIPPETS){
-    const idx = m.index;
-    const start = Math.max(0, idx - Math.floor(WINDOW_CHARS/2));
-    const end   = Math.min(hay.length, start + WINDOW_CHARS);
-    const win   = hay.slice(start, end);
-
-    if(windowHasAll(win, qMatchers.groups, qMatchers.phraseRx)){
-      const snippet = highlight(
-        (start>0?'…':'') + win + (end<hay.length?'…':''),
-        qMatchers.groups, qMatchers.phraseRx
-      );
-      hits.push({ meta, snippet, paragraph: approxParagraphNumber(hay, start) });
+function buildMatchers(parts){
+  return parts.map(p=>{
+    if (p.type==='phrase'){
+      const needle = normalizeText(p.value).toLowerCase();
+      return {kind:'phrase', label:p.value, test:t=>normalizeText(t).toLowerCase().includes(needle)};
+    } else {
+      const rx = termToRegex(p.value);
+      return {kind:'term', label:p.value, rx, test:w=>rx?rx.test(w):false};
     }
+  });
+}
+
+function findPassages(text, words, matchers, mode, windowWords){
+  const phraseM = matchers.filter(m=>m.kind==='phrase');
+  const termM   = matchers.filter(m=>m.kind==='term');
+
+  // phrase pre-check on full text
+  if (phraseM.length){
+    const ok = mode==='AND'
+      ? phraseM.every(m=>m.test(text))
+      : phraseM.some(m=>m.test(text));
+    if (!ok) return [];
   }
-  return hits;
+
+  // map term hits per position
+  const hitsAt = termM.map(()=>new Set());
+  words.forEach((w,i)=>{
+    for (let k=0;k<termM.length;k++){
+      const m = termM[k];
+      if (m.rx && m.rx.test(w)) hitsAt[k].add(i);
+    }
+  });
+
+  const out = [];
+  const N = words.length;
+  const step = Math.max(1, Math.floor(windowWords/4));
+  for (let start=0; start<N; start+=step){
+    const end = Math.min(N-1, start+windowWords);
+    const within = idx => idx>=start && idx<=end;
+
+    let windowOK = (mode==='AND') ? true : false;
+    if (termM.length){
+      if (mode==='AND'){
+        for (let k=0;k<termM.length;k++){
+          let any=false; for (const pos of hitsAt[k]){ if (within(pos)){ any=true; break; } }
+          if (!any){ windowOK=false; break; }
+        }
+      }else{
+        for (let k=0;k<termM.length;k++){
+          for (const pos of hitsAt[k]){ if (within(pos)){ windowOK=true; break; } }
+          if (windowOK) break;
+        }
+      }
+    }
+    if (!windowOK) continue;
+
+    // build ~64-word snippet centered in window with highlighting
+    const mid = Math.floor((start+end)/2);
+    const s = Math.max(0, mid-32), e = Math.min(N-1, s+64);
+    const slice = words.slice(s, e+1).map(w=>{
+      for (const m of termM){ if (m.rx && m.rx.test(w)) return `<mark>${esc(w)}</mark>`; }
+      return esc(w);
+    });
+    out.push({snippet: slice.join(' ') + ' …'});
+    if (out.length >= CFG.LIMIT_PER_BUCKET) break;
+  }
+  return out;
 }
 
-function approxParagraphNumber(text, offset){
-  return text.slice(0, offset).split(/\n/).length;
+async function j(url){ const r=await fetch(url,{cache:'no-store'}); if(!r.ok)throw new Error(r.status); return r.json(); }
+async function t(url){
+  const r=await fetch(url,{cache:'no-store'}); if(!r.ok)throw new Error(r.status);
+  const b=await r.blob(); if(CFG.MAX_BYTES && b.size>CFG.MAX_BYTES){ return await b.slice(0,CFG.MAX_BYTES).text(); }
+  return await b.text();
 }
 
-/* ------------------ UI ------------------ */
-function escapeHTML(s){ return (s||'').replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;' }[c])); }
-function renderHeaderCounts({tb=0,laws=0,rules=0}={}){ const el=$('#counts'); if(el) el.textContent=`Matches — Textbooks: ${tb} · Laws: ${laws} · Rules: ${rules}`; }
-
-function card(hit){
-  const {meta, snippet} = hit;
-  const badge = meta.type==='textbook'?'Textbooks':(meta.type==='laws'?'Laws':'Rules');
-  const sub = [meta.jurisdiction?.toUpperCase(), meta.year, badge].filter(Boolean).join(' · ');
-  const warn = meta.isPlaceholder ? ' <span class="pill pill-warn">placeholder</span>' : '';
-  return `
-  <article class="result">
-    <h3 class="title"><a href="${meta.url}" target="_blank" rel="noopener">${escapeHTML(meta.title)}</a>${warn}</h3>
-    <div class="subtle">${escapeHTML(sub)}</div>
-    <p class="snippet">${snippet}</p>
-    <div class="actions"><a class="open" href="${meta.url}" target="_blank" rel="noopener">¶ open TXT</a></div>
-  </article>`;
+// UI helpers
+function renderCounts({t,l,r}){
+  $('#counts').innerHTML =
+    `Matches — Textbooks: <strong>${t}</strong> · Laws: <strong>${l}</strong> · Rules: <strong>${r}</strong>` +
+    ((t|l|r)?'':` <span class="pill pill-warn">no matches</span>`);
 }
-function section(id){ const root=$(id).nextElementSibling; return {clear(){root.innerHTML='';}, add(h){root.insertAdjacentHTML('beforeend', card(h));}}; }
+function renderBucket(sectionEl, items){
+  sectionEl.innerHTML = items.length ? '' : `<div class="empty">No matches.</div>`;
+  for (const it of items){
+    const art=document.createElement('article'); art.className='card';
+    art.innerHTML = `
+      <div class="card-title">
+        <a href="${it.url_txt}" target="_blank" rel="noopener">${esc(it.title)}</a>
+        <span class="muted pill">${esc(it.tag)}</span>
+      </div>
+      <div class="card-snips">${it.snippets.map(s=>`<p>${s}</p>`).join('')}</div>`;
+    sectionEl.appendChild(art);
+  }
+}
 
+// Search a bucket of items
+async function searchBucket(list, matchers, mode){
+  const out=[];
+  for (const item of list){
+    try{
+      const raw = await t(item.url_txt);
+      const norm = normalizeText(raw);
+      const words = toWords(norm);
+      const snips = findPassages(norm, words, matchers, mode, CFG.WINDOW_WORDS);
+      if (snips.length){ out.push({...item, snippets: snips}); if (out.length>=CFG.LIMIT_PER_BUCKET) break; }
+    }catch(e){ console.warn('Search error:', item.url_txt, e.message); }
+  }
+  return out;
+}
+
+// Main
 async function runSearch(q){
-  const qStr = (q||'').trim(); if(!qStr) return;
+  const {parts,mode} = parseQuery(q);
+  const matchers = buildMatchers(parts);
 
-  renderHeaderCounts({tb:0,laws:0,rules:0});
-  const tb = section('#sec-textbooks'), lw = section('#sec-laws'), rl = section('#sec-rules');
-  tb.clear(); lw.clear(); rl.clear();
+  const [textbooks,laws,rules] = await Promise.all([ j(CFG.TEXTBOOKS_JSON), j(CFG.LAWS_JSON), j(CFG.RULES_JSON) ]);
 
-  const [textbooks, laws, rules] = await Promise.all([loadTextbooks(), loadLaws(), loadRules()]);
-  const matchers = parseQuery(qStr);
+  const T=(textbooks||[]).filter(x=>x.url_txt).map(x=>({title:x.title||x.reference||x.id,url_txt:x.url_txt,tag:(x.jurisdiction||'textbooks').toUpperCase()}));
+  const L=(laws||[]).filter(x=>x.url_txt).map(x=>({title:x.title||x.reference||x.id,url_txt:x.url_txt,tag:'laws'}));
+  const R=(rules||[]).filter(x=>x.url_txt).map(x=>({title:x.title||x.reference||x.id,url_txt:x.url_txt,tag:'rules'}));
 
-  async function searchList(list){
-    const out=[]; const pool=4; let i=0;
-    async function worker(){ while(i<list.length){ const meta=list[i++]; const hits=await findInDoc(meta, matchers); hits.forEach(h=>out.push(h)); } }
-    await Promise.all(Array.from({length:pool}, worker));
-    return out;
-  }
+  const [tRes,lRes,rRes] = await Promise.all([
+    searchBucket(T, matchers, mode),
+    searchBucket(L, matchers, mode),
+    searchBucket(R, matchers, mode)
+  ]);
 
-  const [tbHits, lawHits, ruleHits] = await Promise.all([searchList(textbooks), searchList(laws), searchList(rules)]);
-
-  renderHeaderCounts({tb:tbHits.length, laws:lawHits.length, rules:ruleHits.length});
-  tbHits.forEach(h=>tb.add(h));
-  lawHits.forEach(h=>lw.add(h));
-  ruleHits.forEach(h=>rl.add(h));
+  renderCounts({t:tRes.length,l:lRes.length,r:rRes.length});
+  renderBucket(document.querySelector('#sec-textbooks + .results'), tRes);
+  renderBucket(document.querySelector('#sec-laws + .results'),       lRes);
+  renderBucket(document.querySelector('#sec-rules + .results'),      rRes);
 }
 
-/* ------------------ Bootstrap ------------------ */
-function wire(){
-  const form = $('#qform'), input = $('#q');
-  const counts = document.createElement('div'); counts.id='counts'; counts.className='counts';
-  const intro = $('.intro'); if(intro) intro.insertAdjacentElement('afterend', counts);
-
-  form?.addEventListener('submit', e=>{ e.preventDefault(); runSearch(input.value); });
-
-  // run if q= present (also bust cache by appending ?v=)
+// Wire up
+window.addEventListener('DOMContentLoaded', ()=>{
+  const form = $('#qform'), box = $('#q');
   const params = new URLSearchParams(location.search);
-  const q = params.get('q') || '';
-  if(q){ input.value=q; runSearch(q); }
-}
-document.addEventListener('DOMContentLoaded', wire);
+  if (params.get('q')) box.value = params.get('q');
+
+  form.addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const q=(box.value||'').trim();
+    const url=new URL(location.href); url.searchParams.set('q', q); history.replaceState(null,'',url);
+    renderCounts({t:0,l:0,r:0}); document.querySelectorAll('.results').forEach(el=>el.innerHTML='');
+    runSearch(q);
+  });
+
+  if (box.value.trim()) runSearch(box.value.trim());
+});
