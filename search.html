@@ -25,16 +25,17 @@
     input[type="search"]{flex:1;padding:12px 14px;border:1px solid var(--ring);border-radius:10px;font-size:1rem}
     button{padding:12px 16px;border:0;border-radius:10px;background:#1779c6;color:#fff;font-weight:600;cursor:pointer}
     .hint{font-size:.9rem;color:var(--muted)}
-    .group{margin:18px 0}
+    .counts{font-size:.9rem;color:var(--muted);margin:8px 0 0}
+    .group{margin:22px 0 8px}
     .group h2{font-size:1rem;margin:0 0 10px;color:var(--muted)}
     .card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:14px;margin-bottom:12px;border:1px solid var(--ring)}
     .title{font-weight:700;margin-bottom:6px}
     .meta{font-size:.85rem;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
     .chip{background:var(--chip);color:var(--chip-t);font-size:.75rem;padding:3px 8px;border-radius:999px}
-    .snippet{line-height:1.45}
+    .snippet{line-height:1.45;margin:8px 0}
+    .snippet + .snippet{border-top:1px dashed var(--ring);padding-top:8px}
     mark{background:#ffe58f;padding:0 .1em}
-    .rightlink{font-size:.85rem}
-    .counts{font-size:.9rem;color:var(--muted);margin:6px 0 0}
+    .rightlink{font-size:.85rem;margin-top:6px}
     .err{color:#b40028}
     .topnav{margin-left:auto}
     .topnav a{color:#cfe7f7;font-size:.95rem}
@@ -44,7 +45,6 @@
   <header>
     <div class="bar">
       <a class="brand" href="./index.html">
-        <!-- YOUR LOGO -->
         <img src="./logo.png" alt="BCB" />
         <span>Trust Law Textbooks</span>
         <small>Search (beta)</small>
@@ -58,170 +58,180 @@
     <h1>Trust Law Textbooks — Search (beta)</h1>
 
     <form class="row" id="qform">
-      <input id="q" type="search" placeholder="Search textbooks + laws + rules… e.g., Beddoe, beneficiaries’ consent, litigation costs" autocomplete="on" />
+      <input id="q" type="search"
+        placeholder="Search textbooks + laws + rules… e.g., &quot;beneficiaries’ consent&quot; beddoe litigation costs"
+        autocomplete="on" />
       <button type="submit">Search</button>
     </form>
-    <div class="hint">Searches: <b>Textbooks</b> (public catalog) + <b>Laws</b> (laws-ui) + <b>Rules</b> (rules-ui). Results show quotable snippets; click the title to open the full TXT.</div>
+    <div class="hint">
+      Searches: <b>Textbooks</b> (public catalog) + <b>Laws</b> (laws-ui) + <b>Rules</b> (rules-ui).
+      Passages shown only when <i>all</i> query terms (AND) occur in the same window. Click a title to open the full TXT.
+    </div>
 
     <div id="counts" class="counts"></div>
     <div id="results"></div>
   </main>
 
   <script>
-  // ---------- CONFIG: public catalogs ----------
+  // ----------------- Catalog sources -----------------
   const SOURCES = [
-    {
-      name: "Textbooks",
-      kind: "textbooks",
-      base: "https://info1691.github.io/law-index/",
-      catalog: "catalogs/ingest-catalog.json"
-    },
-    {
-      name: "Laws",
-      kind: "laws",
-      base: "https://info1691.github.io/laws-ui/",
-      catalog: "laws.json"
-    },
-    {
-      name: "Rules",
-      kind: "rules",
-      base: "https://info1691.github.io/rules-ui/",
-      catalog: "rules.json"
-    }
+    { name:"Textbooks", kind:"textbooks", base:"https://info1691.github.io/law-index/",  catalog:"catalogs/ingest-catalog.json" },
+    { name:"Laws",      kind:"laws",      base:"https://info1691.github.io/laws-ui/",    catalog:"laws.json" },
+    { name:"Rules",     kind:"rules",     base:"https://info1691.github.io/rules-ui/",   catalog:"rules.json" }
   ];
 
-  // Utility
-  const byId = (id)=>document.getElementById(id);
-  const toAbs = (base, url) => new URL(url, base).href;
+  // ----------------- Helpers -----------------
+  const $ = (id)=>document.getElementById(id);
+  const abs = (base, url)=> new URL(url, base).href;
 
-  function parseTerms(q){
-    return q.toLowerCase().trim().split(/\s+/).filter(Boolean);
+  // split respecting "quoted phrases"
+  function parseQuery(q){
+    const tokens = [];
+    q.trim().replace(/"([^"]+)"|(\S+)/g,(m,phrase,term)=>{
+      tokens.push((phrase||term).toLowerCase());
+      return "";
+    });
+    return tokens.filter(Boolean);
   }
-  function firstMatchIndex(hay, terms){
-    hay = hay.toLowerCase();
-    let idx = -1;
-    for(const t of terms){
-      const i = hay.indexOf(t);
-      if(i !== -1 && (idx === -1 || i < idx)) idx = i;
-    }
-    return idx;
-  }
-  function makeSnippet(txt, idx, span=160){
-    const start = Math.max(0, idx - Math.floor(span/2));
-    const end = Math.min(txt.length, start + span);
-    return (start>0?"…":"") + txt.slice(start, end) + (end<txt.length?"…":"");
-  }
+
+  function sanitizeRe(s){return s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}
   function highlight(snippet, terms){
     let out = snippet;
-    // simple, safe highlight (small queries)
-    terms.forEach(t=>{
-      const re = new RegExp("(" + t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "gi");
+    for(const t of terms){
+      const re = new RegExp("(" + sanitizeRe(t) + ")", "gi");
       out = out.replace(re,"<mark>$1</mark>");
-    });
+    }
     return out;
   }
 
-  async function fetchJSON(url){
-    const r = await fetch(url, {mode:"cors"});
-    if(!r.ok) throw new Error(`HTTP ${r.status}`);
-    return await r.json();
-  }
-  async function fetchText(url){
-    const r = await fetch(url, {mode:"cors"});
-    if(!r.ok) throw new Error(`HTTP ${r.status}`);
-    return await r.text();
+  async function jget(url){ const r = await fetch(url,{mode:"cors"}); if(!r.ok) throw new Error(r.status); return r.json(); }
+  async function tget(url){ const r = await fetch(url,{mode:"cors"}); if(!r.ok) throw new Error(r.status); return r.text(); }
+
+  // find up to N windows that contain ALL terms within a windowSize span
+  function findWindows(textLower, terms, windowSize=600, maxWins=5){
+    const wins = [];
+    // index hits for each term
+    const hits = terms.map(t=>{
+      const arr=[]; let i=textLower.indexOf(t,0);
+      while(i!==-1){arr.push(i); i=textLower.indexOf(t,i+t.length);}
+      return arr;
+    });
+    if(hits.some(a=>a.length===0)) return wins; // a term is missing entirely
+
+    // seed with positions of the rarest term for fewer checks
+    const order = hits.map((a,i)=>({i,len:a.length})).sort((a,b)=>a.len-b.len).map(o=>o.i);
+    const rareIdx = order[0];
+    for(const pos of hits[rareIdx]){
+      const start = Math.max(0, pos - Math.floor(windowSize/2));
+      const end   = start + windowSize;
+      let ok = true;
+      for(let k=0;k<terms.length;k++){
+        if(!hits[k].some(p=>p>=start && p<=end)){ ok=false; break; }
+      }
+      if(ok){
+        wins.push([start,end]);
+        if(wins.length>=maxWins) break;
+      }
+    }
+    return wins;
   }
 
-  function renderGroupHeader(name){ 
+  function makeSnippet(text, rng){ 
+    const s = Math.max(0, rng[0]);
+    const e = Math.min(text.length, rng[1]);
+    const left = s>0 ? "…" : "";
+    const right = e<text.length ? "…" : "";
+    return left + text.slice(s,e) + right;
+  }
+
+  function renderGroup(name){
     const g = document.createElement("div"); g.className="group";
     const h = document.createElement("h2"); h.textContent = name;
     g.appendChild(h);
     return g;
   }
-  function renderCard(item, snippetHTML, absTxt, sourceLabel){
+
+  function renderDoc(item, snippetsHTML, href, sourceLabel){
     const card = document.createElement("div"); card.className="card";
-    const t = document.createElement("div"); t.className="title";
-    const a = document.createElement("a"); a.href = absTxt; a.textContent = item.title || item.reference || item.id;
-    a.target = "_blank"; a.rel="noopener";
-    t.appendChild(a);
+    const title = document.createElement("div"); title.className="title";
+    const a = document.createElement("a"); a.href = href; a.target="_blank"; a.rel="noopener";
+    a.textContent = item.title || item.reference || item.id;
+    title.appendChild(a);
+
     const meta = document.createElement("div"); meta.className="meta";
     if(item.jurisdiction) meta.append(item.jurisdiction.toUpperCase());
-    if(item.year) meta.append("· " + item.year);
+    if(item.year) meta.append(" · " + item.year);
     const chip = document.createElement("span"); chip.className="chip"; chip.textContent = sourceLabel;
     meta.append(chip);
-    const sn = document.createElement("div"); sn.className="snippet"; sn.innerHTML = snippetHTML;
+
+    card.append(title, meta);
+    for(const html of snippetsHTML){
+      const sn = document.createElement("div"); sn.className="snippet"; sn.innerHTML = html; card.appendChild(sn);
+    }
+
     const rl = document.createElement("div"); rl.className="rightlink";
-    const open = document.createElement("a"); open.href = absTxt; open.target="_blank"; open.rel="noopener"; open.textContent = "open TXT";
+    const open = document.createElement("a"); open.href = href; open.target="_blank"; open.rel="noopener"; open.textContent = "open TXT";
     rl.append("¶ ", open);
-    card.append(t, meta, sn, rl);
+    card.appendChild(rl);
     return card;
   }
 
-  async function runSearch(q){
-    const resultsEl = byId("results"); resultsEl.innerHTML="";
-    const countsEl = byId("counts");
-    const terms = parseTerms(q);
-    if(terms.length === 0){ countsEl.textContent = ""; return; }
+  async function searchAll(q){
+    const out = $("results"); out.innerHTML="";
+    const counts = $("counts"); counts.textContent="";
+    const terms = parseQuery(q);
+    if(terms.length===0) return;
 
-    let totals = {Textbooks:0, Laws:0, Rules:0};
-    for (const src of SOURCES){
-      const group = renderGroupHeader(src.name);
-      resultsEl.appendChild(group);
+    let tCount=0, lCount=0, rCount=0;
+    for(const src of SOURCES){
+      const group = renderGroup(src.name); out.appendChild(group);
 
-      let list;
-      try {
-        const catalogUrl = toAbs(src.base, src.catalog);
-        list = await fetchJSON(catalogUrl);
-      } catch (e){
-        const err = document.createElement("div");
-        err.className="err";
-        err.textContent = `Failed to load ${src.name} catalog.`;
-        group.appendChild(err);
-        continue;
+      let cat;
+      try{ cat = await jget(abs(src.base, src.catalog)); }
+      catch(e){ const err=document.createElement("div"); err.className="err"; err.textContent=`Failed to load ${src.name} catalog.`; group.appendChild(err); continue; }
+
+      const items = Array.isArray(cat) ? cat : (cat.items||[]);
+      // simple concurrency: fetch/read max 4 at a time
+      const batch = 4;
+      for(let i=0;i<items.length;i+=batch){
+        const slice = items.slice(i,i+batch);
+        await Promise.all(slice.map(async item=>{
+          const href = abs(src.base, item.url_txt || item.url || "");
+          if(!href) return;
+          try{
+            const text = await tget(href);
+            const textLower = text.toLowerCase();
+
+            // Find windows that contain ALL terms together
+            const windows = findWindows(textLower, terms, /*windowSize*/700, /*maxWins*/5);
+            if(windows.length===0) return;
+
+            const snippets = windows.map(w => highlight(makeSnippet(text, w), terms));
+            group.appendChild(renderDoc(item, snippets, href, src.name.toLowerCase()));
+            if(src.name==="Textbooks") tCount++; else if(src.name==="Laws") lCount++; else rCount++;
+          }catch(e){ /* ignore fetch errors per file */ }
+        }));
       }
 
-      // Defensive: catalogs may be arrays or {items:[]}
-      const items = Array.isArray(list) ? list : (list.items || []);
-      // Search each item by fetching its TXT (lightweight snippet scan).
-      for (const item of items){
-        const absTxt = toAbs(src.base, item.url_txt || item.url || "");
-        if(!absTxt) continue;
-        try{
-          const txt = await fetchText(absTxt);
-          const idx = firstMatchIndex(txt, terms);
-          if(idx === -1) continue;
-          const snippet = makeSnippet(txt, idx, 220);
-          const snippetHTML = highlight(snippet, terms);
-          group.appendChild(renderCard(item, snippetHTML, absTxt, src.name.toLowerCase()));
-          totals[src.name] += 1;
-        }catch(e){
-          // ignore fetch failures of individual docs
-        }
-      }
-      if(totals[src.name] === 0){
-        const none = document.createElement("div");
-        none.className="card"; none.style.color="var(--muted)";
-        none.textContent = "No matches.";
-        group.appendChild(none);
+      // If no matches in this group, say so
+      if( (src.name==="Textbooks" && tCount===0) ||
+          (src.name==="Laws" && lCount===0) ||
+          (src.name==="Rules" && rCount===0) ){
+        const none=document.createElement("div"); none.className="card"; none.style.color="var(--muted)";
+        none.textContent="No matches."; group.appendChild(none);
       }
     }
 
-    countsEl.textContent = `Loaded → Textbooks: ${totals.Textbooks} · Laws: ${totals.Laws} · Rules: ${totals.Rules}`;
+    counts.textContent = `Matches — Textbooks: ${tCount} · Laws: ${lCount} · Rules: ${rCount}`;
   }
 
-  // Wire up
-  const form = document.getElementById("qform");
-  const input = document.getElementById("q");
-  form.addEventListener("submit",(e)=>{
-    e.preventDefault(); // IMPORTANT: keep SPA behaviour
-    runSearch(input.value);
-  });
+  // Wireup
+  const form = $("qform"); const q = $("q");
+  form.addEventListener("submit", (e)=>{ e.preventDefault(); searchAll(q.value); });
 
-  // If a ?q= param exists, preload it
-  const params = new URLSearchParams(location.search);
-  const q0 = params.get("q");
-  if(q0){ input.value = q0; runSearch(q0); }
-
+  // support ?q=
+  const p = new URLSearchParams(location.search); const q0 = p.get("q");
+  if(q0){ q.value = q0; searchAll(q0); }
   </script>
 </body>
 </html>
