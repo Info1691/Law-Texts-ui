@@ -6,7 +6,6 @@
   <title>Trust Law Textbooks — Search (beta)</title>
   <link rel="stylesheet" href="./style.css" />
   <style>
-    /* minimal safety styling in case style.css is absent */
     body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:0;background:#0b3150;}
     header{background:#0b3150;color:#fff;padding:12px 16px;display:flex;align-items:center;gap:.75rem}
     header a{color:#9ec7ff;text-decoration:none}
@@ -14,7 +13,7 @@
     .wrap{max-width:1000px;margin:0 auto}
     h1{font-size:20px;margin:0}
     .crumbs{font-size:.9rem;opacity:.8;margin-bottom:8px}
-    form{display:flex;gap:.5rem;margin:.5rem 0 4px 0}
+    .row{display:flex;gap:.5rem;margin:.5rem 0 4px 0}
     input[type="search"]{flex:1;padding:10px 12px;border:1px solid #cfd6de;border-radius:8px;background:#fff;font-size:16px}
     button{padding:10px 14px;border:0;border-radius:8px;background:#0d6efd;color:#fff;font-weight:600;cursor:pointer}
     #counts{font-size:.9rem;color:#566577;margin:6px 2px 16px}
@@ -41,11 +40,11 @@
       <div class="crumbs"><a href="./index.html">Catalog</a> / <strong>Search (beta)</strong></div>
       <h1>Trust Law Textbooks — Search (beta)</h1>
 
-      <form id="searchForm">
-        <input id="q" type="search" autocomplete="off"
+      <div class="row" role="search">
+        <input id="q" type="search" autocomplete="off" spellcheck="false"
                placeholder="Search textbooks + laws + rules… e.g., Beddoe, beneficiaries’ consent, litigation costs" />
-        <button id="go" type="submit">Search</button>
-      </form>
+        <button id="go" type="button">Search</button>
+      </div>
 
       <div id="counts">Searches: <strong>Textbooks</strong> (public catalog) + <strong>Laws</strong> (laws-ui) + <strong>Rules</strong> (rules-ui). Results show quotable snippets; click the title to open the full TXT.</div>
 
@@ -53,6 +52,7 @@
     </div>
   </main>
 
-  <script src="./search.js"></script>
+  <!-- cache-bust the JS so an old copy can’t linger -->
+  <script src="./search.js?v=3"></script>
 </body>
 </html>
