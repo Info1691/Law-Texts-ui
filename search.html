@@ -2,282 +2,226 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Trust Law Textbooks — Search (beta)</title>
-  <link rel="icon" href="logo.svg" />
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
-    /* small page-specific touches */
-    .note { font-size:.9rem; opacity:.75; }
-    .pill { display:inline-block; padding:.15rem .45rem; border-radius:999px; border:1px solid #d8dee4; font-size:.75rem; margin-left:.35rem; }
-    .hit { background:#fff; border:1px solid #e6e8eb; border-radius:12px; padding:1rem 1.2rem; margin:.8rem 0; }
-    .hit h3 { margin:0 0 .35rem 0; font-size:1.05rem; }
-    .hit small { display:block; margin:.35rem 0 .2rem; color:#6b7280; }
-    mark { background:#fff3a3; }
-    .err { background:#fff5f5; border:1px solid #ffd7d7; color:#8b0000; padding:.6rem .8rem; border-radius:10px; margin-top:1rem; }
-    .src-line { font-size:.85rem; opacity:.8; margin:.4rem 0 0 0; }
-    .actions { display:flex; gap:.5rem; margin-top:.35rem; }
-    .btn-xs { font-size:.75rem; padding:.2rem .5rem; border:1px solid #cfd8e3; border-radius:8px; background:#f8fafc; text-decoration:none; }
+    :root{
+      --bg:#0f2f46; --ink:#0b1f2c; --muted:#6a7a86; --card:#fff; --ring:#e7edf2;
+      --chip:#eef3f6; --chip-t:#0f2f46; --maxw:1024px; --r:12px;
+      --shadow:0 1px 2px rgba(10,22,34,.06),0 4px 14px rgba(10,22,34,.07)
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial}
+    a{color:inherit;text-decoration:none}
+    header{background:var(--bg);color:#fff}
+    .bar{max-width:var(--maxw);margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:700}
+    .brand img{height:28px;width:auto;display:block}
+    .brand small{opacity:.8;font-weight:500}
+    main{max-width:var(--maxw);margin:18px auto 64px;padding:0 16px}
+    .crumb{font-size:.9rem;color:var(--muted);margin-bottom:10px}
+    h1{font-size:1.2rem;margin:0 0 10px}
+    .row{display:flex;gap:10px;margin:10px 0 16px}
+    input[type="search"]{flex:1;padding:12px 14px;border:1px solid var(--ring);border-radius:10px;font-size:1rem}
+    button{padding:12px 16px;border:0;border-radius:10px;background:#1779c6;color:#fff;font-weight:600;cursor:pointer}
+    .hint{font-size:.9rem;color:var(--muted)}
+    .group{margin:18px 0}
+    .group h2{font-size:1rem;margin:0 0 10px;color:var(--muted)}
+    .card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:14px;margin-bottom:12px;border:1px solid var(--ring)}
+    .title{font-weight:700;margin-bottom:6px}
+    .meta{font-size:.85rem;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+    .chip{background:var(--chip);color:var(--chip-t);font-size:.75rem;padding:3px 8px;border-radius:999px}
+    .snippet{line-height:1.45}
+    mark{background:#ffe58f;padding:0 .1em}
+    .rightlink{font-size:.85rem}
+    .counts{font-size:.9rem;color:var(--muted);margin:6px 0 0}
+    .err{color:#b40028}
+    .topnav{margin-left:auto}
+    .topnav a{color:#cfe7f7;font-size:.95rem}
   </style>
 </head>
-
 <body>
-  <header class="appbar">
-    <div class="appbar__left">
-      <img src="logo.svg" alt="" class="appbar__logo" />
-      <div class="appbar__title">Trust Law Textbooks</div>
-      <div class="appbar__crumb">Search (beta)</div>
-    </div>
-    <div class="appbar__right">
-      <a class="btn" href="./index.html">Catalog</a>
+  <header>
+    <div class="bar">
+      <a class="brand" href="./index.html">
+        <!-- YOUR LOGO -->
+        <img src="./logo.png" alt="BCB" />
+        <span>Trust Law Textbooks</span>
+        <small>Search (beta)</small>
+      </a>
+      <div class="topnav"><a href="./index.html">Catalog</a></div>
     </div>
   </header>
 
-  <main class="container" style="max-width:1100px;">
-    <form id="qform" class="searchbar" style="margin-top:1rem;">
-      <input id="q" type="search" required placeholder="Search textbooks + laws + rules… e.g., Beddoe, beneficiaries’ consent, litigation costs" />
-      <button class="btn" id="go" type="submit">Search</button>
+  <main>
+    <div class="crumb"><a href="./index.html">Catalog</a> / Search (beta)</div>
+    <h1>Trust Law Textbooks — Search (beta)</h1>
+
+    <form class="row" id="qform">
+      <input id="q" type="search" placeholder="Search textbooks + laws + rules… e.g., Beddoe, beneficiaries’ consent, litigation costs" autocomplete="on" />
+      <button type="submit">Search</button>
     </form>
+    <div class="hint">Searches: <b>Textbooks</b> (public catalog) + <b>Laws</b> (laws-ui) + <b>Rules</b> (rules-ui). Results show quotable snippets; click the title to open the full TXT.</div>
 
-    <p class="note">
-      Searches: <strong>Textbooks</strong> (public catalog) + <strong>Laws</strong> (laws-ui) + <strong>Rules</strong> (rules-ui).
-      Results show quotable snippets; click the title to open the full TXT.
-    </p>
-
-    <div id="status" class="note"></div>
-    <div id="errors"></div>
+    <div id="counts" class="counts"></div>
     <div id="results"></div>
   </main>
 
   <script>
-  // ---------- RULE 10: set data sources once ----------
-  const SOURCES = {
-    textbooksIndex: 'https://info1691.github.io/law-index/catalogs/ingest-catalog.json',
-    lawsIndex:      'https://info1691.github.io/laws-ui/laws.json',
-    rulesIndex:     'https://info1691.github.io/rules-ui/rules.json',
-    // bases used to resolve relative url_txt entries
-    lawsBase:       'https://info1691.github.io/laws-ui/',
-    rulesBase:      'https://info1691.github.io/rules-ui/'
-  };
-
-  // ---------- tiny helpers ----------
-  const $ = sel => document.querySelector(sel);
-  const esc = s => (s+'').replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
-  const sleep = ms => new Promise(r=>setTimeout(r,ms));
-
-  function normalizeQuery(q) {
-    return q.trim().replace(/\s+/g,' ').toLowerCase();
-  }
-
-  function highlight(text, terms) {
-    if (!terms.length) return esc(text);
-    // build simple word-boundary regex for all terms
-    const re = new RegExp('(' + terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|') + ')', 'gi');
-    return esc(text).replace(re, '<mark>$1</mark>');
-  }
-
-  function andMatch(haystack, terms) {
-    const s = haystack.toLowerCase();
-    return terms.every(t => s.includes(t));
-  }
-
-  function guessTxtUrlFromCatalogItem(item) {
-    // try explicit fields first
-    if (item.url_txt) {
-      return item.url_txt.startsWith('http')
-        ? item.url_txt
-        : new URL(item.url_txt, 'https://info1691.github.io/law-index/').href;
+  // ---------- CONFIG: public catalogs ----------
+  const SOURCES = [
+    {
+      name: "Textbooks",
+      kind: "textbooks",
+      base: "https://info1691.github.io/law-index/",
+      catalog: "catalogs/ingest-catalog.json"
+    },
+    {
+      name: "Laws",
+      kind: "laws",
+      base: "https://info1691.github.io/laws-ui/",
+      catalog: "laws.json"
+    },
+    {
+      name: "Rules",
+      kind: "rules",
+      base: "https://info1691.github.io/rules-ui/",
+      catalog: "rules.json"
     }
-    // many of your catalog items have an 'hrefTxt' or a 'paths.txt' flavor; try common fallbacks
-    if (item.hrefTxt) return item.hrefTxt;
-    if (item.paths && item.paths.txt) {
-      return item.paths.txt.startsWith('http')
-        ? item.paths.txt
-        : new URL(item.paths.txt, 'https://info1691.github.io/law-index/').href;
+  ];
+
+  // Utility
+  const byId = (id)=>document.getElementById(id);
+  const toAbs = (base, url) => new URL(url, base).href;
+
+  function parseTerms(q){
+    return q.toLowerCase().trim().split(/\s+/).filter(Boolean);
+  }
+  function firstMatchIndex(hay, terms){
+    hay = hay.toLowerCase();
+    let idx = -1;
+    for(const t of terms){
+      const i = hay.indexOf(t);
+      if(i !== -1 && (idx === -1 || i < idx)) idx = i;
     }
-    // conservative guess using id/jurisdiction (only if both seem present)
-    if (item.id && item.jurisdiction) {
-      return `https://info1691.github.io/law-index/texts/${item.jurisdiction}/${item.id}.txt`;
-    }
-    return null;
+    return idx;
+  }
+  function makeSnippet(txt, idx, span=160){
+    const start = Math.max(0, idx - Math.floor(span/2));
+    const end = Math.min(txt.length, start + span);
+    return (start>0?"…":"") + txt.slice(start, end) + (end<txt.length?"…":"");
+  }
+  function highlight(snippet, terms){
+    let out = snippet;
+    // simple, safe highlight (small queries)
+    terms.forEach(t=>{
+      const re = new RegExp("(" + t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "gi");
+      out = out.replace(re,"<mark>$1</mark>");
+    });
+    return out;
   }
 
-  function resolveRelative(base, maybeRel) {
-    return maybeRel.startsWith('http') ? maybeRel : new URL(maybeRel, base).href;
+  async function fetchJSON(url){
+    const r = await fetch(url, {mode:"cors"});
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    return await r.json();
+  }
+  async function fetchText(url){
+    const r = await fetch(url, {mode:"cors"});
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    return await r.text();
   }
 
-  async function fetchJSON(url) {
-    const r = await fetch(url, { cache:'no-store' });
-    if (!r.ok) throw new Error(`HTTP ${r.status} for ${url}`);
-    return r.json();
+  function renderGroupHeader(name){ 
+    const g = document.createElement("div"); g.className="group";
+    const h = document.createElement("h2"); h.textContent = name;
+    g.appendChild(h);
+    return g;
+  }
+  function renderCard(item, snippetHTML, absTxt, sourceLabel){
+    const card = document.createElement("div"); card.className="card";
+    const t = document.createElement("div"); t.className="title";
+    const a = document.createElement("a"); a.href = absTxt; a.textContent = item.title || item.reference || item.id;
+    a.target = "_blank"; a.rel="noopener";
+    t.appendChild(a);
+    const meta = document.createElement("div"); meta.className="meta";
+    if(item.jurisdiction) meta.append(item.jurisdiction.toUpperCase());
+    if(item.year) meta.append("· " + item.year);
+    const chip = document.createElement("span"); chip.className="chip"; chip.textContent = sourceLabel;
+    meta.append(chip);
+    const sn = document.createElement("div"); sn.className="snippet"; sn.innerHTML = snippetHTML;
+    const rl = document.createElement("div"); rl.className="rightlink";
+    const open = document.createElement("a"); open.href = absTxt; open.target="_blank"; open.rel="noopener"; open.textContent = "open TXT";
+    rl.append("¶ ", open);
+    card.append(t, meta, sn, rl);
+    return card;
   }
 
-  async function fetchText(url) {
-    const r = await fetch(url, { cache:'no-store' });
-    if (!r.ok) throw new Error(`HTTP ${r.status} for ${url}`);
-    return r.text();
-  }
+  async function runSearch(q){
+    const resultsEl = byId("results"); resultsEl.innerHTML="";
+    const countsEl = byId("counts");
+    const terms = parseTerms(q);
+    if(terms.length === 0){ countsEl.textContent = ""; return; }
 
-  function showError(msg) {
-    $('#errors').insertAdjacentHTML('beforeend', `<div class="err">${esc(msg)}</div>`);
-  }
+    let totals = {Textbooks:0, Laws:0, Rules:0};
+    for (const src of SOURCES){
+      const group = renderGroupHeader(src.name);
+      resultsEl.appendChild(group);
 
-  function setStatus(msg) {
-    $('#status').textContent = msg;
-  }
-
-  // ---------- search pipeline ----------
-  async function runSearch(rawQ) {
-    $('#errors').innerHTML = '';
-    $('#results').innerHTML = '';
-    const q = normalizeQuery(rawQ);
-    if (!q) return;
-    const terms = q.split(' ');
-
-    setStatus('Loading indices…');
-
-    // 1) load indices
-    let textbooks = [];
-    let laws = [];
-    let rules = [];
-
-    try {
-      const cat = await fetchJSON(SOURCES.textbooksIndex);
-      // Expect an array of catalog items; filter those we can resolve to TXT
-      textbooks = (Array.isArray(cat) ? cat : (cat.items || [])).map(it => ({
-        kind: 'Textbooks',
-        title: it.title || it.reference || it.id || 'Untitled',
-        jurisdiction: (it.jurisdiction || '').toUpperCase(),
-        url: guessTxtUrlFromCatalogItem(it)
-      })).filter(x => !!x.url);
-    } catch (e) {
-      showError('Failed loading textbooks index: ' + e.message);
-    }
-
-    try {
-      const arr = await fetchJSON(SOURCES.lawsIndex);
-      laws = arr.map(it => ({
-        kind: 'Laws',
-        title: it.title || it.reference || it.id || 'Untitled',
-        jurisdiction: (it.jurisdiction || '').toUpperCase(),
-        url: resolveRelative(SOURCES.lawsBase, it.url_txt)
-      }));
-    } catch (e) {
-      showError('Failed loading laws index: ' + e.message);
-    }
-
-    try {
-      const arr = await fetchJSON(SOURCES.rulesIndex);
-      rules = arr.map(it => ({
-        kind: 'Rules',
-        title: it.title || it.reference || it.id || 'Untitled',
-        jurisdiction: (it.jurisdiction || '').toUpperCase(),
-        url: resolveRelative(SOURCES.rulesBase, it.url_txt)
-      }));
-    } catch (e) {
-      showError('Failed loading rules index: ' + e.message);
-    }
-
-    const pool = [...textbooks, ...laws, ...rules];
-    if (!pool.length) {
-      setStatus('No sources available.');
-      return;
-    }
-
-    setStatus(`Searching ${pool.length} documents…`);
-    await sleep(10); // allow paint
-
-    // 2) stream through texts, collect hits (very simple full-text scan)
-    const hits = [];
-    for (const doc of pool) {
+      let list;
       try {
-        const txt = await fetchText(doc.url);
-        // quick AND match gate
-        if (!andMatch(txt, terms)) continue;
+        const catalogUrl = toAbs(src.base, src.catalog);
+        list = await fetchJSON(catalogUrl);
+      } catch (e){
+        const err = document.createElement("div");
+        err.className="err";
+        err.textContent = `Failed to load ${src.name} catalog.`;
+        group.appendChild(err);
+        continue;
+      }
 
-        // grab a few snippets
-        const lower = txt.toLowerCase();
-        let pos = 0, found = 0;
-        const snippets = [];
-        while (found < 3) {
-          const idx = lower.indexOf(terms[0], pos);
-          if (idx === -1) break;
-          const start = Math.max(0, idx - 140);
-          const end   = Math.min(txt.length, idx + 140);
-          const chunk = txt.slice(start, end).replace(/\s+/g,' ').trim();
-          if (andMatch(chunk, terms)) {
-            snippets.push(chunk);
-            found++;
-          }
-          pos = idx + terms[0].length;
+      // Defensive: catalogs may be arrays or {items:[]}
+      const items = Array.isArray(list) ? list : (list.items || []);
+      // Search each item by fetching its TXT (lightweight snippet scan).
+      for (const item of items){
+        const absTxt = toAbs(src.base, item.url_txt || item.url || "");
+        if(!absTxt) continue;
+        try{
+          const txt = await fetchText(absTxt);
+          const idx = firstMatchIndex(txt, terms);
+          if(idx === -1) continue;
+          const snippet = makeSnippet(txt, idx, 220);
+          const snippetHTML = highlight(snippet, terms);
+          group.appendChild(renderCard(item, snippetHTML, absTxt, src.name.toLowerCase()));
+          totals[src.name] += 1;
+        }catch(e){
+          // ignore fetch failures of individual docs
         }
-        if (snippets.length) hits.push({ doc, snippets });
-      } catch (e) {
-        // network/file issues shouldn’t kill the whole search
-        showError(`Read failed for ${doc.title}: ${e.message}`);
+      }
+      if(totals[src.name] === 0){
+        const none = document.createElement("div");
+        none.className="card"; none.style.color="var(--muted)";
+        none.textContent = "No matches.";
+        group.appendChild(none);
       }
     }
 
-    // 3) render
-    setStatus(`Loaded → Textbooks: ${textbooks.length} • Laws: ${laws.length} • Rules: ${rules.length} • Matches: ${hits.length}`);
-    const out = $('#results');
-    if (!hits.length) {
-      out.innerHTML = `<p class="note">No matches. Try fewer words or different phrasing (e.g., “Beddoe costs consent”).</p>`;
-      return;
-    }
-
-    // group by kind
-    const byKind = hits.reduce((m, h) => {
-      (m[h.doc.kind] ||= []).push(h);
-      return m;
-    }, {});
-
-    for (const kind of ['Laws','Rules','Textbooks']) {
-      const group = byKind[kind] || [];
-      if (!group.length) continue;
-      out.insertAdjacentHTML('beforeend', `<h2 style="margin-top:1.25rem;">${kind}</h2>`);
-      for (const h of group) {
-        const href = h.doc.url;
-        const head =
-          `<div class="hit">
-            <h3><a href="${esc(href)}" target="_blank" rel="noopener">${esc(h.doc.title)}</a>
-              <span class="pill">${esc(h.doc.jurisdiction || '')}</span>
-              <span class="pill">${esc(kind)}</span>
-            </h3>
-            ${h.snippets.map(s => `<p>${highlight(s, terms)}</p>`).join('')}
-            <div class="actions">
-              <a class="btn-xs" href="${esc(href)}" target="_blank" rel="noopener">open TXT</a>
-              <span class="src-line">${esc(href)}</span>
-            </div>
-          </div>`;
-        out.insertAdjacentHTML('beforeend', head);
-      }
-    }
+    countsEl.textContent = `Loaded → Textbooks: ${totals.Textbooks} · Laws: ${totals.Laws} · Rules: ${totals.Rules}`;
   }
 
-  // ---------- wire UI ----------
-  document.addEventListener('DOMContentLoaded', () => {
-    const form = $('#qform');
-    const box = $('#q');
-
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      runSearch(box.value);
-    });
-
-    // allow pressing Enter to fire even without the button
-    box.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        runSearch(box.value);
-      }
-    });
-
-    // if there’s a ?q= param, run immediately (handy for deep-links)
-    const p = new URLSearchParams(location.search);
-    const q0 = p.get('q');
-    if (q0) { box.value = q0; runSearch(q0); }
+  // Wire up
+  const form = document.getElementById("qform");
+  const input = document.getElementById("q");
+  form.addEventListener("submit",(e)=>{
+    e.preventDefault(); // IMPORTANT: keep SPA behaviour
+    runSearch(input.value);
   });
+
+  // If a ?q= param exists, preload it
+  const params = new URLSearchParams(location.search);
+  const q0 = params.get("q");
+  if(q0){ input.value = q0; runSearch(q0); }
+
   </script>
 </body>
 </html>
