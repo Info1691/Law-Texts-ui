@@ -1,185 +1,225 @@
-// Robust search for textbooks + laws + rules.
-// Works with multiple catalog shapes and link key names.
+/* Search across Textbooks (public), Laws (local), Rules (local)
+   - AND logic: every term must appear within the same window
+   - Highlights matches and shows multiple snippets per doc
+   - Robust to slight catalog shape differences (url_txt/url/href)
+*/
 
-const EL = {
-  form:  document.getElementById('qform'),
-  q:     document.getElementById('q'),
-  meter: document.getElementById('meter'),
-  tb:    document.querySelector('#results-textbooks .results'),
-  la:    document.querySelector('#results-laws .results'),
-  ru:    document.querySelector('#results-rules .results')
-};
+const SECTIONS = [
+  {
+    key: 'textbooks',
+    title: 'Textbooks',
+    // Public catalog of ingested books
+    catalog: 'https://info1691.github.io/law-index/catalogs/ingest-catalog.json',
+    map: (it) => ({
+      id: it.id || it.reference || it.title,
+      title: it.title || it.reference || '(untitled)',
+      href: it.url_txt || it.url || it.href || it.urlTxt || '',
+      meta: [
+        (it.jurisdiction || '').toUpperCase(),
+        it.year ? String(it.year) : '',
+        'textbooks'
+      ].filter(Boolean).join(' · ')
+    })
+  },
+  {
+    key: 'laws',
+    title: 'Laws',
+    catalog: './laws.json',
+    map: (it) => ({
+      id: it.id || it.reference || it.title,
+      title: it.title || it.reference || '(untitled)',
+      href: it.url_txt || it.url || it.href || '',
+      meta: [
+        (it.jurisdiction || '').toUpperCase(),
+        it.reference || '',
+        'laws'
+      ].filter(Boolean).join(' · ')
+    })
+  },
+  {
+    key: 'rules',
+    title: 'Rules',
+    catalog: './rules.json',
+    map: (it) => ({
+      id: it.id || it.reference || it.title,
+      title: it.title || it.reference || '(untitled)',
+      href: it.url_txt || it.url || it.href || '',
+      meta: [
+        (it.jurisdiction || '').toUpperCase(),
+        it.reference || '',
+        'rules'
+      ].filter(Boolean).join(' · ')
+    })
+  }
+];
 
-if (!EL.form || !EL.q) {
-  if (EL.meter) EL.meter.textContent = 'Error: search page HTML does not match JS (missing #qform/#q).';
-  throw new Error('search: missing #qform/#q');
+const qs = (sel, el=document) => el.querySelector(sel);
+const qsa = (sel, el=document) => [...el.querySelectorAll(sel)];
+
+const countsEl   = qs('[data-counts]');
+const inputEl    = qs('input[data-q]');
+const formEl     = qs('form[data-form="search"]');
+
+formEl.addEventListener('submit', (e) => { e.preventDefault(); runSearch(); });
+window.addEventListener('DOMContentLoaded', () => {
+  // allow ?q=term in URL
+  const u = new URL(location.href);
+  const pre = u.searchParams.get('q');
+  if (pre) inputEl.value = pre;
+  runSearch();
+});
+
+function termsFrom(q){
+  return (q || '').toLowerCase()
+    .replace(/[“”‘’]/g,'"')
+    .split(/[\s+]+/)            // spaces or '+' act as AND
+    .map(t => t.trim())
+    .filter(Boolean);
 }
 
-const URLS = {
-  TEXTBOOKS: 'https://info1691.github.io/law-index/catalogs/ingest-catalog.json',
-  LAWS:      'https://info1691.github.io/laws-ui/laws.json',
-  RULES:     'https://info1691.github.io/rules-ui/rules.json',
-};
+async function runSearch(){
+  const q = inputEl.value.trim();
+  const terms = termsFrom(q);
+  // clear old
+  for (const s of SECTIONS) qs(`section[data-section="${s.key}"]`).innerHTML = '';
+  updateCounts({textbooks:0, laws:0, rules:0});
 
-// ---- helpers ---------------------------------------------------------------
+  if (!q) return;
 
-const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const words = q => (q||'').toLowerCase().split(/[\s+]+/).map(s=>s.trim()).filter(Boolean);
-const reEscape = s => s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-const mark = (t, terms) => terms.reduce((m,w)=>m.replace(new RegExp(`(\\b${reEscape(w)}\\b)`,'gi'),'<mark>$1</mark>'), t);
-const resolve = (base, rel)=>{ try{ return new URL(rel, base).href; }catch{ return rel; } };
-const fetchJSON = u => fetch(u,{cache:'no-store'}).then(r=>{ if(!r.ok) throw new Error(`${r.status} ${u}`); return r.json(); });
-const fetchTXT  = u => fetch(u,{cache:'no-store'}).then(r=>{ if(!r.ok) throw new Error(`${r.status} ${u}`); return r.text(); });
+  // fetch catalogs in parallel
+  const catalogs = await Promise.all(SECTIONS.map(loadCatalogSafe));
+  const byKey = Object.fromEntries(SECTIONS.map((s,i) => [s.key, catalogs[i]]));
 
-// accept arrays or objects like {items:[...]} / {documents:[...]} / {rows:[...]}
-function rows(data){
-  if (Array.isArray(data)) return data;
-  if (data && Array.isArray(data.items)) return data.items;
-  if (data && Array.isArray(data.documents)) return data.documents;
-  if (data && Array.isArray(data.rows)) return data.rows;
-  return [];
+  // search each section
+  for (const s of SECTIONS) {
+    await searchSection(s.key, byKey[s.key], terms);
+  }
 }
 
-// accept many possible link keys
-function pickTxtUrl(doc){
-  return (
-    doc.url_txt ||
-    doc.txt_url ||
-    doc.txt ||
-    doc.href_txt ||
-    doc.href ||
-    doc.url ||
-    doc.path ||
-    (doc.files && doc.files.txt)
-  );
+function updateCounts(obj){
+  countsEl.textContent = `Matches — Textbooks: ${obj.textbooks||0} · Laws: ${obj.laws||0} · Rules: ${obj.rules||0}`;
 }
 
-function snippetsAND(text, terms, win=900, max=18) {
-  const low = text.toLowerCase();
-  const anchor = [...terms].sort((a,b)=> (low.split(a).length)-(low.split(b).length))[0] || '';
-  if (!anchor) return [];
-  const idxs = []; let i=0; while((i=low.indexOf(anchor,i))!==-1){ idxs.push(i); i+=anchor.length; }
+async function loadCatalogSafe(section){
+  try{
+    const res = await fetch(section.catalog, { cache: 'no-store' });
+    const json = await res.json();
+    const arr = Array.isArray(json) ? json : (json.items || []);
+    const mapped = arr.map(section.map).filter(x => !!x.href);
+    return mapped;
+  }catch(err){
+    console.warn('Catalog load failed:', section.title, err);
+    return [];
+  }
+}
+
+async function searchSection(key, items, terms){
+  const container = qs(`section[data-section="${key}"]`);
+  if (!items.length){
+    container.insertAdjacentHTML('beforeend',
+      `<div class="muted">No items found in ${key} catalog.</div>`);
+    return;
+  }
+
+  let total = 0;
+
+  // We’ll cap fetch concurrency a little to avoid mobile overload
+  const chunk = 3;
+  for (let i=0; i<items.length; i+=chunk){
+    const slice = items.slice(i, i+chunk);
+    const texts = await Promise.all(slice.map(getTextSafe));
+    slice.forEach((item, idx) => {
+      if (!texts[idx] || !texts[idx].ok){
+        container.insertAdjacentHTML('beforeend',
+          `<div class="muted">Fetch failed: ${escapeHTML(item.title)} (<a href="${escapeAttr(item.href)}" target="_blank" rel="noopener">${escapeHTML(item.href)}</a>)</div>`);
+        return;
+      }
+      const txt = texts[idx].text;
+      const snippets = findSnippets(txt, terms, 420, 6);
+      if (snippets.length){
+        total += snippets.length;
+        const snippetHTML = snippets.map(s => `<p>${highlightTerms(s, terms)}</p>`).join('');
+        container.insertAdjacentHTML('beforeend', `
+          <article class="card">
+            <div class="meta">${escapeHTML(item.meta || '')}</div>
+            <h3><a href="${escapeAttr(item.href)}" target="_blank" rel="noopener">${escapeHTML(item.title)}</a></h3>
+            ${snippetHTML}
+            <p class="open"><a href="${escapeAttr(item.href)}" target="_blank" rel="noopener">open TXT</a></p>
+          </article>
+        `);
+      }
+    });
+  }
+
+  // bump counts
+  const current = countsEl.textContent.match(/Textbooks:\s*(\d+).*Laws:\s*(\d+).*Rules:\s*(\d+)/);
+  const now = { textbooks:0, laws:0, rules:0 };
+  if (current) { now.textbooks = +current[1]; now.laws = +current[2]; now.rules = +current[3]; }
+  now[key] = total;
+  updateCounts(now);
+}
+
+async function getTextSafe(item){
+  try{
+    // Resolve relative paths safely
+    const href = new URL(item.href, location.href).toString();
+    const res = await fetch(href, { cache:'no-store' });
+    if (!res.ok) return { ok:false };
+    const text = await res.text();
+    return { ok:true, text };
+  }catch(e){
+    return { ok:false };
+  }
+}
+
+function findSnippets(text, terms, window=420, maxPerDoc=6){
+  if (!terms.length) return [];
+  const lower = text.toLowerCase();
+  const needles = terms.slice();
+
+  // choose the rarest term as anchor for efficiency
+  let anchor = needles[0], minCount = Infinity;
+  for (const t of needles){
+    const c = countOccur(lower, t);
+    if (c < minCount){ minCount=c; anchor=t; }
+  }
+
   const out = [];
-  for (const a of idxs){
-    const start = Math.max(0, a - Math.floor(win/2));
-    const end   = Math.min(text.length, start + win);
-    const slice = low.slice(start, end);
-    if (terms.every(t => slice.includes(t))) {
-      out.push(text.slice(start,end).replace(/\s+/g,' ').trim());
-      if (out.length>=max) break;
+  let startIdx = 0;
+  while (out.length < maxPerDoc){
+    const idx = lower.indexOf(anchor, startIdx);
+    if (idx === -1) break;
+    const s = Math.max(0, idx - window);
+    const e = Math.min(text.length, idx + anchor.length + window);
+    const chunkLower = lower.slice(s, e);
+
+    const ok = needles.every(t => chunkLower.indexOf(t) !== -1);
+    if (ok){
+      out.push(text.slice(s, e));
+      startIdx = idx + anchor.length;
+    } else {
+      startIdx = idx + anchor.length;
     }
   }
   return out;
 }
 
-function card(doc, snips, terms){
-  const href = doc.url_resolved || '#';
-  const meta = `${(doc.jurisdiction||'').toUpperCase()}${doc.year?' · '+doc.year:''}${doc.reference?' · '+esc(doc.reference):''}`;
-  return `
-    <article class="card">
-      <header>
-        <a class="list-link" href="${href}" target="_blank" rel="noopener">${esc(doc.title||doc.id||'Document')}</a>
-        <span class="badge">${doc._bucket}</span>
-      </header>
-      <div class="meta small">${meta}</div>
-      ${snips.map(s=>`<div class="snippet">${mark(esc(s),terms)}</div>`).join('')}
-      <footer><a class="open" href="${href}" target="_blank" rel="noopener">open TXT</a></footer>
-    </article>
-  `;
+function highlightTerms(snippet, terms){
+  // simple, case-insensitive highlight
+  let html = escapeHTML(snippet);
+  for (const t of [...terms].sort((a,b)=>b.length-a.length)){
+    const re = new RegExp(`(${escapeReg(t)})`,'gi');
+    html = html.replace(re, '<mark>$1</mark>');
+  }
+  return html;
 }
 
-// ---- load catalogs ---------------------------------------------------------
-
-async function loadCatalogs(){
-  const [tbRaw, laRaw, ruRaw] = await Promise.all([
-    fetchJSON(URLS.TEXTBOOKS), fetchJSON(URLS.LAWS), fetchJSON(URLS.RULES)
-  ]);
-
-  const tbRows = rows(tbRaw);
-  const laRows = rows(laRaw);
-  const ruRows = rows(ruRaw);
-
-  const TB = tbRows.map(x=>{
-    const link = pickTxtUrl(x);
-    return {_bucket:'Textbooks', ...x, url_resolved: link ? resolve(URLS.TEXTBOOKS, link) : undefined};
-  });
-  const LA = laRows.map(x=>{
-    const link = pickTxtUrl(x);
-    return {_bucket:'Laws', ...x, url_resolved: link ? resolve(URLS.LAWS, link) : undefined};
-  });
-  const RU = ruRows.map(x=>{
-    const link = pickTxtUrl(x);
-    return {_bucket:'Rules', ...x, url_resolved: link ? resolve(URLS.RULES, link) : undefined};
-  });
-
-  EL.meter.textContent = `Loaded — Textbooks: ${TB.length} · Laws: ${LA.length} · Rules: ${RU.length}`;
-  return {TB,LA,RU};
+// helpers
+function countOccur(s, needle){
+  let c=0, i=0;
+  while ((i = s.indexOf(needle, i)) !== -1){ c++; i += needle.length; }
+  return c;
 }
-
-// ---- search ---------------------------------------------------------------
-
-async function searchBucket(list, terms, box){ 
-  let hits=0;
-  box.innerHTML='';
-  for (const d of list){
-    if (!d.url_resolved){
-      box.insertAdjacentHTML('beforeend',
-        `<div class="small muted">No TXT link in catalog item: <strong>${esc(d.title||d.id||'&mdash;')}</strong> (check keys like url_txt/txt_url/url/path).</div>`
-      );
-      continue;
-    }
-    try{
-      const body = await fetchTXT(d.url_resolved);
-      const snips = snippetsAND(body, terms, 900, 18);
-      if (snips.length){ box.insertAdjacentHTML('beforeend', card(d,snips,terms)); hits++; }
-    }catch(e){
-      box.insertAdjacentHTML('beforeend',
-        `<div class="small muted">Fetch failed: ${esc(d.title||d.id)} (${esc(d.url_resolved)})</div>`
-      );
-    }
-    await 0;
-  }
-  return hits;
-}
-
-// ---- boot -----------------------------------------------------------------
-
-(async function boot(){
-  let catalogs;
-  try {
-    catalogs = await loadCatalogs();
-  } catch (e) {
-    EL.meter.textContent = `Error loading catalogs: ${e.message}`;
-    return;
-  }
-
-  const params = new URLSearchParams(location.search);
-  const initial = params.get('q') || '';
-  EL.q.value = initial;
-
-  async function run(q){
-    const terms = words(q);
-    EL.tb.innerHTML = EL.la.innerHTML = EL.ru.innerHTML = '';
-    if (!terms.length){ EL.meter.textContent = 'Enter terms, then Search.'; return; }
-    EL.meter.textContent = 'Searching…';
-
-    const [tHits, lHits, rHits] = await Promise.all([
-      searchBucket(catalogs.TB, terms, EL.tb),
-      searchBucket(catalogs.LA, terms, EL.la),
-      searchBucket(catalogs.RU, terms, EL.ru),
-    ]);
-    EL.meter.textContent = `Matches — Textbooks: ${tHits} · Laws: ${lHits} · Rules: ${rHits}`;
-  }
-
-  EL.form.addEventListener('submit', e=>{
-    e.preventDefault();
-    const q = EL.q.value.trim();
-    const u = new URL(location.href);
-    if (q) u.searchParams.set('q', q); else u.searchParams.delete('q');
-    history.replaceState(null,'', u.toString());
-    run(q);
-  });
-
-  EL.meter.textContent = 'Ready.';
-  if (initial) run(initial);
-})();
+function escapeHTML(s){ return String(s).replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
+function escapeAttr(s){ return escapeHTML(s); }
+function escapeReg(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
