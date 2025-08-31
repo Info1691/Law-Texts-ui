@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Search (beta) — Textbooks + Laws + Rules</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="/logo.png">
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="bar">
+    <a class="brand" href="/index.html">
+      <img src="/logo.png" alt="BCB" />
+      <strong>Trust Law Textbooks</strong>
+    </a>
+    <nav class="nav">
+      <a class="pill" href="/index.html">Catalog</a>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <h1 class="page-title">Search (beta)</h1>
+
+    <form id="search-form" class="searchbar" action="/search.html" method="get">
+      <input id="q" name="q" type="text" placeholder="Search textbooks + laws + rules… e.g., Beddoe, beneficiaries' consent, litigation costs" />
+      <button type="submit" class="pill">Search</button>
+    </form>
+
+    <p class="muted">
+      Searches: <strong>Textbooks</strong> (public catalog) + <strong>Laws</strong> (laws-ui) + <strong>Rules</strong> (rules-ui).
+      Results show quotable snippets; click the title to open the full TXT.
+    </p>
+
+    <p id="counts" class="muted">Matches — Textbooks: 0 · Laws: 0 · Rules: 0</p>
+
+    <section>
+      <h2>Textbooks</h2>
+      <div id="results-textbooks" class="results"></div>
+    </section>
+
+    <section>
+      <h2>Laws</h2>
+      <div id="results-laws" class="results"></div>
+    </section>
+
+    <section>
+      <h2>Rules</h2>
+      <div id="results-rules" class="results"></div>
+    </section>
+  </main>
+
+  <script src="/search.js"></script>
+</body>
+</html>
