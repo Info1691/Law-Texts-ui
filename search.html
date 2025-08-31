@@ -1,31 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Trust Law Textbooks — Search (beta)</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
 <body>
   <header class="bar">
-    <div class="brand">
-      <a href="./index.html" class="home">Catalog</a>
-      <span> / </span>
-      <strong>Search (beta)</strong>
+    <div class="brand logo">
+      <img src="./logo.png" alt="BCB" />
+      <a class="home" href="./"><strong>Trust Law Textbooks</strong></a>
+      <span class="muted small">Search (beta)</span>
     </div>
-    <form data-form class="searchbar">
-      <input data-q type="text" placeholder="Search textbooks + laws + rules… e.g., Beddoe, beneficiaries’ consent, litigation costs">
+
+    <form id="qform" class="searchbar" role="search">
+      <input id="q" name="q" type="search"
+             placeholder="Search textbooks + laws + rules… e.g., Beddoe, beneficiaries’ consent, litigation costs" />
       <button type="submit">Search</button>
     </form>
+
+    <a class="btn" href="./">Catalog</a>
   </header>
 
   <main class="wrap">
-    <p class="muted">Searches: <strong>Textbooks</strong> (public catalog) + <strong>Laws</strong> (laws-ui) + <strong>Rules</strong> (rules-ui).
-      Passages show quotable snippets; click the title to open the full TXT.</p>
-    <p class="muted" data-counts>Matches — Textbooks: 0 · Laws: 0 · Rules: 0</p>
+    <p class="small muted">
+      Searches: <strong>Textbooks</strong> (public catalog) + <strong>Laws</strong> (laws-ui) +
+      <strong>Rules</strong> (rules-ui). Results show quotable snippets; click the title to open the full TXT.
+    </p>
 
-    <h2>Textbooks</h2>
-    <section data-section="textbooks" class="results"></section>
+    <p id="meter" class="small muted">Matches — Textbooks: 0 · Laws: 0 · Rules: 0</p>
 
-    <h2>Laws</h2>
-    <section data-section="laws" class="results"></section>
+    <section id="results-textbooks">
+      <h2>Textbooks</h2>
+      <div class="results"></div>
+    </section>
 
-    <h2>Rules</h2>
-    <section data-section="rules" class="results"></section>
+    <section id="results-laws">
+      <h2>Laws</h2>
+      <div class="results"></div>
+    </section>
+
+    <section id="results-rules">
+      <h2>Rules</h2>
+      <div class="results"></div>
+    </section>
   </main>
 
-  <!-- search engine -->
-  <script src="./search.js"></script>
+  <script src="./search.js" defer></script>
 </body>
+</html>
