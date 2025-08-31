@@ -1,225 +1,184 @@
-/* Search across Textbooks (public), Laws (local), Rules (local)
-   - AND logic: every term must appear within the same window
-   - Highlights matches and shows multiple snippets per doc
-   - Robust to slight catalog shape differences (url_txt/url/href)
-*/
+/* /texts/search.js  — searches Textbooks + Laws + Rules (AND across terms) */
 
-const SECTIONS = [
-  {
-    key: 'textbooks',
-    title: 'Textbooks',
-    // Public catalog of ingested books
-    catalog: 'https://info1691.github.io/law-index/catalogs/ingest-catalog.json',
-    map: (it) => ({
-      id: it.id || it.reference || it.title,
-      title: it.title || it.reference || '(untitled)',
-      href: it.url_txt || it.url || it.href || it.urlTxt || '',
-      meta: [
-        (it.jurisdiction || '').toUpperCase(),
-        it.year ? String(it.year) : '',
-        'textbooks'
-      ].filter(Boolean).join(' · ')
-    })
-  },
-  {
-    key: 'laws',
-    title: 'Laws',
-    catalog: './laws.json',
-    map: (it) => ({
-      id: it.id || it.reference || it.title,
-      title: it.title || it.reference || '(untitled)',
-      href: it.url_txt || it.url || it.href || '',
-      meta: [
-        (it.jurisdiction || '').toUpperCase(),
-        it.reference || '',
-        'laws'
-      ].filter(Boolean).join(' · ')
-    })
-  },
-  {
-    key: 'rules',
-    title: 'Rules',
-    catalog: './rules.json',
-    map: (it) => ({
-      id: it.id || it.reference || it.title,
-      title: it.title || it.reference || '(untitled)',
-      href: it.url_txt || it.url || it.href || '',
-      meta: [
-        (it.jurisdiction || '').toUpperCase(),
-        it.reference || '',
-        'rules'
-      ].filter(Boolean).join(' · ')
-    })
-  }
-];
+(() => {
+  // ---- CONFIG: absolute catalogs that are already published on your Pages site
+  const CATALOGS = {
+    texts: 'https://info1691.github.io/law-index/catalogs/ingest-catalog.json',
+    laws:  'https://info1691.github.io/laws.json',
+    rules: 'https://info1691.github.io/rules.json'
+  };
+  const SITE_ROOT = 'https://info1691.github.io/'; // base for relative url_txt like "./data/...txt"
 
-const qs = (sel, el=document) => el.querySelector(sel);
-const qsa = (sel, el=document) => [...el.querySelectorAll(sel)];
+  // ---- DOM
+  const input = document.querySelector('input[name="q"]') || document.querySelector('input[type="text"]');
+  const form  = document.querySelector('form[data-form="search"]') || document.querySelector('form');
+  const secTexts = document.querySelector('section[data-section="textbooks"]');
+  const secLaws  = document.querySelector('section[data-section="laws"]');
+  const secRules = document.querySelector('section[data-section="rules"]');
+  const countsEl = document.querySelector('[data-counts]');
 
-const countsEl   = qs('[data-counts]');
-const inputEl    = qs('input[data-q]');
-const formEl     = qs('form[data-form="search"]');
+  // ---- helpers
+  const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const normal = s =>
+    s.toLowerCase()
+     .normalize('NFKD')
+     .replace(/[“”‘’]/g, '"')
+     .replace(/[^\w\s\-]/g, ' ');
 
-formEl.addEventListener('submit', (e) => { e.preventDefault(); runSearch(); });
-window.addEventListener('DOMContentLoaded', () => {
-  // allow ?q=term in URL
-  const u = new URL(location.href);
-  const pre = u.searchParams.get('q');
-  if (pre) inputEl.value = pre;
-  runSearch();
-});
+  const setCounts = (t=0,l=0,r=0) =>
+    countsEl && (countsEl.textContent = `Matches — Textbooks: ${t} · Laws: ${l} · Rules: ${r}`);
 
-function termsFrom(q){
-  return (q || '').toLowerCase()
-    .replace(/[“”‘’]/g,'"')
-    .split(/[\s+]+/)            // spaces or '+' act as AND
-    .map(t => t.trim())
-    .filter(Boolean);
-}
+  const absoluteTxt = href => {
+    if (!href) return '';
+    try {
+      if (/^https?:\/\//i.test(href)) return href;
+      return new URL(href, SITE_ROOT).href;
+    } catch { return ''; }
+  };
 
-async function runSearch(){
-  const q = inputEl.value.trim();
-  const terms = termsFrom(q);
-  // clear old
-  for (const s of SECTIONS) qs(`section[data-section="${s.key}"]`).innerHTML = '';
-  updateCounts({textbooks:0, laws:0, rules:0});
+  const fetchJSON = async url => {
+    const r = await fetch(url, { cache: 'no-cache' });
+    if (!r.ok) throw new Error(`Fetch failed ${url}: ${r.status}`);
+    return r.json();
+  };
 
-  if (!q) return;
+  const loadTextsCatalog = async () => {
+    const cat = await fetchJSON(CATALOGS.texts);
+    // support either array or {items:[...]}
+    return Array.isArray(cat) ? cat : (cat.items || []);
+  };
 
-  // fetch catalogs in parallel
-  const catalogs = await Promise.all(SECTIONS.map(loadCatalogSafe));
-  const byKey = Object.fromEntries(SECTIONS.map((s,i) => [s.key, catalogs[i]]));
+  const clearSections = () => {
+    [secTexts, secLaws, secRules].forEach(s => s && (s.innerHTML = ''));
+    setCounts(0,0,0);
+  };
 
-  // search each section
-  for (const s of SECTIONS) {
-    await searchSection(s.key, byKey[s.key], terms);
-  }
-}
+  const addFetchFail = (sec, title, url) => {
+    const p = document.createElement('p');
+    p.className = 'muted';
+    p.textContent = `Fetch failed: ${title} (${url})`;
+    sec.appendChild(p);
+  };
 
-function updateCounts(obj){
-  countsEl.textContent = `Matches — Textbooks: ${obj.textbooks||0} · Laws: ${obj.laws||0} · Rules: ${obj.rules||0}`;
-}
+  const highlight = (s, terms) => {
+    let out = s;
+    for (const t of [...terms].sort((a,b)=>b.length-a.length)) {
+      out = out.replace(new RegExp(`(${esc(t)})`, 'gi'), '<mark>$1</mark>');
+    }
+    return out;
+  };
 
-async function loadCatalogSafe(section){
-  try{
-    const res = await fetch(section.catalog, { cache: 'no-store' });
-    const json = await res.json();
-    const arr = Array.isArray(json) ? json : (json.items || []);
-    const mapped = arr.map(section.map).filter(x => !!x.href);
-    return mapped;
-  }catch(err){
-    console.warn('Catalog load failed:', section.title, err);
-    return [];
-  }
-}
+  const makeSnippets = (text, terms, max = 3) => {
+    const lo = text.toLowerCase();
+    const hits = [];
+    let cursor = 0;
 
-async function searchSection(key, items, terms){
-  const container = qs(`section[data-section="${key}"]`);
-  if (!items.length){
-    container.insertAdjacentHTML('beforeend',
-      `<div class="muted">No items found in ${key} catalog.</div>`);
-    return;
-  }
+    while (hits.length < max) {
+      const i = lo.indexOf(terms[0], cursor);
+      if (i < 0) break;
+      const a = Math.max(0, i - 140);
+      const b = Math.min(text.length, i + 300);
+      const winLo = lo.slice(a, b);
 
-  let total = 0;
-
-  // We’ll cap fetch concurrency a little to avoid mobile overload
-  const chunk = 3;
-  for (let i=0; i<items.length; i+=chunk){
-    const slice = items.slice(i, i+chunk);
-    const texts = await Promise.all(slice.map(getTextSafe));
-    slice.forEach((item, idx) => {
-      if (!texts[idx] || !texts[idx].ok){
-        container.insertAdjacentHTML('beforeend',
-          `<div class="muted">Fetch failed: ${escapeHTML(item.title)} (<a href="${escapeAttr(item.href)}" target="_blank" rel="noopener">${escapeHTML(item.href)}</a>)</div>`);
-        return;
+      if (terms.every(t => winLo.includes(t))) {
+        hits.push('…' + highlight(text.slice(a, b), terms) + '…');
       }
-      const txt = texts[idx].text;
-      const snippets = findSnippets(txt, terms, 420, 6);
-      if (snippets.length){
-        total += snippets.length;
-        const snippetHTML = snippets.map(s => `<p>${highlightTerms(s, terms)}</p>`).join('');
-        container.insertAdjacentHTML('beforeend', `
-          <article class="card">
-            <div class="meta">${escapeHTML(item.meta || '')}</div>
-            <h3><a href="${escapeAttr(item.href)}" target="_blank" rel="noopener">${escapeHTML(item.title)}</a></h3>
-            ${snippetHTML}
-            <p class="open"><a href="${escapeAttr(item.href)}" target="_blank" rel="noopener">open TXT</a></p>
-          </article>
-        `);
+      cursor = i + terms[0].length;
+    }
+    return hits;
+  };
+
+  const renderCard = (sec, item, url, snippets) => {
+    const card = document.createElement('article');
+    card.className = 'card';
+
+    const h = document.createElement('h3');
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.textContent = item.title || item.reference || item.id || '(untitled)';
+    h.appendChild(a);
+    card.appendChild(h);
+
+    snippets.forEach(sn => {
+      const p = document.createElement('p');
+      p.innerHTML = sn;
+      card.appendChild(p);
+    });
+
+    const meta = document.createElement('p');
+    meta.className = 'muted';
+    const open = document.createElement('a');
+    open.href = url;
+    open.target = '_blank';
+    open.rel = 'noopener';
+    open.textContent = 'open TXT';
+    meta.appendChild(open);
+    card.appendChild(meta);
+
+    sec.appendChild(card);
+  };
+
+  const searchList = async (sec, items, terms) => {
+    if (!sec) return 0;
+    let found = 0;
+
+    for (const it of items) {
+      const url = absoluteTxt(it.url_txt);
+      if (!url) continue;
+
+      let text;
+      try {
+        const r = await fetch(url, { cache: 'force-cache' });
+        if (!r.ok) { addFetchFail(sec, it.title || it.reference || it.id, url); continue; }
+        text = await r.text();
+      } catch {
+        addFetchFail(sec, it.title || it.reference || it.id, url);
+        continue;
       }
+
+      const norm = normal(text);
+      if (terms.every(t => norm.includes(t))) {
+        renderCard(sec, it, url, makeSnippets(text, terms, 3));
+        found++;
+      }
+    }
+    return found;
+  };
+
+  const run = async q => {
+    clearSections();
+    const terms = q.toLowerCase().split(/[+\s]+/).filter(Boolean);
+    if (!terms.length) return;
+
+    // Load catalogs
+    let texts=[], laws=[], rules=[];
+    try { texts = await loadTextsCatalog(); } catch(e){ addFetchFail(secTexts, 'Textbooks catalog', CATALOGS.texts); }
+    try { laws  = await fetchJSON(CATALOGS.laws); }  catch(e){ addFetchFail(secLaws,  'Laws catalog',  CATALOGS.laws); }
+    try { rules = await fetchJSON(CATALOGS.rules); } catch(e){ addFetchFail(secRules, 'Rules catalog', CATALOGS.rules); }
+
+    // Search
+    const [t, l, r] = await Promise.all([
+      searchList(secTexts, texts, terms),
+      searchList(secLaws,  laws,  terms),
+      searchList(secRules, rules, terms),
+    ]);
+
+    setCounts(t, l, r);
+  };
+
+  // wire up
+  const qs = new URLSearchParams(location.search);
+  const initial = (qs.get('q') || '').trim();
+  if (input) input.value = initial;
+  if (form) {
+    form.addEventListener('submit', ev => {
+      ev.preventDefault();
+      const q = (input.value || '').trim();
+      history.replaceState({}, '', `?q=${encodeURIComponent(q)}`);
+      run(q);
     });
   }
-
-  // bump counts
-  const current = countsEl.textContent.match(/Textbooks:\s*(\d+).*Laws:\s*(\d+).*Rules:\s*(\d+)/);
-  const now = { textbooks:0, laws:0, rules:0 };
-  if (current) { now.textbooks = +current[1]; now.laws = +current[2]; now.rules = +current[3]; }
-  now[key] = total;
-  updateCounts(now);
-}
-
-async function getTextSafe(item){
-  try{
-    // Resolve relative paths safely
-    const href = new URL(item.href, location.href).toString();
-    const res = await fetch(href, { cache:'no-store' });
-    if (!res.ok) return { ok:false };
-    const text = await res.text();
-    return { ok:true, text };
-  }catch(e){
-    return { ok:false };
-  }
-}
-
-function findSnippets(text, terms, window=420, maxPerDoc=6){
-  if (!terms.length) return [];
-  const lower = text.toLowerCase();
-  const needles = terms.slice();
-
-  // choose the rarest term as anchor for efficiency
-  let anchor = needles[0], minCount = Infinity;
-  for (const t of needles){
-    const c = countOccur(lower, t);
-    if (c < minCount){ minCount=c; anchor=t; }
-  }
-
-  const out = [];
-  let startIdx = 0;
-  while (out.length < maxPerDoc){
-    const idx = lower.indexOf(anchor, startIdx);
-    if (idx === -1) break;
-    const s = Math.max(0, idx - window);
-    const e = Math.min(text.length, idx + anchor.length + window);
-    const chunkLower = lower.slice(s, e);
-
-    const ok = needles.every(t => chunkLower.indexOf(t) !== -1);
-    if (ok){
-      out.push(text.slice(s, e));
-      startIdx = idx + anchor.length;
-    } else {
-      startIdx = idx + anchor.length;
-    }
-  }
-  return out;
-}
-
-function highlightTerms(snippet, terms){
-  // simple, case-insensitive highlight
-  let html = escapeHTML(snippet);
-  for (const t of [...terms].sort((a,b)=>b.length-a.length)){
-    const re = new RegExp(`(${escapeReg(t)})`,'gi');
-    html = html.replace(re, '<mark>$1</mark>');
-  }
-  return html;
-}
-
-// helpers
-function countOccur(s, needle){
-  let c=0, i=0;
-  while ((i = s.indexOf(needle, i)) !== -1){ c++; i += needle.length; }
-  return c;
-}
-function escapeHTML(s){ return String(s).replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
-function escapeAttr(s){ return escapeHTML(s); }
-function escapeReg(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  if (initial) run(initial);
+})();
