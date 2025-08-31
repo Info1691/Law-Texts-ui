@@ -4,181 +4,59 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Trust Law Textbooks — Catalog</title>
-  <meta name="color-scheme" content="light dark" />
-  <style>
-    :root{
-      --bg:#0f172a;         /* page bg (dark navy) */
-      --bar:#0b2e47;        /* top bar */
-      --card:#ffffff;       /* cards */
-      --ink:#0f172a;        /* text */
-      --mut:#6b7280;        /* muted */
-      --ring:#e5e7eb;       /* borders */
-      --chip:#111827;       /* chip text */
-      --pill:#ffffff;       /* chip bg */
-    }
-    @media (prefers-color-scheme: light){
-      :root{ --bg:#f3f4f6; --ink:#111827; --ring:#e5e7eb; }
-    }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg)}
-    a{color:inherit}
-    /* Top bar */
-    .bar{background:var(--bar);color:#fff;padding:12px 18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-    .bar__crumb{opacity:.85;text-decoration:none}
-    .bar__title{font-weight:700}
-    /* Layout */
-    .wrap{max-width:1200px;margin:20px auto;padding:0 16px;display:grid;grid-template-columns:280px 1fr;gap:18px}
-    @media (max-width:860px){ .wrap{grid-template-columns:1fr} }
-    /* Left panel */
-    .panel{background:#fff;border:1px solid var(--ring);border-radius:12px;padding:14px}
-    .panel h3{margin:0 0 8px 0;font-size:.95rem;letter-spacing:.03em;color:#334155}
-    .panel .lnk{display:block;padding:6px 6px;border-radius:8px;text-decoration:none}
-    .panel .lnk:hover{background:#f3f4f6}
-    .muted{color:var(--mut)}
-    .small{font-size:.85rem}
-    /* Search box */
-    .searchbox{display:flex;gap:10px;align-items:center;margin-bottom:8px}
-    .searchbox input[type="search"]{flex:1;min-width:200px;padding:10px 12px;border:1px solid var(--ring);border-radius:10px;font-size:16px;background:#fff}
-    .count{font-size:.85rem;color:var(--mut)}
-    /* Cards */
-    .list{display:flex;flex-direction:column;gap:14px}
-    .card{background:var(--card);border:1px solid var(--ring);border-radius:16px;padding:16px}
-    .title{font-weight:800;margin:0 0 6px 0}
-    .meta{font-size:.9rem;color:var(--mut);margin-bottom:8px}
-    .chips{display:flex;gap:8px;flex-wrap:wrap}
-    .chip{display:inline-block;border:1px solid #d1d5db;border-radius:999px;padding:5px 10px;font-size:.75rem;text-decoration:none;background:var(--pill);color:var(--chip)}
-    .footer-note{font-size:.9rem;color:var(--mut);margin-top:6px}
-  </style>
+  <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
-  <!-- Top bar -->
-  <div class="bar">
-    <a class="bar__crumb" href="./">Trust Law Textbooks</a>
-    <span class="bar__title">Catalog</span>
-  </div>
+  <header class="bar">
+    <div class="brand logo">
+      <img src="./logo.png" alt="BCB" />
+      <a class="home" href="./"><strong>Trust Law Textbooks</strong></a>
+      <span class="muted small">Catalog</span>
+    </div>
+    <nav class="searchbar">
+      <a class="btn" href="./search/">🔎 Search (beta)</a>
+    </nav>
+  </header>
 
-  <div class="wrap">
-    <!-- LEFT: REPOS card -->
-    <aside class="panel">
-      <h3>REPOS</h3>
-      <a class="lnk" href="https://github.com/Info1691/law-index" target="_blank" rel="noopener">Public: <strong>law-index</strong></a>
-      <a class="lnk" href="https://github.com/Info1691/lex-jsy-forensics" target="_blank" rel="noopener">Agent 2: <strong>lex-jsy-forensics</strong></a>
-      <a class="lnk" href="https://github.com/Info1691/lex-ci-harvest" target="_blank" rel="noopener">Agent (crawler): <strong>lex-ci-harvest</strong></a>
-      <a class="lnk" href="https://github.com/Info1691/lex-ingest-local" target="_blank" rel="noopener">Agent 1: <strong>lex-ingest-local</strong></a>
-      <a class="lnk" href="https://github.com/Info1691/Law-Texts-ui" target="_blank" rel="noopener">This UI: <strong>Law-Texts-ui</strong></a>
-
-      <!-- 🔎 Rule 10: Search (beta) link — already placed here -->
-      <a href="./search.html"
-         style="display:inline-flex;align-items:center;gap:.5rem;margin:.25rem 0 0 .25rem;font-size:.875rem;opacity:.9;text-decoration:none">
-        <span aria-hidden="true">🔎</span>
-        <span>Search (beta)</span>
-      </a>
-
-      <div class="small muted" style="margin-top:10px">
-        Source:
-        <a href="https://info1691.github.io/law-index/catalogs/ingest-catalog.json" target="_blank" rel="noopener">
-          law-index/catalogs/ingest-catalog.json
-        </a>
-      </div>
-      <div id="loaded" class="small muted" style="margin-top:6px">Loaded 0 item(s).</div>
+  <main class="wrap grid cols-2">
+    <aside class="aside">
+      <h4>REPOS</h4>
+      <a class="item list-link" href="https://info1691.github.io/law-index/">Public: law-index</a>
+      <a class="item list-link" href="https://github.com/Info1691/lex-jsy-forensics">Agent 2: lex-jsy-forensics</a>
+      <a class="item list-link" href="https://github.com/Info1691/lex-ci-harvest">Agent (crawler): lex-ci-harvest</a>
+      <a class="item list-link" href="https://github.com/Info1691/lex-ingest-local">Agent 1: lex-ingest-local</a>
+      <div class="item"><strong>This UI:</strong> Law-Texts-ui</div>
+      <a class="inline-link list-link" href="./search/">🔎 <span>Search (beta)</span></a>
+      <div class="source small muted">Source: <code>law-index/catalogs/ingest-catalog.json</code></div>
     </aside>
 
-    <!-- RIGHT: results -->
-    <main>
-      <div class="searchbox">
-        <input id="q" type="search" placeholder="Filter by title / reference / jurisdiction…" />
-        <span id="cnt" class="count"></span>
-      </div>
-      <section id="list" class="list" aria-live="polite"></section>
-      <div class="footer-note">Built from the public catalog.</div>
-    </main>
-  </div>
+    <section id="catalog" class="results"></section>
+  </main>
+
+  <footer class="page small">Built from the public catalog.</footer>
 
   <script>
-    // Data source (public)
-    const DATA_URL = 'https://info1691.github.io/law-index/catalogs/ingest-catalog.json';
-
-    const $q = document.getElementById('q');
-    const $list = document.getElementById('list');
-    const $cnt = document.getElementById('cnt');
-    const $loaded = document.getElementById('loaded');
-
-    const norm = v => (v ?? '').toString().toLowerCase();
-    const tokens = s => norm(s).split(/\s+/).filter(Boolean);
-
-    let items = [];
-
-    function txtHref(item){
-      // item.txt is like "texts/uk/xxxxx.txt" in the public repo
-      const path = (item && item.txt) ? String(item.txt).replace(/^\.?\/*/,'') : '';
-      return path ? `https://info1691.github.io/law-index/${path}` : '';
-    }
-
-    function card(item){
-      const el = document.createElement('article');
-      el.className = 'card';
-
-      const h = document.createElement('h2');
-      h.className = 'title';
-      h.textContent = item.title || item.reference || item.slug || 'Untitled';
-
-      const m = document.createElement('div');
-      m.className = 'meta';
-      const bits = [];
-      if (item.jurisdiction) bits.push(String(item.jurisdiction).toUpperCase());
-      if (item.year) bits.push(item.year);
-      if (item.reference) bits.push(item.reference);
-      m.textContent = bits.join(' · ');
-
-      const actions = document.createElement('div');
-      actions.className = 'chips';
-      const href = txtHref(item);
-      if (href){
-        const a = document.createElement('a');
-        a.className = 'chip';
-        a.textContent = 'TXT';
-        a.href = href;
-        a.target = '_blank';
-        a.rel = 'noopener';
-        actions.appendChild(a);
-      }
-
-      el.append(h, m, actions);
-      return el;
-    }
-
-    function render(rows){
-      $list.innerHTML = '';
-      rows.forEach(it => $list.appendChild(card(it)));
-      $cnt.textContent = `${rows.length} result${rows.length===1?'':'s'}`;
-    }
-
-    function filter(){
-      const q = tokens($q.value);
-      if (!q.length){ render(items); return; }
-      const out = items.filter(it => {
-        const hay = [it.title, it.reference, it.jurisdiction, it.year, it.slug]
-          .map(norm).join(' ');
-        return q.every(t => hay.includes(t));
-      });
-      render(out);
-    }
+    // Minimal reader for the catalog list (unchanged behavior from your working page)
+    const LIST = document.getElementById('catalog');
+    const CATALOG_URL = 'https://info1691.github.io/law-index/catalogs/ingest-catalog.json';
 
     (async () => {
-      try{
-        const res = await fetch(DATA_URL, {cache:'no-cache'});
-        const data = await res.json();
-        items = Array.isArray(data) ? data : (data.items || []);
-        render(items);
-        $loaded.textContent = `Loaded ${items.length} item(s).`;
-      }catch(err){
-        $list.innerHTML = '<div class="card">Failed to load catalog. Please refresh.</div>';
-        $loaded.textContent = 'Loaded 0 item(s).';
-        console.error(err);
+      try {
+        const res = await fetch(CATALOG_URL, { cache: 'no-store' });
+        const items = await res.json();
+        LIST.innerHTML = items.map(it => `
+          <article class="card">
+            <header>
+              <a class="list-link" href="${it.url_txt}" target="_blank" rel="noopener">${it.title}</a>
+            </header>
+            <div class="meta small">${(it.jurisdiction || '').toUpperCase()} · ${(it.reference||'').replaceAll('-', ' ')}</div>
+            <footer><a class="open" href="${it.url_txt}" target="_blank" rel="noopener">TXT</a></footer>
+          </article>
+        `).join('');
+      } catch (e) {
+        LIST.innerHTML = `<div class="card"><div class="muted">Failed to load catalog.</div></div>`;
       }
     })();
-
-    $q.addEventListener('input', filter);
   </script>
 </body>
 </html>
