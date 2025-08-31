@@ -2,61 +2,36 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Trust Law Textbooks — Catalog</title>
-  <link rel="stylesheet" href="./style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="/logo.png">
+  <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
   <header class="bar">
-    <div class="brand logo">
-      <img src="./logo.png" alt="BCB" />
-      <a class="home" href="./"><strong>Trust Law Textbooks</strong></a>
-      <span class="muted small">Catalog</span>
-    </div>
-    <nav class="searchbar">
-      <a class="btn" href="./search/">🔎 Search (beta)</a>
+    <a class="brand" href="/index.html">
+      <img src="/logo.png" alt="BCB" />
+      <strong>Trust Law Textbooks</strong>
+    </a>
+    <nav class="nav">
+      <a class="pill" href="/search.html" title="Search textbooks + laws + rules">🔎 Search (beta)</a>
     </nav>
   </header>
 
-  <main class="wrap grid cols-2">
-    <aside class="aside">
-      <h4>REPOS</h4>
-      <a class="item list-link" href="https://info1691.github.io/law-index/">Public: law-index</a>
-      <a class="item list-link" href="https://github.com/Info1691/lex-jsy-forensics">Agent 2: lex-jsy-forensics</a>
-      <a class="item list-link" href="https://github.com/Info1691/lex-ci-harvest">Agent (crawler): lex-ci-harvest</a>
-      <a class="item list-link" href="https://github.com/Info1691/lex-ingest-local">Agent 1: lex-ingest-local</a>
-      <div class="item"><strong>This UI:</strong> Law-Texts-ui</div>
-      <a class="inline-link list-link" href="./search/">🔎 <span>Search (beta)</span></a>
-      <div class="source small muted">Source: <code>law-index/catalogs/ingest-catalog.json</code></div>
-    </aside>
+  <main class="wrap">
+    <p class="muted">This is the catalog landing page. Use <a href="/search.html">Search (beta)</a> to query across Textbooks + Laws + Rules.</p>
 
-    <section id="catalog" class="results"></section>
+    <!-- Minimal catalog panel (left box look) -->
+    <section class="repos">
+      <h3>REPOS / INDEX</h3>
+      <ul>
+        <li><span class="muted">Public:</span> <a href="https://info1691.github.io/law-index/catalogs/ingest-catalog.json" target="_blank" rel="noopener">law-index</a></li>
+        <li><span class="muted">Laws UI:</span> <a href="https://info1691.github.io/laws-ui/" target="_blank" rel="noopener">laws-ui</a></li>
+        <li><span class="muted">Rules UI:</span> <a href="https://info1691.github.io/rules-ui/" target="_blank" rel="noopener">rules-ui</a></li>
+        <li><span class="muted">This UI:</span> <code>Law-Texts-ui</code></li>
+      </ul>
+      <div class="small muted">Tip: Use the Search (beta) button (top right) to query all three sources.</div>
+    </section>
   </main>
-
-  <footer class="page small">Built from the public catalog.</footer>
-
-  <script>
-    // Minimal reader for the catalog list (unchanged behavior from your working page)
-    const LIST = document.getElementById('catalog');
-    const CATALOG_URL = 'https://info1691.github.io/law-index/catalogs/ingest-catalog.json';
-
-    (async () => {
-      try {
-        const res = await fetch(CATALOG_URL, { cache: 'no-store' });
-        const items = await res.json();
-        LIST.innerHTML = items.map(it => `
-          <article class="card">
-            <header>
-              <a class="list-link" href="${it.url_txt}" target="_blank" rel="noopener">${it.title}</a>
-            </header>
-            <div class="meta small">${(it.jurisdiction || '').toUpperCase()} · ${(it.reference||'').replaceAll('-', ' ')}</div>
-            <footer><a class="open" href="${it.url_txt}" target="_blank" rel="noopener">TXT</a></footer>
-          </article>
-        `).join('');
-      } catch (e) {
-        LIST.innerHTML = `<div class="card"><div class="muted">Failed to load catalog.</div></div>`;
-      }
-    })();
-  </script>
 </body>
 </html>
