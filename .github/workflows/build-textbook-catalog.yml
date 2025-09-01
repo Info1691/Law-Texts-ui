@@ -1,0 +1,50 @@
+name: Build textbook catalog
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Generate texts/catalog.json
+        run: |
+          node -e "
+          const fs=require('fs'),path=require('path');
+          const ROOT=process.cwd();
+          const BASE=path.join(ROOT,'data','textbooks');
+          function titleFromSlug(s){return s.replace(/-/g,' ').replace(/\b([a-z])/g,(_,c)=>c.toUpperCase()).replace(/\bUk\b/,'UK').replace(/\bJersey\b/,'JERSEY').trim()}
+          function walk(d){return fs.readdirSync(d,{withFileTypes:true}).flatMap(e=>{
+            const p=path.join(d,e.name);
+            if(e.isDirectory()) return walk(p);
+            if(e.isFile() && e.name.toLowerCase().endsWith('.txt')) return [p];
+            return [];
+          })}
+          const files = fs.existsSync(BASE) ? walk(BASE) : [];
+          const items = files.map(abs=>{
+            const rel = abs.replace(ROOT,'').split(path.sep).join('/');
+            const parts = rel.split('/');
+            const jurisdiction = parts[3] || '';
+            const slug = parts.at(-1).replace(/\\.txt$/i,'');
+            return { id: slug.toLowerCase(), title: titleFromSlug(slug), jurisdiction, reference: slug, year: '', url_txt: rel };
+          }).sort((a,b)=>a.title.localeCompare(b.title));
+          fs.mkdirSync(path.join(ROOT,'texts'),{recursive:true});
+          fs.writeFileSync(path.join(ROOT,'texts','catalog.json'), JSON.stringify(items,null,2));
+          console.log('Wrote texts/catalog.json with', items.length, 'items');
+          "
+      - name: Commit catalog
+        run: |
+          if git diff --quiet; then
+            echo 'No changes'
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add texts/catalog.json
+            git commit -m "chore: regen textbook catalog"
+            git push
+          fi
