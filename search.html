@@ -2,28 +2,52 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Search (beta) — Textbooks + Laws + Rules</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Trust Law Textbooks — Search (beta)</title>
   <link rel="icon" href="/logo.png">
-  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    /* small safety styles in case style.css is missing something */
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial,sans-serif;background:#0e2235;}
+    .bar{display:flex;align-items:center;gap:.75rem;padding:.6rem .9rem;background:#0e2235;color:#eaf1f7;position:sticky;top:0;z-index:5}
+    .brand{display:flex;align-items:center;gap:.5rem}
+    .brand img{height:24px}
+    .brand strong{font-weight:700}
+    .wrap{max-width:1200px;margin:0 auto;padding:1rem .9rem 2.5rem;background:#f7fafc;color:#111}
+    form.search{display:flex;gap:.5rem;margin:.75rem 0 1rem}
+    form.search input{flex:1;padding:.65rem .75rem;border:1px solid #cfd8e3;border-radius:.5rem}
+    form.search button{padding:.6rem .9rem;border:0;border-radius:.5rem;background:#2a6ee1;color:#fff;cursor:pointer}
+    .muted{color:#46556a;font-size:.9rem}
+    h2{margin-top:1.25rem}
+    .results{display:grid;gap:1rem}
+    .card{background:#fff;border:1px solid #e5eef7;border-radius:.75rem;padding:1rem}
+    .card h3{margin:.1rem 0 .35rem;font-size:1.05rem}
+    .meta{font-size:.8rem;color:#5a6b81;text-transform:uppercase;letter-spacing:.03em}
+    mark{background:#ffec99;padding:0 .15rem;border-radius:.15rem}
+    .bad{color:#9b2226;font-size:.9rem}
+    .pill{display:inline-flex;align-items:center;gap:.35rem;font-size:.75rem;background:#eef2ff;border:1px solid #dbe4ff;border-radius:999px;padding:.25rem .55rem}
+    .row{display:flex;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
+    .toolbar a{color:#eaf1f7;text-decoration:none;border:1px solid #335373;border-radius:.55rem;padding:.3rem .6rem;background:#132a41}
+    .toolbar{margin-left:auto}
+  </style>
 </head>
 <body>
   <header class="bar">
-    <a class="brand" href="/index.html">
-      <img src="/logo.png" alt="BCB" />
+    <div class="brand">
+      <img src="/logo.png" alt="BCB">
       <strong>Trust Law Textbooks</strong>
-    </a>
-    <nav class="nav">
-      <a class="pill" href="/index.html">Catalog</a>
+      <span>Search (beta)</span>
+    </div>
+    <nav class="toolbar">
+      <a href="/">Catalog</a>
     </nav>
   </header>
 
   <main class="wrap">
-    <h1 class="page-title">Search (beta)</h1>
-
-    <form id="search-form" class="searchbar" action="/search.html" method="get">
-      <input id="q" name="q" type="text" placeholder="Search textbooks + laws + rules… e.g., Beddoe, beneficiaries' consent, litigation costs" />
-      <button type="submit" class="pill">Search</button>
+    <form class="search" id="qform" role="search">
+      <input id="q" name="q" type="text"
+             placeholder="Search textbooks + laws + rules… e.g., Beddoe, beneficiaries' consent, litigation costs">
+      <button type="submit">Search</button>
     </form>
 
     <p class="muted">
@@ -31,22 +55,16 @@
       Results show quotable snippets; click the title to open the full TXT.
     </p>
 
-    <p id="counts" class="muted">Matches — Textbooks: 0 · Laws: 0 · Rules: 0</p>
+    <p class="muted" id="counts">Matches — Textbooks: 0 · Laws: 0 · Rules: 0</p>
 
-    <section>
-      <h2>Textbooks</h2>
-      <div id="results-textbooks" class="results"></div>
-    </section>
+    <h2>Textbooks</h2>
+    <section id="textbooks" class="results"></section>
 
-    <section>
-      <h2>Laws</h2>
-      <div id="results-laws" class="results"></div>
-    </section>
+    <h2>Laws</h2>
+    <section id="laws" class="results"></section>
 
-    <section>
-      <h2>Rules</h2>
-      <div id="results-rules" class="results"></div>
-    </section>
+    <h2>Rules</h2>
+    <section id="rules" class="results"></section>
   </main>
 
   <script src="/search.js"></script>
