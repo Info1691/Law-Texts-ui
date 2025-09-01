@@ -2,142 +2,126 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Trust Law Textbooks — Catalog</title>
-  <link rel="icon" href="/logo.png">
+
+  <!-- Existing styles (keep using your repo’s CSS) -->
+  <link rel="stylesheet" href="./app.css">
+  <link rel="stylesheet" href="./drawer.css">
+
+  <!-- Local, minimal fixes so you don't have to edit CSS files -->
   <style>
-    :root { --bg:#0f2f49; --ink:#0d2232; --muted:#6b7b85; --card:#fff; --line:#e8eef3; --chip:#eef5fb; }
-    *{box-sizing:border-box}
-    body{margin:0;font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji"}
-    a{color:#0d5aa7;text-decoration:none}
-    header{background:var(--bg);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:.75rem}
-    header img{height:28px;width:auto;display:block}
-    header .title{font-weight:600}
-    header .sp{flex:1}
-    header .btn{background:#1f87ff;color:#fff;padding:.4rem .7rem;border-radius:.5rem;font-size:.9rem}
-    main{max-width:1200px;margin:22px auto;padding:0 16px;display:grid;grid-template-columns:280px 1fr;gap:18px}
-    @media (max-width:900px){ main{grid-template-columns:1fr} }
-    .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
-    .muted{color:var(--muted)}
-    .repos .row{margin:.15rem 0}
-    .filterbar{display:flex;gap:.5rem;margin:2px 0 10px}
-    .filterbar input{flex:1;padding:.6rem .75rem;border:1px solid var(--line);border-radius:.6rem}
-    .item{border:1px solid var(--line);border-radius:12px;padding:14px;margin:10px 0;background:#fff}
-    .item .top{display:flex;justify-content:space-between;gap:.75rem;align-items:center}
-    .item .title{font-weight:700;color:var(--ink)}
-    .pill{background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:.15rem .55rem;font-size:.85rem;white-space:nowrap}
-    .meta{color:var(--muted);font-size:.92rem;margin-top:.25rem}
-    .footer-note{color:var(--muted);font-size:.9rem;margin-top:8px}
+    /* keep the header tight and consistent */
+    header.bar{display:flex;align-items:center;gap:1rem;padding:.75rem 1rem;border-bottom:1px solid rgba(0,0,0,.06)}
+    header.bar .brand{display:flex;align-items:center;gap:.75rem}
+    header.bar .brand img{height:28px;width:auto;background:#fff;padding:.15rem .25rem;border-radius:4px;box-shadow:0 0 0 1px rgba(0,0,0,.05)}
+    header.bar nav{margin-left:auto}
+    header.bar nav a{display:inline-flex;align-items:center;padding:.5rem .75rem;border-radius:6px;text-decoration:none;border:1px solid rgba(0,0,0,.08)}
+    .wrap{display:grid;grid-template-columns:280px minmax(0,1fr);gap:1rem;padding:1rem}
+    .card{background:#fff;border-radius:10px;border:1px solid rgba(0,0,0,.08);padding:.75rem}
+    .muted{color:#6b7280;font-size:.925rem}
+    .group-title{font-weight:700;margin:.25rem 0 .5rem 0}
+    .repo-kv{display:grid;grid-template-columns:90px minmax(0,1fr);gap:.25rem .5rem;font-size:.94rem}
+    .repo-kv .k{color:#6b7280}
+    .repo-kv a{color:#0b5cab;text-decoration:none}
+    .repo-kv a:hover{text-decoration:underline}
+    .results{display:flex;flex-direction:column;gap:.75rem}
+    .item{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:.9rem 1rem}
+    .item h3{margin:.15rem 0 .35rem 0;font-size:1.05rem}
+    .filter{display:flex;gap:.5rem}
+    .filter input{flex:1;min-width:0;border:1px solid rgba(0,0,0,.12);border-radius:10px;padding:.6rem .8rem}
+    .filter button{border:1px solid rgba(0,0,0,.12);background:#0b5cab;color:#fff;border-radius:10px;padding:.55rem .9rem}
+    .pill{display:inline-flex;align-items:center;gap:.25rem;border:1px solid rgba(0,0,0,.12);border-radius:999px;padding:.15rem .5rem;font-size:.8rem}
+    /* “Search (beta)” link styling (small, under This UI line) */
+    .mini-link{display:inline-flex;align-items:center;gap:.4rem;margin-top:.25rem;font-size:.875rem;opacity:.9}
   </style>
 </head>
 <body>
-  <header>
-    <img src="/logo.png" alt="Logo" onerror="this.style.display='none'">
-    <div class="title">Trust Law Textbooks</div>
-    <div class="sp"></div>
-    <a class="btn" href="/search.html">Search (beta)</a>
-  </header>
 
-  <main>
-    <!-- LEFT: REPOS / INDEX -->
-    <aside class="repos card">
-      <div style="font-weight:700;margin-bottom:.35rem">REPOS / INDEX</div>
+<header class="bar">
+  <div class="brand">
+    <!-- your logo with white background applied via CSS above -->
+    <img src="./logo.png" alt="Brand logo">
+    <strong>Trust Law Textbooks — Catalog</strong>
+  </div>
+  <nav>
+    <a href="/search.html" title="Search (beta)">Search (beta)</a>
+  </nav>
+</header>
 
-      <div class="row muted">Public: <a href="https://info1691.github.io/law-index/" target="_blank" rel="noopener">law-index</a></div>
-      <div class="row muted">Agent 2: <a href="https://github.com/Info1691/lex-jsy-forensics" target="_blank" rel="noopener">lex-jsy-forensics</a></div>
-      <div class="row muted">Agent (crawler): <a href="https://github.com/Info1691/lex-ci-harvest" target="_blank" rel="noopener">lex-ci-harvest</a></div>
-      <div class="row muted">Agent 1: <a href="https://github.com/Info1691/lex-ingest-local" target="_blank" rel="noopener">lex-ingest-local</a></div>
+<main class="wrap">
+  <!-- LEFT: REPOS panel -->
+  <aside class="card" id="repos">
+    <div class="group-title">REPOS</div>
+    <div class="repo-kv">
+      <div class="k">Public:</div>
+      <div><a href="https://info1691.github.io/law-index/">law-index</a></div>
 
-      <div class="row muted">This UI: <strong>Law-Texts-ui</strong></div>
+      <div class="k">Texts UI:</div>
+      <div>Law-Texts-ui</div>
 
-      <!-- Absolute link so it works from anywhere -->
-      <div class="row" style="margin:.35rem 0 .25rem">
-        <a href="/search.html" style="display:inline-flex;align-items:center;gap:.5rem">
+      <!-- Absolute Search (beta) link — works from anywhere -->
+      <div></div>
+      <div>
+        <a class="mini-link" href="/search.html">
           <span aria-hidden="true">🔎</span><span>Search (beta)</span>
         </a>
       </div>
 
-      <div class="row muted">Source:
-        <a href="https://info1691.github.io/law-index/catalogs/ingest-catalog.json" target="_blank" rel="noopener">ingest-catalog.json</a>
-      </div>
+      <div class="k">Source:</div>
+      <div><a href="./texts/catalog.json">./texts/catalog.json</a></div>
+    </div>
 
-      <div class="row muted" id="loadedCount" style="margin-top:.35rem">Loaded 0 item(s).</div>
-    </aside>
+    <p class="muted" style="margin-top:.5rem">Built from the local textbooks catalog.</p>
+  </aside>
 
-    <!-- RIGHT: CATALOG LIST -->
-    <section>
-      <div class="card">
-        <div class="filterbar">
-          <input id="filter" type="search" placeholder="Filter by title / reference / jurisdiction…" />
-        </div>
-        <div id="list"></div>
-        <div class="footer-note">Built from the public catalog.</div>
-      </div>
-    </section>
-  </main>
+  <!-- RIGHT: Catalog list + filter -->
+  <section>
+    <div class="card" style="margin-bottom:1rem">
+      <form class="filter" data-form="filter">
+        <input type="text" name="q" placeholder="Filter by title / jurisdiction / year …" />
+        <button type="submit">Filter</button>
+      </form>
+      <p class="muted" id="counts">Loading…</p>
+    </div>
 
-  <script>
-    // Absolute source (public ingest artifacts)
-    const CATALOG_URL = "https://info1691.github.io/law-index/catalogs/ingest-catalog.json";
+    <div class="results" id="list"></div>
+  </section>
+</main>
 
-    const $ = (id) => document.getElementById(id);
-    const norm = (s='') => s.normalize('NFKD').toLowerCase();
+<!-- Your existing JS keeps working -->
+<script src="./app.js"></script>
+<script src="./catalog.js"></script>
+<script src="./drawer.js"></script>
+<script>
+  /* Simple bootstrap: render items from texts/catalog.json if your catalog.js
+     doesn’t already do this. Safe to keep even if catalog.js handles it. */
+  (async () => {
+    const $list = document.getElementById('list');
+    const $counts = document.getElementById('counts');
+    try {
+      const res = await fetch('./texts/catalog.json', { cache: 'no-store' });
+      const items = await res.json();
+      $counts.textContent = `Loaded ${items.length} item(s).`;
+      const q = new URL(location.href).searchParams.get('q')?.toLowerCase() || '';
+      const filtered = q ? items.filter(it =>
+        [it.title,it.jurisdiction,it.reference,(it.year||'')].join(' ').toLowerCase().includes(q)
+      ) : items;
 
-    let ITEMS = [];
-
-    function render(items){
-      const list = $("list");
-      list.innerHTML = "";
-      for (const it of items){
-        const title = it.title || it.id || "Untitled";
-        const jur = it.jurisdiction ? String(it.jurisdiction).toUpperCase() : "";
-        const yr = it.year ? String(it.year) : "";
-        const ref = it.reference || "";
-        const meta = [jur, yr, ref].filter(Boolean).join(" · ");
-
-        const div = document.createElement("div");
-        div.className = "item";
-        div.innerHTML = `
-          <div class="top">
-            <a class="title" href="${it.url_txt || '#'}">${title}</a>
-            ${it.url_txt ? `<a class="pill" href="${it.url_txt}">TXT</a>` : ``}
+      $list.innerHTML = filtered.map(it => `
+        <article class="item">
+          <h3>${it.title}</h3>
+          <div class="muted" style="margin-bottom:.35rem">
+            ${it.jurisdiction?.toUpperCase() || ''} ${it.year ? '· ' + it.year : ''} · ${it.reference || ''}
           </div>
-          <div class="meta">${meta}</div>
-        `;
-        list.appendChild(div);
-      }
-      $("loadedCount").textContent = `Loaded ${items.length} item(s).`;
+          <a class="pill" href="${it.url_txt}">open TXT</a>
+        </article>
+      `).join('');
+    } catch (e) {
+      $counts.textContent = 'Failed to load catalog.';
+      console.error(e);
     }
-
-    function applyFilter(){
-      const q = norm($("filter").value);
-      if (!q){ render(ITEMS); return; }
-      const tokens = q.split(/\s+/).filter(Boolean);
-      const out = ITEMS.filter(it=>{
-        const hay = norm([it.title,it.reference,it.jurisdiction,it.year].filter(Boolean).join(" "));
-        return tokens.every(t => hay.includes(t));
-      });
-      render(out);
-    }
-
-    // Load catalog on start
-    (async function init(){
-      try{
-        const r = await fetch(CATALOG_URL, {mode:"cors"});
-        if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
-        const arr = await r.json();
-        ITEMS = (arr || []).map(x => ({
-          id: x.id, title: x.title, jurisdiction: x.jurisdiction, reference: x.reference,
-          year: x.year, url_txt: x.url_txt || x.url || x.href
-        }));
-        render(ITEMS);
-      }catch(e){
-        $("list").innerHTML = `<div class="item"><div class="meta" style="color:#b3261e">Catalog fetch error: ${e.message}</div></div>`;
-      }
-    })();
-
-    // Filter typing
-    $("filter").addEventListener("input", applyFilter);
-  </script>
+  })();
+</script>
 </body>
 </html>
