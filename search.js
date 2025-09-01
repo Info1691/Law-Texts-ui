@@ -1,191 +1,211 @@
-/* Cross-repo search — absolute catalogs + branding-safe
- * ONE copy only: keep this at repo root and link via /search.js
- */
-
-const TEXTBOOKS_BASE = 'https://info1691.github.io/law-index/';
-const LAWS_BASE      = 'https://info1691.github.io/laws-ui/';
-const RULES_BASE     = 'https://info1691.github.io/rules-ui/';
-
+// -------- CONFIG (absolute, robust) -----------------------------------------
 const CATALOGS = {
-  textbooks: new URL('catalogs/ingest-catalog.json', TEXTBOOKS_BASE).toString(),
-  laws:      new URL('laws.json', LAWS_BASE).toString(),
-  rules:     new URL('rules.json', RULES_BASE).toString(),
+  // Public, normalized Textbooks catalog produced by Agent 1 -> published to law-index (GitHub Pages)
+  // If you ever move the public catalog, update ONLY this line.
+  textbooks: 'https://info1691.github.io/law-index/catalogs/ingest-catalog.json',
+
+  // Local (this repo) JSON indexes for Laws & Rules (Agent 1 also publishes these here).
+  laws:  '/laws.json',
+  rules: '/rules.json',
 };
 
-const BASE_FOR = {
-  textbooks: TEXTBOOKS_BASE,
-  laws:      LAWS_BASE,
-  rules:     RULES_BASE,
-};
+// How many snippets per document
+const MAX_SNIPPETS_PER_DOC = 3;
+// How wide each snippet window is (characters around the match)
+const SNIPPET_RADIUS = 220;
 
-const qs = (sel, el = document) => el.querySelector(sel);
-const qsa = (sel, el = document) => [...el.querySelectorAll(sel)];
+// -------- UTILITIES ----------------------------------------------------------
+const $ = sel => document.querySelector(sel);
+const esc = s => s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-function readQuery() {
-  const url = new URL(window.location.href);
-  return (url.searchParams.get('q') || '').trim();
+function parseQuery() {
+  const params = new URLSearchParams(location.search);
+  const q = params.get('q') || '';
+  $('#q').value = q;
+  return q.trim();
 }
 
-function writeQuery(q) {
-  const url = new URL(window.location.href);
-  if (q) url.searchParams.set('q', q); else url.searchParams.delete('q');
-  history.replaceState(null, '', url.toString());
+function setCounts({t=0,l=0,r=0}) {
+  $('#counts').textContent = `Matches — Textbooks: ${t} · Laws: ${l} · Rules: ${r}`;
 }
 
-function tokenize(s) {
-  // Split on +, comma, space. AND semantics across tokens.
-  return s.toLowerCase().split(/[+\s,]+/).filter(Boolean);
+// Turn a relative law-index path (e.g. "./data/texts/…") into an absolute URL
+function absolutizeLawIndexPath(urlish) {
+  if (!urlish) return null;
+  if (/^https?:\/\//i.test(urlish)) return urlish;
+  let path = urlish.replace(/^\.\//, ''); // drop leading ./ if present
+  return `https://info1691.github.io/law-index/${path}`;
 }
 
-async function fetchJSON(url) {
-  const res = await fetch(url, { cache: 'no-store' });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
+// Fetch JSON catalogs, tolerating either an array or {items:[…]}
+async function fetchCatalog(url) {
+  const res = await fetch(url, {mode:'cors'});
+  if (!res.ok) throw new Error(`Fetch failed ${res.status}: ${url}`);
+  const json = await res.json();
+  return Array.isArray(json) ? json : (json.items || []);
 }
 
+// Fetch plain text (with small retry)
 async function fetchText(url) {
-  const res = await fetch(url, { cache: 'no-store' });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.text();
+  for (let i=0;i<2;i++){
+    const res = await fetch(url, {mode:'cors'});
+    if (res.ok) return res.text();
+    await sleep(150);
+  }
+  throw new Error(`TXT fetch failed: ${url}`);
 }
 
-function highlight(snippet, tokens) {
-  let s = snippet;
-  for (const t of tokens) {
-    try {
-      const re = new RegExp(`(${t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'ig');
-      s = s.replace(re, '<mark>$1</mark>');
-    } catch {}
-  }
-  return s;
+function tokenize(q) {
+  // AND semantics: all terms must appear in a snippet window
+  return q.split(/[+\s]+/).map(s => s.trim()).filter(Boolean);
 }
 
-function firstWindowContainingAll(docLower, tokens, windowSize = 420) {
-  // Try each occurrence of the first token and see if all tokens can be found inside a window around it.
-  const first = tokens[0];
-  let idx = -1;
-  while ((idx = docLower.indexOf(first, idx + 1)) !== -1) {
-    const start = Math.max(0, idx - Math.floor(windowSize / 2));
-    const end = Math.min(docLower.length, idx + Math.floor(windowSize / 2));
-    const win = docLower.slice(start, end);
-    const ok = tokens.every(t => win.indexOf(t) !== -1);
-    if (ok) return { start, end };
+function makeSnippets(text, terms) {
+  if (!terms.length) return [];
+  const lower = text.toLowerCase();
+  const needles = terms.map(t => t.toLowerCase());
+  const hits = [];
+
+  // find candidate anchors by first term, then verify all terms are within window
+  let idx = 0;
+  while (hits.length < MAX_SNIPPETS_PER_DOC) {
+    const pos = lower.indexOf(needles[0], idx);
+    if (pos === -1) break;
+    const start = Math.max(0, pos - SNIPPET_RADIUS);
+    const end   = Math.min(text.length, pos + needles[0].length + SNIPPET_RADIUS);
+    const slice = lower.slice(start, end);
+
+    const ok = needles.every(n => slice.indexOf(n) !== -1);
+    if (ok) {
+      let snippet = text.slice(start, end);
+
+      // highlight terms (basic, case-insensitive)
+      needles.forEach(n => {
+        const re = new RegExp(`(${n.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'ig');
+        snippet = snippet.replace(re, '<mark>$1</mark>');
+      });
+
+      // tidy edges
+      snippet = (start>0?'…':'') + esc(snippet) + (end<text.length?'…':'');
+      // (we escaped first, then added <mark> — so unescape marks)
+      snippet = snippet.replace(/&lt;mark&gt;/g,'<mark>').replace(/&lt;\/mark&gt;/g,'</mark>');
+      hits.push(snippet);
+      idx = end; // move forward
+    } else {
+      idx = pos + needles[0].length;
+    }
   }
-  // fallback: entire doc has all tokens?
-  const okAll = tokens.every(t => docLower.indexOf(t) !== -1);
-  if (okAll) {
-    const firstPos = tokens.reduce((p, t) => Math.min(p, docLower.indexOf(t)), Infinity);
-    const start = Math.max(0, firstPos - Math.floor(windowSize / 2));
-    const end = Math.min(docLower.length, start + windowSize);
-    return { start, end };
-  }
-  return null;
+  return hits;
 }
 
-function renderCard(sectionEl, item, absTxtURL, snippetHTML) {
-  const card = document.createElement('article');
-  card.className = 'card';
-  card.innerHTML = `
-    <header class="card-h">
-      <div class="card-title">
-        <a href="${absTxtURL}" target="_blank" rel="noopener">${item.title || '(untitled)'}</a>
+function renderCard(where, item, snippets, kindLabel) {
+  const wrap = document.createElement('article');
+  wrap.className = 'card';
+  const open = item.url_txt;
+  const metaLine = `${(item.jurisdiction||item.jurisdiction_tag||'').toUpperCase()} · ${(item.year||'').toString()} · ${kindLabel}`;
+  wrap.innerHTML = `
+    <div class="row">
+      <div>
+        <h3><a href="${esc(open)}" target="_blank" rel="noopener">${esc(item.title||item.name||'Untitled')}</a></h3>
+        <div class="meta">${esc(metaLine.trim())}</div>
       </div>
-      <div class="meta">
-        ${item.jurisdiction ? item.jurisdiction.toUpperCase() + ' · ' : ''}${item.year || ''} ${item.reference ? '· ' + item.reference : ''}
-      </div>
-    </header>
-    <div class="snippet">${snippetHTML}</div>
-    <footer class="card-f">
-      <a class="mini" href="${absTxtURL}" target="_blank" rel="noopener">¶ open TXT</a>
-    </footer>
+      <a class="pill" href="${esc(open)}" target="_blank" rel="noopener">¶ open TXT</a>
+    </div>
+    ${snippets.map(s => `<p>${s}</p>`).join('')}
   `;
-  sectionEl.appendChild(card);
+  where.appendChild(wrap);
 }
 
-function updateCounts(tb, lw, rl) {
-  qs('#counts').textContent = `Matches — Textbooks: ${tb} · Laws: ${lw} · Rules: ${rl}`;
-}
+// -------- SEARCH PIPELINE ----------------------------------------------------
+async function run() {
+  const q = parseQuery();
+  const terms = tokenize(q);
 
-async function searchAll(q) {
-  const tokens = tokenize(q);
-  const resTB = qs('#results-textbooks'); resTB.innerHTML = '';
-  const resLW = qs('#results-laws');      resLW.innerHTML = '';
-  const resRL = qs('#results-rules');     resRL.innerHTML = '';
-  let cTB = 0, cLW = 0, cRL = 0;
+  const boxTB  = $('#textbooks');
+  const boxLaw = $('#laws');
+  const boxRul = $('#rules');
+  boxTB.innerHTML = boxLaw.innerHTML = boxRul.innerHTML = '';
 
-  if (!tokens.length) { updateCounts(0,0,0); return; }
+  let counts = {t:0,l:0,r:0};
+  setCounts(counts);
 
-  const sources = [
-    { key: 'textbooks', catalogURL: CATALOGS.textbooks, sectionEl: resTB },
-    { key: 'laws',      catalogURL: CATALOGS.laws,      sectionEl: resLW },
-    { key: 'rules',     catalogURL: CATALOGS.rules,     sectionEl: resRL },
-  ];
+  if (!terms.length) return;
 
-  for (const src of sources) {
-    let catalog;
-    try { catalog = await fetchJSON(src.catalogURL); }
-    catch (e) {
-      const warn = document.createElement('div');
-      warn.className = 'muted small';
-      warn.textContent = `Fetch failed: ${src.key} catalog (${src.catalogURL})`;
-      src.sectionEl.appendChild(warn);
-      continue;
-    }
+  // 1) Load catalogs
+  let textbooks = [];
+  let laws = [];
+  let rules = [];
 
-    // Each entry must provide a relative TXT URL in url_txt
-    const base = BASE_FOR[src.key];
-
-    // light cap to keep UI snappy; increase later
-    const MAX_PER_SECTION = 24;
-
-    for (const item of catalog) {
-      if (!item.url_txt) continue;
-      const absTxtURL = new URL(item.url_txt, base).toString();
-
-      let doc;
-      try { doc = await fetchText(absTxtURL); }
-      catch { continue; }
-
-      const lower = doc.toLowerCase();
-      const window = firstWindowContainingAll(lower, tokens, 420);
-      if (!window) continue;
-
-      const rawSnippet = doc.slice(window.start, window.end).replace(/\s+/g, ' ').trim();
-      const snippet = highlight(rawSnippet, tokens);
-
-      renderCard(src.sectionEl, item, absTxtURL, snippet);
-
-      if (src.key === 'textbooks') cTB++;
-      if (src.key === 'laws')      cLW++;
-      if (src.key === 'rules')     cRL++;
-
-      if ((src.key === 'textbooks' && cTB >= MAX_PER_SECTION) ||
-          (src.key === 'laws'      && cLW >= MAX_PER_SECTION) ||
-          (src.key === 'rules'     && cRL >= MAX_PER_SECTION)) {
-        const more = document.createElement('div');
-        more.className = 'muted small';
-        more.textContent = 'Showing first results… refine your query to narrow further.';
-        src.sectionEl.appendChild(more);
-        break;
-      }
-    }
+  try {
+    textbooks = await fetchCatalog(CATALOGS.textbooks);
+    // normalize item shape (id, title, url_txt, jurisdiction, year)
+    textbooks = textbooks.map(b => ({
+      id: b.id||b.ref||b.uid,
+      title: b.title||b.name||'Untitled',
+      jurisdiction: (b.jurisdiction||b.jurisdiction_tag||'').toString(),
+      year: b.year||'',
+      url_txt: absolutizeLawIndexPath(b.url_txt||b.txt||b.href)
+    })).filter(b => !!b.url_txt);
+  } catch (e) {
+    const p = document.createElement('p');
+    p.className = 'bad';
+    p.textContent = `Textbooks catalog error: ${e.message}`;
+    boxTB.appendChild(p);
   }
 
-  updateCounts(cTB, cLW, cRL);
+  try {
+    laws = await fetchCatalog(CATALOGS.laws);
+    laws = laws.map(x => ({
+      id: x.id, title: x.title, jurisdiction: x.jurisdiction, year: x.year, url_txt: x.url_txt
+    })).filter(x => !!x.url_txt);
+  } catch (e) {
+    const p = document.createElement('p');
+    p.className = 'bad';
+    p.textContent = `Laws catalog error: ${e.message}`;
+    boxLaw.appendChild(p);
+  }
+
+  try {
+    rules = await fetchCatalog(CATALOGS.rules);
+    rules = rules.map(x => ({
+      id: x.id, title: x.title, jurisdiction: x.jurisdiction, year: x.year, url_txt: x.url_txt
+    })).filter(x => !!x.url_txt);
+  } catch (e) {
+    const p = document.createElement('p');
+    p.className = 'bad';
+    p.textContent = `Rules catalog error: ${e.message}`;
+    boxRul.appendChild(p);
+  }
+
+  // 2) Search (simple full-text scan with AND-window logic)
+  async function scanAndRender(items, outBox, kindLabel) {
+    for (const it of items) {
+      try {
+        const txt = await fetchText(it.url_txt);
+        const snippets = makeSnippets(txt, terms);
+        if (snippets.length) {
+          renderCard(outBox, it, snippets, kindLabel);
+          return 1;
+        }
+      } catch (_) { /* skip on fetch errors */ }
+    }
+    return 0;
+  }
+
+  counts.t += await scanAndRender(textbooks, boxTB, 'textbooks');
+  counts.l += await scanAndRender(laws,      boxLaw, 'laws');
+  counts.r += await scanAndRender(rules,     boxRul, 'rules');
+  setCounts(counts);
 }
 
-function boot() {
-  const q = readQuery();
-  const input = qs('#q');
-  if (q) input.value = q;
+// bind form & deep-link ?q=
+document.getElementById('qform').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const q = document.getElementById('q').value.trim();
+  const url = new URL(location.href);
+  if (q) url.searchParams.set('q', q); else url.searchParams.delete('q');
+  location.href = url.toString();
+});
 
-  qs('#search-form').addEventListener('submit', (ev) => {
-    ev.preventDefault();
-    const qv = input.value.trim();
-    writeQuery(qv);
-    searchAll(qv);
-  });
-
-  if (q) searchAll(q);
-}
-document.addEventListener('DOMContentLoaded', boot);
+run();
