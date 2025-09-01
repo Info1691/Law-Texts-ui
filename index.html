@@ -2,36 +2,142 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Trust Law Textbooks — Catalog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trust Law Textbooks — Catalog</title>
   <link rel="icon" href="/logo.png">
-  <link rel="stylesheet" href="/style.css" />
+  <style>
+    :root { --bg:#0f2f49; --ink:#0d2232; --muted:#6b7b85; --card:#fff; --line:#e8eef3; --chip:#eef5fb; }
+    *{box-sizing:border-box}
+    body{margin:0;font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji"}
+    a{color:#0d5aa7;text-decoration:none}
+    header{background:var(--bg);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:.75rem}
+    header img{height:28px;width:auto;display:block}
+    header .title{font-weight:600}
+    header .sp{flex:1}
+    header .btn{background:#1f87ff;color:#fff;padding:.4rem .7rem;border-radius:.5rem;font-size:.9rem}
+    main{max-width:1200px;margin:22px auto;padding:0 16px;display:grid;grid-template-columns:280px 1fr;gap:18px}
+    @media (max-width:900px){ main{grid-template-columns:1fr} }
+    .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+    .muted{color:var(--muted)}
+    .repos .row{margin:.15rem 0}
+    .filterbar{display:flex;gap:.5rem;margin:2px 0 10px}
+    .filterbar input{flex:1;padding:.6rem .75rem;border:1px solid var(--line);border-radius:.6rem}
+    .item{border:1px solid var(--line);border-radius:12px;padding:14px;margin:10px 0;background:#fff}
+    .item .top{display:flex;justify-content:space-between;gap:.75rem;align-items:center}
+    .item .title{font-weight:700;color:var(--ink)}
+    .pill{background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:.15rem .55rem;font-size:.85rem;white-space:nowrap}
+    .meta{color:var(--muted);font-size:.92rem;margin-top:.25rem}
+    .footer-note{color:var(--muted);font-size:.9rem;margin-top:8px}
+  </style>
 </head>
 <body>
-  <header class="bar">
-    <a class="brand" href="/index.html">
-      <img src="/logo.png" alt="BCB" />
-      <strong>Trust Law Textbooks</strong>
-    </a>
-    <nav class="nav">
-      <a class="pill" href="/search.html" title="Search textbooks + laws + rules">🔎 Search (beta)</a>
-    </nav>
+  <header>
+    <img src="/logo.png" alt="Logo" onerror="this.style.display='none'">
+    <div class="title">Trust Law Textbooks</div>
+    <div class="sp"></div>
+    <a class="btn" href="/search.html">Search (beta)</a>
   </header>
 
-  <main class="wrap">
-    <p class="muted">This is the catalog landing page. Use <a href="/search.html">Search (beta)</a> to query across Textbooks + Laws + Rules.</p>
+  <main>
+    <!-- LEFT: REPOS / INDEX -->
+    <aside class="repos card">
+      <div style="font-weight:700;margin-bottom:.35rem">REPOS / INDEX</div>
 
-    <!-- Minimal catalog panel (left box look) -->
-    <section class="repos">
-      <h3>REPOS / INDEX</h3>
-      <ul>
-        <li><span class="muted">Public:</span> <a href="https://info1691.github.io/law-index/catalogs/ingest-catalog.json" target="_blank" rel="noopener">law-index</a></li>
-        <li><span class="muted">Laws UI:</span> <a href="https://info1691.github.io/laws-ui/" target="_blank" rel="noopener">laws-ui</a></li>
-        <li><span class="muted">Rules UI:</span> <a href="https://info1691.github.io/rules-ui/" target="_blank" rel="noopener">rules-ui</a></li>
-        <li><span class="muted">This UI:</span> <code>Law-Texts-ui</code></li>
-      </ul>
-      <div class="small muted">Tip: Use the Search (beta) button (top right) to query all three sources.</div>
+      <div class="row muted">Public: <a href="https://info1691.github.io/law-index/" target="_blank" rel="noopener">law-index</a></div>
+      <div class="row muted">Agent 2: <a href="https://github.com/Info1691/lex-jsy-forensics" target="_blank" rel="noopener">lex-jsy-forensics</a></div>
+      <div class="row muted">Agent (crawler): <a href="https://github.com/Info1691/lex-ci-harvest" target="_blank" rel="noopener">lex-ci-harvest</a></div>
+      <div class="row muted">Agent 1: <a href="https://github.com/Info1691/lex-ingest-local" target="_blank" rel="noopener">lex-ingest-local</a></div>
+
+      <div class="row muted">This UI: <strong>Law-Texts-ui</strong></div>
+
+      <!-- Absolute link so it works from anywhere -->
+      <div class="row" style="margin:.35rem 0 .25rem">
+        <a href="/search.html" style="display:inline-flex;align-items:center;gap:.5rem">
+          <span aria-hidden="true">🔎</span><span>Search (beta)</span>
+        </a>
+      </div>
+
+      <div class="row muted">Source:
+        <a href="https://info1691.github.io/law-index/catalogs/ingest-catalog.json" target="_blank" rel="noopener">ingest-catalog.json</a>
+      </div>
+
+      <div class="row muted" id="loadedCount" style="margin-top:.35rem">Loaded 0 item(s).</div>
+    </aside>
+
+    <!-- RIGHT: CATALOG LIST -->
+    <section>
+      <div class="card">
+        <div class="filterbar">
+          <input id="filter" type="search" placeholder="Filter by title / reference / jurisdiction…" />
+        </div>
+        <div id="list"></div>
+        <div class="footer-note">Built from the public catalog.</div>
+      </div>
     </section>
   </main>
+
+  <script>
+    // Absolute source (public ingest artifacts)
+    const CATALOG_URL = "https://info1691.github.io/law-index/catalogs/ingest-catalog.json";
+
+    const $ = (id) => document.getElementById(id);
+    const norm = (s='') => s.normalize('NFKD').toLowerCase();
+
+    let ITEMS = [];
+
+    function render(items){
+      const list = $("list");
+      list.innerHTML = "";
+      for (const it of items){
+        const title = it.title || it.id || "Untitled";
+        const jur = it.jurisdiction ? String(it.jurisdiction).toUpperCase() : "";
+        const yr = it.year ? String(it.year) : "";
+        const ref = it.reference || "";
+        const meta = [jur, yr, ref].filter(Boolean).join(" · ");
+
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = `
+          <div class="top">
+            <a class="title" href="${it.url_txt || '#'}">${title}</a>
+            ${it.url_txt ? `<a class="pill" href="${it.url_txt}">TXT</a>` : ``}
+          </div>
+          <div class="meta">${meta}</div>
+        `;
+        list.appendChild(div);
+      }
+      $("loadedCount").textContent = `Loaded ${items.length} item(s).`;
+    }
+
+    function applyFilter(){
+      const q = norm($("filter").value);
+      if (!q){ render(ITEMS); return; }
+      const tokens = q.split(/\s+/).filter(Boolean);
+      const out = ITEMS.filter(it=>{
+        const hay = norm([it.title,it.reference,it.jurisdiction,it.year].filter(Boolean).join(" "));
+        return tokens.every(t => hay.includes(t));
+      });
+      render(out);
+    }
+
+    // Load catalog on start
+    (async function init(){
+      try{
+        const r = await fetch(CATALOG_URL, {mode:"cors"});
+        if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+        const arr = await r.json();
+        ITEMS = (arr || []).map(x => ({
+          id: x.id, title: x.title, jurisdiction: x.jurisdiction, reference: x.reference,
+          year: x.year, url_txt: x.url_txt || x.url || x.href
+        }));
+        render(ITEMS);
+      }catch(e){
+        $("list").innerHTML = `<div class="item"><div class="meta" style="color:#b3261e">Catalog fetch error: ${e.message}</div></div>`;
+      }
+    })();
+
+    // Filter typing
+    $("filter").addEventListener("input", applyFilter);
+  </script>
 </body>
 </html>
