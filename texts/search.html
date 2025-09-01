@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Search (beta) — Trust Law Textbooks</title>
+<style>
+  :root { --ink:#0a2233; --muted:#6a7d89; --card:#fff; --bg:#f6f8fa; --accent:#1253ff;
+          --pill:#eef3ff; --ok:#128a41; --err:#b00020; }
+  html,body { margin:0; padding:0; background:var(--bg); color:var(--ink); font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial; }
+  header { display:flex; align-items:center; gap:.75rem; padding:12px 16px; background:#0b2134; color:#fff; }
+  header .brand { display:flex; align-items:center; gap:.75rem; }
+  header img.logo { height:28px; width:auto; background:#fff; padding:4px 6px; border-radius:4px; } /* white tile behind logo */
+  header a { color:#fff; text-decoration:none; font-weight:600; }
+  main { max-width:980px; margin:24px auto 80px; padding:0 16px; }
+  h1 { font-size:28px; margin:0 0 12px; }
+  .muted { color:var(--muted); font-size:14px; margin:0 0 12px; }
+  form.search { display:flex; gap:8px; margin:12px 0 16px; }
+  form.search input[type="text"] { flex:1; font-size:16px; padding:10px 12px; border:1px solid #c9d1d9; border-radius:8px; background:#fff; }
+  form.search button { padding:10px 14px; border-radius:8px; border:0; background:var(--accent); color:#fff; font-weight:600; cursor:pointer; }
+  .counts { color:var(--muted); margin:8px 0 20px; }
+  h2 { font-size:18px; margin:18px 0 10px; letter-spacing:.02em; }
+  .result-card { background:var(--card); border:1px solid #e5e9ef; border-radius:12px; padding:14px 14px 12px; margin:10px 0 16px; box-shadow:0 1px 0 rgba(0,0,0,.02); }
+  .result-card h3 { margin:0 0 6px; font-size:16px; }
+  .meta { color:var(--muted); font-size:12px; margin:0 0 8px; text-transform:uppercase; letter-spacing:.04em; }
+  .snippet { font-size:14px; color:#111; }
+  .pill { display:inline-block; margin-top:8px; font-size:12px; padding:6px 10px; background:var(--pill); color:#102a6a; border-radius:20px; text-decoration:none; }
+  mark { background:#ffeb8a; }
+  .error { color:var(--err); font-size:14px; margin:8px 0; white-space:break-spaces; }
+  .error a { color:var(--err); text-decoration:underline; }
+</style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <img class="logo" src="/texts/logo.png" alt="Brand" />
+      <a href="/texts/index.html">Trust Law Textbooks</a>
+    </div>
+    <div style="margin-left:auto;"><a href="/texts/index.html">Catalog</a></div>
+  </header>
+
+  <main>
+    <h1>Search (beta)</h1>
+    <p class="muted">Searches: <strong>Textbooks</strong> (local catalog) + <strong>Laws</strong> (laws-ui) + <strong>Rules</strong> (rules-ui). Results show quotable snippets; click the title to open the full TXT.</p>
+
+    <form class="search" data-form="search">
+      <input type="text" placeholder="trustee litigation costs Beddoe, beneficiaries’ consent…" />
+      <button type="submit">Search</button>
+    </form>
+
+    <p class="counts" data-counts>Matches — Textbooks: 0 · Laws: 0 · Rules: 0</p>
+
+    <h2>Textbooks</h2>
+    <section data-section="textbooks" class="results"></section>
+
+    <h2>Laws</h2>
+    <section data-section="laws" class="results"></section>
+
+    <h2>Rules</h2>
+    <section data-section="rules" class="results"></section>
+  </main>
+
+  <!-- Inline JS to avoid path confusion -->
+  <script>
+  (async () => {
+    const CATALOGS = {
+      textbooks: '/texts/catalog.json', // local
+      laws: '/laws.json',               // site root
+      rules: '/rules.json'              // site root
+    };
+
+    const $form   = document.querySelector('[data-form="search"]');
+    const $input  = $form.querySelector('input[type="text"]');
+    const $counts = document.querySelector('[data-counts]');
+    const $sTxt   = document.querySelector('[data-section="textbooks"]');
+    const $sLaws  = document.querySelector('[data-section="laws"]');
+    const $sRules = document.querySelector('[data-section="rules"]');
+
+    const toAbs = (p) => {
+      if (!p) return null;
+      if (/^https?:\/\//i.test(p)) return p;
+      const path = p.startsWith('/') ? p : '/' + p.replace(/^\.?\//,'');
+      return new URL(path, location.origin).href;
+    };
+
+    async function loadCatalog(url) {
+      const abs = toAbs(url);
+      try {
+        const r = await fetch(abs, { cache:'no-store' });
+        if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+        return await r.json();
+      } catch (e) {
+        return { __error: { url, abs, msg: e.message } };
+      }
+    }
+
+    function showError(into, text, link) {
+      const d = document.createElement('div');
+      d.className = 'error';
+      if (link) {
+        d.innerHTML = `${text} (<a href="${link}" target="_blank" rel="noopener">${link}</a>)`;
+      } else {
+        d.textContent = text;
+      }
+      into.appendChild(d);
+    }
+
+    const [textbooks, laws, rules] = await Promise.all([
+      loadCatalog(CATALOGS.textbooks),
+      loadCatalog(CATALOGS.laws),
+      loadCatalog(CATALOGS.rules)
+    ]);
+
+    if (textbooks && textbooks.__error) {
+      showError($sTxt, `Textbooks catalog error: ${textbooks.__error.msg}`, textbooks.__error.abs);
+    }
+    if (laws && laws.__error) {
+      showError($sLaws, `Laws catalog error: ${laws.__error.msg}`, laws.__error.abs);
+    }
+    if (rules && rules.__error) {
+      showError($sRules, `Rules catalog error: ${rules.__error.msg}`, rules.__error.abs);
+    }
+
+    const txtItems  = Array.isArray(textbooks) ? textbooks.map(i => ({...i, url_txt: toAbs(i.url_txt)})) : [];
+    const lawItems  = Array.isArray(laws)      ? laws.map(i => ({...i, url_txt: toAbs(i.url_txt)}))     : [];
+    const ruleItems = Array.isArray(rules)     ? rules.map(i => ({...i, url_txt: toAbs(i.url_txt)}))    : [];
+
+    async function fetchText(u) {
+      try {
+        const r = await fetch(u, { cache:'no-store' });
+        if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+        return await r.text();
+      } catch { return null; }
+    }
+
+    function escRe(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+    function highlight(text, terms) {
+      let out = text;
+      for (const t of terms) {
+        const rx = new RegExp(`(${escRe(t)})`,'gi');
+        out = out.replace(rx,'<mark>$1</mark>');
+      }
+      return out;
+    }
+    function snippet(body, terms, win=140){
+      const idx = terms.map(t => body.toLowerCase().indexOf(t.toLowerCase())).filter(i => i>=0).sort((a,b)=>a-b)[0];
+      if (idx==null || idx<0) return null;
+      const s = Math.max(0, idx - win), e = Math.min(body.length, idx + win);
+      return (s>0?'…':'') + body.slice(s,e) + (e<body.length?'…':'');
+    }
+
+    function card(into, item, tag) {
+      const el = document.createElement('article');
+      el.className = 'result-card';
+      el.innerHTML = `
+        <h3>${item.title || item.reference || '(untitled)'}</h3>
+        <div class="meta">${(item.jurisdiction||'').toUpperCase()} · ${item.year||''} · ${tag}</div>
+        <div class="snippet">${item._snippet||''}</div>
+        ${item.url_txt ? `<a class="pill" href="${item.url_txt}" target="_blank" rel="noopener">open TXT</a>` : ''}`;
+      into.appendChild(el);
+    }
+
+    async function run(q){
+      const terms = q.trim().split(/\s+/).filter(Boolean);
+      $sTxt.innerHTML = ''; $sLaws.innerHTML=''; $sRules.innerHTML='';
+      let cT=0,cL=0,cR=0;
+
+      async function searchSet(items, into, tag){
+        let count=0;
+        for (const it of items) {
+          if (!it.url_txt) continue;
+          const body = await fetchText(it.url_txt);
+          if (!body) { showError(into, `Fetch failed:`, it.url_txt); continue; }
+          const ok = terms.every(t => body.toLowerCase().includes(t.toLowerCase()));
+          if (!ok) continue;
+          const sn = snippet(body, terms) || body.slice(0,240);
+          it._snippet = highlight(sn, terms);
+          card(into, it, tag); count++;
+        }
+        return count;
+      }
+
+      cT += await searchSet(txtItems,  $sTxt,   'Textbooks');
+      cL += await searchSet(lawItems,  $sLaws,  'Laws');
+      cR += await searchSet(ruleItems, $sRules, 'Rules');
+
+      $counts.textContent = `Matches — Textbooks: ${cT} · Laws: ${cL} · Rules: ${cR}`;
+    }
+
+    const urlQ = new URLSearchParams(location.search).get('q') || '';
+    if (urlQ) { $input.value = urlQ; run(urlQ); }
+
+    $form.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const q = $input.value || '';
+      const u = new URL(location.href);
+      if (q) u.searchParams.set('q', q); else u.searchParams.delete('q');
+      history.replaceState({},'',u);
+      run(q);
+    });
+  })();
+  </script>
+</body>
+</html>
