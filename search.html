@@ -2,68 +2,65 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Trust Law Textbooks — Search (beta)</title>
   <link rel="icon" href="/logo.png">
-  <!-- Inline base styles so branding never vanishes even if external CSS moves -->
   <style>
-    :root{--bg:#0e2235;--card:#fff;--ink:#0e1621;--muted:#4d5b6b;--line:#e6eef6;--accent:#2a6ee1;--pill:#eef2ff}
+    :root { --bg:#0f2f49; --ink:#0d2232; --muted:#6b7b85; --card:#fff; --line:#e8eef3; --chip:#eef5fb; }
     *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
-    header.bar{display:flex;align-items:center;gap:.75rem;padding:.65rem .95rem;background:var(--bg);color:#eaf1f7;position:sticky;top:0;z-index:10;border-bottom:1px solid #17324d}
-    .brand{display:flex;align-items:center;gap:.6rem}
-    .brand img{height:26px;width:auto}
-    .brand strong{font-weight:700}
-    .toolbar{margin-left:auto}
-    .toolbar a{color:#eaf1f7;text-decoration:none;border:1px solid #335373;border-radius:.55rem;padding:.3rem .6rem;background:#132a41}
-    main.wrap{max-width:1200px;margin:0 auto;padding:1rem .95rem 2.5rem;background:#f6f9fc;min-height:100vh}
-    h1{font-size:1.15rem;margin:.1rem 0 .35rem}
-    form.search{display:flex;gap:.5rem;margin:.75rem 0 1rem}
-    form.search input{flex:1;padding:.65rem .75rem;border:1px solid #cfd8e3;border-radius:.6rem;background:#fff}
-    form.search button{padding:.6rem .95rem;border:0;border-radius:.6rem;background:var(--accent);color:#fff;cursor:pointer}
-    .muted{color:var(--muted);font-size:.92rem}
-    h2{margin:1.25rem 0 .65rem;font-size:1.05rem}
-    section.results{display:grid;gap:1rem}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:.8rem;padding:1rem}
-    .card h3{margin:.1rem 0 .35rem;font-size:1.05rem}
-    .meta{font-size:.82rem;color:#5a6b81;text-transform:uppercase;letter-spacing:.03em}
-    .row{display:flex;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
-    .pill{display:inline-flex;align-items:center;gap:.35rem;font-size:.78rem;background:var(--pill);border:1px solid #dbe4ff;border-radius:999px;padding:.25rem .55rem}
-    mark{background:#ffec99;padding:0 .15rem;border-radius:.15rem}
-    .bad{color:#9b2226}
+    body{margin:0;font:16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";}
+    header{background:var(--bg);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:.75rem}
+    header img{height:28px;width:auto;display:block}
+    header .title{font-weight:600}
+    header .sp{flex:1}
+    header a.btn{background:#1f87ff;color:#fff;text-decoration:none;padding:.4rem .75rem;border-radius:.5rem;font-size:.9rem}
+    main{max-width:1100px;margin:24px auto;padding:0 16px}
+    .hint{color:var(--muted);margin:.25rem 0 1rem}
+    form.search{display:flex;gap:.5rem;margin:.5rem 0 1rem}
+    .search input{flex:1;padding:.6rem .75rem;border:1px solid var(--line);border-radius:.5rem}
+    .search button{padding:.6rem .9rem;border:0;border-radius:.5rem;background:#1f87ff;color:#fff;cursor:pointer}
+    .counts{color:var(--muted);margin-bottom:1rem}
+    h2{margin:1.25rem 0 .5rem;color:var(--ink)}
+    .result{background:var(--card);border:1px solid var(--line);border-radius:.75rem;padding:14px 16px;margin:.75rem 0}
+    .meta{display:flex;gap:.5rem;flex-wrap:wrap;font-size:.85rem;color:var(--muted);margin:.15rem 0 .4rem}
+    .badge{background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:.1rem .5rem}
+    .snippet mark{background:#fff1a8;padding:0 .15rem;border-radius:.2rem}
+    .rowtop{display:flex;justify-content:space-between;align-items:center;gap:.75rem}
+    .open{font-size:.85rem;background:var(--chip);border:1px solid var(--line);padding:.2rem .5rem;border-radius:.4rem;text-decoration:none;color:#055}
+    .err{color:#b3261e;white-space:pre-wrap}
+    .muted{color:var(--muted)}
   </style>
 </head>
 <body>
-  <header class="bar">
-    <div class="brand">
-      <img src="/logo.png" alt="BCB">
-      <strong>Trust Law Textbooks</strong>
-      <span>Search (beta)</span>
-    </div>
-    <nav class="toolbar"><a href="/">Catalog</a></nav>
+  <header>
+    <img src="/logo.png" alt="Logo" onerror="this.style.display='none'">
+    <div class="title">Trust Law Textbooks</div>
+    <div class="sp"></div>
+    <a class="btn" href="/index.html">Catalog</a>
   </header>
 
-  <main class="wrap">
-    <form id="qform" class="search" role="search">
-      <input id="q" name="q" type="text"
-             placeholder="Search textbooks + laws + rules… e.g., Beddoe, beneficiaries' consent, litigation costs">
+  <main>
+    <h1 style="margin:0 0 .4rem">Search (beta)</h1>
+    <p class="hint">Searches: <strong>Textbooks</strong> (public catalog) + <strong>Laws</strong> (laws-ui) + <strong>Rules</strong> (rules-ui).
+      Results show quotable snippets; click the title to open the full TXT.</p>
+
+    <form class="search" id="form">
+      <input id="q" type="text" placeholder="e.g., Beddoe, beneficiaries’ consent, litigation costs" />
       <button type="submit">Search</button>
     </form>
 
-    <p class="muted">
-      Searches: <strong>Textbooks</strong> (public catalog) + <strong>Laws</strong> (laws-ui) +
-      <strong>Rules</strong> (rules-ui). Results show quotable snippets; click the title to open the full TXT.
-    </p>
-    <p class="muted" id="counts">Matches — Textbooks: 0 · Laws: 0 · Rules: 0</p>
+    <div class="counts" id="counts">Matches — Textbooks: 0 · Laws: 0 · Rules: 0</div>
 
     <h2>Textbooks</h2>
-    <section id="textbooks" class="results"></section>
+    <div id="sec-textbooks"></div>
 
     <h2>Laws</h2>
-    <section id="laws" class="results"></section>
+    <div id="sec-laws"></div>
 
     <h2>Rules</h2>
-    <section id="rules" class="results"></section>
+    <div id="sec-rules"></div>
+
+    <div id="errors" class="err"></div>
   </main>
 
   <script src="/search.js"></script>
