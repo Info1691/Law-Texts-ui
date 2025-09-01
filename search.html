@@ -2,67 +2,68 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <title>Search (beta) — Trust Law Textbooks</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Trust Law Textbooks — Search (beta)</title>
   <link rel="icon" href="/logo.png">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <style>
-    :root { --bg:#0f2f49; --ink:#0d2232; --muted:#6b7b85; --card:#fff; --line:#e8eef3; --chip:#eef5fb; }
-    *{box-sizing:border-box}
-    body{margin:0;font:16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";}
-    header{background:var(--bg);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:.75rem}
-    header img{height:28px;width:auto;display:block}
-    header .title{font-weight:600}
-    header .sp{flex:1}
-    header a.btn{background:#1f87ff;color:#fff;text-decoration:none;padding:.4rem .75rem;border-radius:.5rem;font-size:.9rem}
-    main{max-width:1100px;margin:24px auto;padding:0 16px}
-    .hint{color:var(--muted);margin:.25rem 0 1rem}
-    form.search{display:flex;gap:.5rem;margin:.5rem 0 1rem}
-    .search input{flex:1;padding:.6rem .75rem;border:1px solid var(--line);border-radius:.5rem}
-    .search button{padding:.6rem .9rem;border:0;border-radius:.5rem;background:#1f87ff;color:#fff;cursor:pointer}
-    .counts{color:var(--muted);margin-bottom:1rem}
-    h2{margin:1.25rem 0 .5rem;color:var(--ink)}
-    .result{background:var(--card);border:1px solid var(--line);border-radius:.75rem;padding:14px 16px;margin:.75rem 0}
-    .meta{display:flex;gap:.5rem;flex-wrap:wrap;font-size:.85rem;color:var(--muted);margin:.15rem 0 .4rem}
-    .badge{background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:.1rem .5rem}
-    .snippet mark{background:#fff1a8;padding:0 .15rem;border-radius:.2rem}
-    .rowtop{display:flex;justify-content:space-between;align-items:center;gap:.75rem}
-    .open{font-size:.85rem;background:var(--chip);border:1px solid var(--line);padding:.2rem .5rem;border-radius:.4rem;text-decoration:none;color:#055}
-    .err{color:#b3261e;white-space:pre-wrap}
-    .muted{color:var(--muted)}
+    :root { --bg:#0e2a3f; --panel:#fff; --muted:#6b7280; --chip:#eef2ff; --chiptext:#3730a3; }
+    * { box-sizing: border-box; }
+    body { margin:0; font: 16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji"; background:#f6f7fb; color:#0b1220; }
+    header.bar { background:var(--bg); color:#fff; padding:12px 16px; position:sticky; top:0; z-index:10; display:flex; align-items:center; gap:12px; }
+    header .brand { display:flex; align-items:center; gap:10px; }
+    header .brand img { height:28px; width:auto; background:#fff; padding:4px; border-radius:4px; }
+    header .brand strong { font-size:14px; font-weight:600; opacity:.95; }
+    a.home { color:#9ec8ff; text-decoration:none; }
+    a.home:hover { text-decoration:underline; }
+    .wrap { max-width:1120px; margin:18px auto; padding:0 16px; }
+    form.search { display:flex; gap:8px; }
+    form.search input[type="text"]{ flex:1; padding:10px 12px; border:1px solid #d1d5db; border-radius:8px; }
+    form.search button{ padding:10px 14px; border:0; border-radius:8px; background:#2563eb; color:#fff; font-weight:600; }
+    p.muted{ color:var(--muted); margin:.5rem 0 1rem; }
+    .results > h2 { margin:24px 0 10px; font-size:18px; }
+    .card{ background:var(--panel); border:1px solid #e5e7eb; border-radius:12px; padding:14px; margin:10px 0 16px; box-shadow:0 1px 0 rgba(0,0,0,.02); }
+    .meta{ font-size:12px; color:#6b7280; margin-bottom:6px; display:flex; align-items:center; gap:8px; }
+    .chip{ background:var(--chip); color:var(--chiptext); border-radius:999px; padding:2px 8px; font-size:11px; font-weight:600; }
+    .card h3{ margin:0 0 6px; font-size:17px; }
+    .snip{ color:#111827; }
+    .snip mark{ background:#ffed4a; padding:0 2px; border-radius:2px; }
+    .open { font-size:12px; text-decoration:none; color:#2563eb; }
+    .err{ color:#b91c1c; white-space:pre-wrap; }
+    .counts{ color:#6b7280; font-size:13px; }
+    .topright { margin-left:auto; }
+    .pill { background:#093255; color:#fff; font-weight:700; padding:6px 10px; border-radius:10px; text-decoration:none; }
   </style>
 </head>
 <body>
-  <header>
-    <img src="/logo.png" alt="Logo" onerror="this.style.display='none'">
-    <div class="title">Trust Law Textbooks</div>
-    <div class="sp"></div>
-    <a class="btn" href="/index.html">Catalog</a>
+  <header class="bar">
+    <div class="brand">
+      <img src="/logo.png" alt="WWBCB logo">
+      <strong>Trust Law Textbooks</strong>
+    </div>
+    <a class="topright pill" href="/index.html">Catalog</a>
   </header>
 
-  <main>
-    <h1 style="margin:0 0 .4rem">Search (beta)</h1>
-    <p class="hint">Searches: <strong>Textbooks</strong> (public catalog) + <strong>Laws</strong> (laws-ui) + <strong>Rules</strong> (rules-ui).
-      Results show quotable snippets; click the title to open the full TXT.</p>
-
-    <form class="search" id="form">
-      <input id="q" type="text" placeholder="e.g., Beddoe, beneficiaries’ consent, litigation costs" />
+  <main class="wrap">
+    <form class="search" data-form>
+      <input type="text" data-q placeholder="Search textbooks + laws + rules… e.g., Beddoe, beneficiaries' consent, litigation costs" />
       <button type="submit">Search</button>
     </form>
+    <p class="muted">Searches: <strong>Textbooks</strong> (local catalog) + <strong>Laws</strong> (laws-ui) + <strong>Rules</strong> (rules-ui). Results show quotable snippets; click the title to open the full TXT.</p>
+    <p class="counts" data-counts>Matches — Textbooks: 0 · Laws: 0 · Rules: 0</p>
 
-    <div class="counts" id="counts">Matches — Textbooks: 0 · Laws: 0 · Rules: 0</div>
+    <section class="results">
+      <h2>Textbooks</h2>
+      <div data-section="textbooks"></div>
 
-    <h2>Textbooks</h2>
-    <div id="sec-textbooks"></div>
+      <h2>Laws</h2>
+      <div data-section="laws"></div>
 
-    <h2>Laws</h2>
-    <div id="sec-laws"></div>
-
-    <h2>Rules</h2>
-    <div id="sec-rules"></div>
-
-    <div id="errors" class="err"></div>
+      <h2>Rules</h2>
+      <div data-section="rules"></div>
+    </section>
   </main>
 
-  <script src="/search.js"></script>
+  <script src="/search.js?v=7"></script>
 </body>
 </html>
