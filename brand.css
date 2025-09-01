@@ -1,0 +1,40 @@
+/* brand.css — force white background behind the logo, safely */
+:root {
+  --logo-bg: #ffffff;
+  --logo-pad: .25rem;
+  --logo-radius: .375rem;
+  --logo-max-h: 28px;
+}
+
+/* Catch common placements */
+.brand img,
+img.logo,
+img[src$="logo.png"],
+img[alt*="BCB" i] {
+  background: var(--logo-bg) !important;
+  padding: var(--logo-pad) !important;
+  border-radius: var(--logo-radius) !important;
+  max-height: var(--logo-max-h);
+  width: auto;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.06) inset;
+  display: inline-block;
+}
+
+/* Make sure dark mode still shows white chip */
+@media (prefers-color-scheme: dark) {
+  .brand img,
+  img.logo,
+  img[src$="logo.png"],
+  img[alt*="BCB" i] {
+    background: #ffffff !important;
+  }
+}
+
+/* Keep the rest of the brand text tidy */
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  text-decoration: none;
+}
+.brand strong { font-weight: 700; }
