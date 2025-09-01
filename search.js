@@ -1,34 +1,44 @@
-// Catalog locations
+// ---- Catalog locations ----
 const CATALOGS = {
-  // TEXTBOOKS: use this repo's local catalog that points into data/textbooks/...
+  // Local textbooks catalog (this repo)
   textbooks: './texts/catalog.json',
-  // LAWS/RULES: read their published catalogs
+  // Published catalogs in the other UIs
   laws:  'https://info1691.github.io/laws-ui/laws.json',
-  rules: 'https://info1691.github.io/rules-ui/rules.json'
+  rules: 'https://info1691.github.io/rules-ui/rules.json',
 };
 
-// ---------- tiny DOM helpers ----------
+// ------------- tiny DOM helpers -------------
 const $  = (s, el=document) => el.querySelector(s);
 const sec = (n) => $(`[data-section="${n}"]`);
 
-// ---------- fetch helpers ----------
+// ------------- fetch helpers -------------
 async function getJSON(url){
-  const r = await fetch(url, {cache:'no-store'});
+  const r = await fetch(url, { cache: 'no-store' });
   if(!r.ok) throw new Error(`${r.status} ${url}`);
   return r.json();
 }
 async function getTXT(url){
-  const r = await fetch(url, {cache:'no-store'});
+  const r = await fetch(url, { cache: 'no-store' });
   if(!r.ok) throw new Error(`${r.status} ${url}`);
   return r.text();
 }
-// Resolve item.url_txt relative to its catalog URL; encode spaces and () for GitHub Pages
+
+/**
+ * Resolve a possibly-relative item URL (from the catalog) against the
+ * catalog URL (which may itself be relative). We first absolutize the
+ * catalog URL using the current page as base, then resolve the item.
+ */
 function resolveUrl(itemUrl, catalogUrl){
-  const abs = new URL(itemUrl, catalogUrl).href;
-  return abs.replace(/ /g, '%20').replace(/\(/g, '%28').replace(/\)/g, '%29');
+  const catalogAbs = new URL(catalogUrl, window.location.href);
+  const itemAbs    = new URL(itemUrl, catalogAbs);
+  // Encode spaces/parentheses to satisfy GitHub Pages
+  return itemAbs.href
+    .replace(/ /g, '%20')
+    .replace(/\(/g, '%28')
+    .replace(/\)/g, '%29');
 }
 
-// ---------- search + render ----------
+// ------------- search + render -------------
 function findSnippets(text, terms, windowChars = 480){
   const hay = text.toLowerCase();
   const idx = terms.map(t => hay.indexOf(t));
@@ -40,7 +50,7 @@ function findSnippets(text, terms, windowChars = 480){
 function highlight(html, terms){
   let out = html;
   terms.sort((a,b)=>b.length-a.length).forEach(t=>{
-    const re = new RegExp(`(${t.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\$&')})`,'gi');
+    const re = new RegExp(`(${t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`,'gi');
     out = out.replace(re,'<mark>$1</mark>');
   });
   return out;
@@ -65,6 +75,7 @@ async function searchOne(kind, q, catalogUrl){
 
     for(const it of items){
       if(!it.url_txt) continue;
+
       const txtUrl = resolveUrl(it.url_txt, catalogUrl);
 
       try{
@@ -80,7 +91,6 @@ async function searchOne(kind, q, catalogUrl){
           }));
         }
       }catch(e){
-        // show which TXT failed so missing paths are obvious
         host.insertAdjacentHTML('beforeend',
           `<p class="error">Fetch failed: ${(it.title||it.id)} (<code>${txtUrl}</code>)</p>`);
       }
@@ -88,7 +98,6 @@ async function searchOne(kind, q, catalogUrl){
   }catch(e){
     host.insertAdjacentHTML('beforeend', `<p class="error">Catalog error: ${e.message}</p>`);
   }
-
   return count;
 }
 
@@ -101,7 +110,7 @@ async function searchAll(q){
   $('[data-counts]').textContent = `Matches — Textbooks: ${t} · Laws: ${l} · Rules: ${r}`;
 }
 
-// ---------- init ----------
+// ------------- init -------------
 (function(){
   const form = $('[data-form]');
   const box  = $('[data-q]');
