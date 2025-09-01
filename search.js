@@ -1,160 +1,162 @@
-// ------- Catalogs (absolute URLs so the page works from anywhere) -----------
+/* ---------- CONFIG: absolute catalogs (works from anywhere) ---------- */
 const CATALOGS = {
-  textbooks: 'https://info1691.github.io/law-index/catalogs/ingest-catalog.json',
-  laws:      'https://info1691.github.io/law-index/laws.json',
-  rules:     'https://info1691.github.io/law-index/rules.json',
+  textbooks: "https://info1691.github.io/law-index/catalogs/ingest-catalog.json",
+  laws:      "https://info1691.github.io/laws-ui/laws.json",
+  rules:     "https://info1691.github.io/rules-ui/rules.json",
 };
 
-// search tuning
-const MAX_SNIPPETS_PER_DOC = 3;
-const SNIPPET_RADIUS = 220;
+/* ---------- helpers ---------- */
+const $ = (id) => document.getElementById(id);
+const norm = (s='') => s.normalize('NFKD').toLowerCase();
+const words = (q) => norm(q).split(/[\s+]+/).filter(Boolean);
 
-// ------- tiny helpers --------------------------------------------------------
-const $ = s => document.querySelector(s);
-const esc = s => s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-const sleep = ms => new Promise(r => setTimeout(r, ms));
+/* highlight and snippet around first hit while checking that
+   ALL query terms occur within a local window (~400 chars) */
+function makeSnippet(txt, terms, window=400) {
+  const L = norm(txt);
+  // anchor on the earliest occurrence among query terms
+  let pos = Infinity;
+  for (const t of terms) {
+    const p = L.indexOf(t);
+    if (p >= 0 && p < pos) pos = p;
+  }
+  if (!isFinite(pos)) return null;
 
-function parseQ() {
-  const q = new URLSearchParams(location.search).get('q') || '';
-  $('#q').value = q;
-  return q.trim();
+  // ensure every term appears within a window around anchor
+  const start = Math.max(0, pos - Math.floor(window/2));
+  const end   = Math.min(txt.length, start + window);
+  const raw   = txt.slice(start, end);
+
+  const sliceL = norm(raw);
+  for (const t of terms) {
+    if (!sliceL.includes(t)) return null; // fail local AND window
+  }
+
+  // highlight
+  let html = raw;
+  for (const t of terms.sort((a,b)=>b.length-a.length)) {
+    if (!t) continue;
+    const rx = new RegExp(`(${t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`,'gi');
+    html = html.replace(rx, '<mark>$1</mark>');
+  }
+  return (start>0 ? '…' : '') + html + (end<txt.length ? '…' : '');
 }
-function setCounts({t=0,l=0,r=0}) {
-  $('#counts').textContent = `Matches — Textbooks: ${t} · Laws: ${l} · Rules: ${r}`;
+
+function elResult(item, snippet, pillar) {
+  const wrap = document.createElement('div');
+  wrap.className = 'result';
+  const meta = `
+    <div class="meta">
+      ${item.jurisdiction ? `<span class="badge">${item.jurisdiction.toUpperCase()}</span>`:''}
+      ${item.year ? `<span class="badge">${item.year}</span>`:''}
+      <span class="badge">${pillar}</span>
+    </div>`;
+  wrap.innerHTML = `
+    <div class="rowtop">
+      <a href="${item.url_txt}" class="title"><strong>${item.title || item.id || 'Untitled'}</strong></a>
+      <a class="open" href="${item.url_txt}">open TXT</a>
+    </div>
+    ${meta}
+    <div class="snippet">${snippet}</div>
+  `;
+  return wrap;
 }
-function absolutizeLawIndexPath(urlish) {
-  if (!urlish) return null;
-  if (/^https?:\/\//i.test(urlish)) return urlish;
-  return `https://info1691.github.io/law-index/${urlish.replace(/^\.\//,'')}`;
-}
+
+/* ---------- fetchers ---------- */
 async function fetchJSON(url) {
-  const res = await fetch(url, {mode:'cors'});
-  if (!res.ok) throw new Error(`${res.status} ${url}`);
-  const json = await res.json();
-  return Array.isArray(json) ? json : (json.items || []);
+  const r = await fetch(url, {mode:'cors'});
+  if (!r.ok) throw new Error(`${r.status} ${r.statusText}: ${url}`);
+  return r.json();
 }
 async function fetchTXT(url) {
-  for (let i=0;i<2;i++){
-    const r = await fetch(url, {mode:'cors'});
-    if (r.ok) return r.text();
-    await sleep(120);
-  }
-  throw new Error(`TXT fetch failed: ${url}`);
+  const r = await fetch(url, {mode:'cors'});
+  if (!r.ok) throw new Error(`${r.status} ${r.statusText}: ${url}`);
+  return r.text();
 }
-const words = q => q.split(/[+\s]+/).map(s=>s.trim()).filter(Boolean);
 
-// AND-window snippets
-function makeSnippets(text, terms){
-  if (!terms.length) return [];
-  const L = text.toLowerCase();
-  const needles = terms.map(t=>t.toLowerCase());
-  const hits = [];
-  let from = 0;
-  while (hits.length < MAX_SNIPPETS_PER_DOC){
-    const p = L.indexOf(needles[0], from);
-    if (p === -1) break;
-    const s = Math.max(0, p - SNIPPET_RADIUS);
-    const e = Math.min(text.length, p + needles[0].length + SNIPPET_RADIUS);
-    const win = L.slice(s, e);
-    if (needles.every(n => win.indexOf(n) !== -1)){
-      let snip = text.slice(s, e);
-      needles.forEach(n=>{
-        const re = new RegExp(`(${n.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'ig');
-        snip = snip.replace(re,'<mark>$1</mark>');
-      });
-      snip = (s>0?'…':'') + esc(snip) + (e<text.length?'…':'');
-      snip = snip.replace(/&lt;mark&gt;/g,'<mark>').replace(/&lt;\/mark&gt;/g,'</mark>');
-      hits.push(snip);
-      from = e;
-    } else {
-      from = p + needles[0].length;
+/* ---------- search logic ---------- */
+async function loadCatalog(kind, url) {
+  try {
+    const arr = await fetchJSON(url);
+    // expect objects that include: id, title, jurisdiction, year, url_txt
+    return arr.filter(x => x && (x.url_txt || x.url || x.href)).map(x => ({
+      id: x.id,
+      title: x.title,
+      jurisdiction: x.jurisdiction,
+      year: x.year,
+      url_txt: x.url_txt || x.url || x.href
+    }));
+  } catch (e) {
+    const line = document.createElement('div');
+    line.className = 'err';
+    line.textContent = `${kind} catalog error: ${e.message}`;
+    $(`sec-${kind}`).appendChild(line);
+    return [];
+  }
+}
+
+async function searchOnePillar(kind, items, terms) {
+  const out = $(`sec-${kind}`);
+  out.innerHTML = '';
+  let hits = 0;
+
+  // small collections: fetch sequentially for simplicity
+  for (const item of items) {
+    if (!item.url_txt) continue;
+    try {
+      const txt = await fetchTXT(item.url_txt);
+      const snippet = makeSnippet(txt, terms);
+      if (snippet) {
+        out.appendChild(elResult(item, snippet, kind));
+        hits++;
+      }
+    } catch (e) {
+      const warn = document.createElement('div');
+      warn.className = 'err';
+      warn.textContent = `Fetch failed: ${item.title || item.id} (${item.url_txt})`;
+      out.appendChild(warn);
     }
   }
   return hits;
 }
-function card(where, item, snippets, kind){
-  const el = document.createElement('article');
-  el.className = 'card';
-  const open = item.url_txt;
-  const meta = `${(item.jurisdiction||'').toString().toUpperCase()} · ${(item.year||'') } · ${kind}`;
-  el.innerHTML = `
-    <div class="row">
-      <div>
-        <h3><a href="${esc(open)}" target="_blank" rel="noopener">${esc(item.title||'Untitled')}</a></h3>
-        <div class="meta">${esc(meta)}</div>
-      </div>
-      <a class="pill" href="${esc(open)}" target="_blank" rel="noopener">¶ open TXT</a>
-    </div>
-    ${snippets.map(s=>`<p>${s}</p>`).join('')}
-  `;
-  where.appendChild(el);
+
+async function runSearch(q) {
+  const t = words(q);
+  if (t.length === 0) {
+    $('counts').textContent = 'Matches — Textbooks: 0 · Laws: 0 · Rules: 0';
+    ['textbooks','laws','rules'].forEach(k => $(`sec-${k}`).innerHTML='');
+    return;
+  }
+
+  // load catalogs (absolute URLs so this works from /search.html anywhere)
+  const [textbooks, laws, rules] = await Promise.all([
+    loadCatalog('textbooks', CATALOGS.textbooks),
+    loadCatalog('laws',      CATALOGS.laws),
+    loadCatalog('rules',     CATALOGS.rules),
+  ]);
+
+  const [hT, hL, hR] = await Promise.all([
+    searchOnePillar('textbooks', textbooks, t),
+    searchOnePillar('laws',      laws,      t),
+    searchOnePillar('rules',     rules,     t),
+  ]);
+
+  $('counts').textContent = `Matches — Textbooks: ${hT} · Laws: ${hL} · Rules: ${hR}`;
 }
 
-// ------- main ---------------------------------------------------------------
-async function run(){
-  const q = parseQ();
-  const terms = words(q);
-  const boxT = $('#textbooks'), boxL = $('#laws'), boxR = $('#rules');
-  boxT.innerHTML = boxL.innerHTML = boxR.innerHTML = '';
-  let counts = {t:0,l:0,r:0}; setCounts(counts);
-  if (!terms.length) return;
-
-  // 1) catalogs
-  let textbooks=[], laws=[], rules=[];
-  try{
-    textbooks = (await fetchJSON(CATALOGS.textbooks)).map(b=>({
-      id:b.id, title:b.title||b.name||'Untitled',
-      jurisdiction:(b.jurisdiction||b.jurisdiction_tag||'').toString(),
-      year:b.year||'',
-      url_txt:absolutizeLawIndexPath(b.url_txt||b.txt||b.href)
-    })).filter(x=>!!x.url_txt);
-  }catch(e){
-    const p=document.createElement('p'); p.className='bad';
-    p.textContent=`Textbooks catalog error: ${e.message}`; boxT.appendChild(p);
-  }
-  try{
-    laws = (await fetchJSON(CATALOGS.laws)).map(x=>({
-      id:x.id,title:x.title,jurisdiction:x.jurisdiction,year:x.year,url_txt:absolutizeLawIndexPath(x.url_txt)
-    })).filter(x=>!!x.url_txt);
-  }catch(e){
-    const p=document.createElement('p'); p.className='bad';
-    p.textContent=`Laws catalog error: ${e.message}`; boxL.appendChild(p);
-  }
-  try{
-    rules = (await fetchJSON(CATALOGS.rules)).map(x=>({
-      id:x.id,title:x.title,jurisdiction:x.jurisdiction,year:x.year,url_txt:absolutizeLawIndexPath(x.url_txt)
-    })).filter(x=>!!x.url_txt);
-  }catch(e){
-    const p=document.createElement('p'); p.className='bad';
-    p.textContent=`Rules catalog error: ${e.message}`; boxR.appendChild(p);
-  }
-
-  // 2) scan
-  async function scan(items, out, label){
-    let found = 0;
-    for (const it of items){
-      try{
-        const txt = await fetchTXT(it.url_txt);
-        const snips = makeSnippets(txt, terms);
-        if (snips.length){ card(out, it, snips, label); found++; }
-      }catch(_){ /* ignore */ }
-    }
-    return found;
-  }
-
-  counts.t = await scan(textbooks, boxT, 'textbooks');
-  counts.l = await scan(laws,      boxL, 'laws');
-  counts.r = await scan(rules,     boxR, 'rules');
-  setCounts(counts);
-}
-
-// submit → ?q=
-document.getElementById('qform').addEventListener('submit', e=>{
-  e.preventDefault();
-  const q = $('#q').value.trim();
-  const u = new URL(location.href);
-  if(q) u.searchParams.set('q',q); else u.searchParams.delete('q');
-  location.href = u.toString();
-});
-
-run();
+/* ---------- wire up UI ---------- */
+(function init(){
+  const params = new URLSearchParams(location.search);
+  const q0 = params.get('q') || '';
+  $('q').value = q0;
+  $('form').addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const q = $('q').value.trim();
+    const p = new URLSearchParams(location.search);
+    if (q) p.set('q', q); else p.delete('q');
+    const next = `${location.pathname}?${p.toString()}`;
+    history.replaceState({}, '', next);
+    runSearch(q);
+  });
+  if (q0) runSearch(q0);
+})();
