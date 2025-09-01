@@ -1,171 +1,113 @@
-(() => {
-  const CATALOGS = {
-    textbooks: '/texts/catalog.json',
-    laws: '/laws.json',
-    rules: '/rules.json'
-  };
+// Catalog locations — DO NOT point at local ./data unless the TXT actually lives here
+const CATALOGS = {
+  textbooks: 'https://info1691.github.io/law-index/catalogs/ingest-catalog.json',
+  laws:      'https://info1691.github.io/laws-ui/laws.json',
+  rules:     'https://info1691.github.io/rules-ui/rules.json'
+};
 
-  // --- Helpers ---------------------------------------------------------------
-  const qs = sel => document.querySelector(sel);
-  const out = {
-    textbooks: qs('[data-section="textbooks"]'),
-    laws: qs('[data-section="laws"]'),
-    rules: qs('[data-section="rules"]'),
-    counts: qs('[data-counts]'),
-    form: qs('[data-form]'),
-    q: qs('[data-q]')
-  };
+// --- helpers ---
+const $ = (s, el=document) => el.querySelector(s);
+const sec = n => $(`[data-section="${n}"]`);
 
-  const urlParamQ = new URLSearchParams(location.search).get('q') || '';
-  if (urlParamQ) out.q.value = urlParamQ;
+async function getJSON(url){
+  const r = await fetch(url, {cache:'no-store'});
+  if(!r.ok) throw new Error(`${r.status} ${url}`);
+  return r.json();
+}
+async function getTXT(absUrl){
+  const r = await fetch(absUrl, {cache:'no-store'});
+  if(!r.ok) throw new Error(`${r.status} ${absUrl}`);
+  return r.text();
+}
+// resolve item.url_txt relative to its catalog file and encode spaces/()
+function resolveUrl(itemUrl, catalogUrl){
+  // new URL handles absolute or relative correctly; it also resolves .. segments
+  const abs = new URL(itemUrl, catalogUrl).href;
+  // encode only characters that break GH Pages when present (space, parentheses)
+  return abs.replace(/ /g, '%20').replace(/\(/g, '%28').replace(/\)/g, '%29');
+}
 
-  function termsFromQuery(q) {
-    return q.trim().toLowerCase().split(/\s+/).filter(Boolean);
-  }
-  const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  function highlight(s, terms) {
-    if (!terms.length) return s;
-    const re = new RegExp('(' + terms.map(esc).join('|') + ')', 'gi');
-    return s.replace(re, '<mark>$1</mark>');
-  }
-  function absoluteTxt(url) {
-    return new URL(url, location.origin).href;
-  }
+// Simple AND-in-window snippet finder
+function findSnippets(text, terms, win=420){
+  const hay = text.toLowerCase();
+  const hits = terms.map(t => hay.indexOf(t));
+  if(hits.some(i => i<0)) return [];
+  const start = Math.max(0, Math.min(...hits) - Math.floor(win/3));
+  const end   = Math.min(text.length, Math.max(...hits) + Math.floor(win*2/3));
+  return [text.slice(start, end)];
+}
+function mark(snippet, terms){
+  let html = snippet;
+  terms.sort((a,b)=>b.length-a.length).forEach(t=>{
+    const re = new RegExp(`(${t.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\$&')})`,'gi');
+    html = html.replace(re,'<mark>$1</mark>');
+  });
+  return html;
+}
+function card({title, meta, url, snippet}){
+  return `<article class="card">
+    <header><h3>${title}</h3><div class="meta">${meta}</div></header>
+    ${snippet ? `<p class="snippet">…${snippet}…</p>` : `<p class="muted">No snippet</p>`}
+    <p class="actions"><a class="pill" href="${url}" target="_blank" rel="noopener">open TXT</a></p>
+  </article>`;
+}
 
-  async function fetchJSON(path) {
-    const r = await fetch(path, { cache: 'no-store' });
-    if (!r.ok) throw new Error(`${path} → ${r.status}`);
-    return r.json();
-  }
-  async function fetchTXT(path) {
-    const r = await fetch(path, { cache: 'no-store' });
-    if (!r.ok) throw new Error(`${path} → ${r.status}`);
-    return r.text();
-  }
-
-  function findSnippets(txt, terms, windowSize = 900, maxSnips = 3) {
-    const lo = txt.toLowerCase();
-    const snips = [];
-    let from = 0;
-
-    outer: while (snips.length < maxSnips) {
-      // find all terms from current 'from'
-      const hits = terms.map(t => lo.indexOf(t, from));
-      if (hits.some(h => h === -1)) break;
-
-      const start = Math.max(0, Math.min(...hits) - Math.floor(windowSize / 2));
-      let end = Math.min(txt.length, start + windowSize);
-
-      // ensure ALL terms occur within [start, end]
-      for (const t of terms) {
-        const p = lo.indexOf(t, start);
-        if (p === -1 || p > end) {
-          from = Math.max(...hits) + 1;
-          continue outer;
+async function searchOne(kind, q, catalogUrl){
+  const out = sec(kind); out.innerHTML = '';
+  let count = 0;
+  try{
+    const items = await getJSON(catalogUrl);
+    const terms = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    for(const it of items){
+      if(!it.url_txt) continue;
+      const txtUrl = resolveUrl(it.url_txt, catalogUrl);
+      try{
+        const txt = await getTXT(txtUrl);
+        const snippets = findSnippets(txt, terms, 480);
+        if(snippets.length){
+          count++;
+          out.insertAdjacentHTML('beforeend', card({
+            title: it.title || it.id || 'Untitled',
+            meta: `${(it.jurisdiction||'').toUpperCase()}${it.year?` · ${it.year}`:''}`,
+            url: txtUrl,
+            snippet: mark(snippets[0], terms)
+          }));
         }
+      }catch(e){
+        // If a single TXT is missing, skip it silently (catalog might mix sources)
+        // Uncomment next line to show per-item failures:
+        // out.insertAdjacentHTML('beforeend', `<p class="error">TXT missing: ${txtUrl}</p>`);
       }
-      const slice = txt.slice(start, end).replace(/\s+/g, ' ').trim();
-      snips.push('…' + slice + '…');
-      from = Math.max(...hits) + 1;
     }
-    return snips;
+  }catch(e){
+    out.insertAdjacentHTML('beforeend', `<p class="error">Catalog error: ${e.message}</p>`);
   }
+  return count;
+}
 
-  function cardHTML(item, snippets, badge) {
-    const txtUrl = absoluteTxt(item.url_txt);
-    const meta = `${(item.jurisdiction || '').toUpperCase()} · ${item.reference || ''}${item.year ? ' · ' + item.year : ''}`;
-    return `
-      <article class="card">
-        <div class="meta">
-          <span class="chip">${badge}</span>
-          <span>${meta}</span>
-          <a class="open topright" href="${txtUrl}" target="_blank" rel="noopener">open TXT</a>
-        </div>
-        <h3><a class="open" href="${txtUrl}" target="_blank" rel="noopener">${item.title}</a></h3>
-        <div class="snip">${snippets.map(s => `<p>${s}</p>`).join('')}</div>
-      </article>`;
-  }
+async function searchAll(q){
+  const [t,l,r] = await Promise.all([
+    searchOne('textbooks', q, CATALOGS.textbooks),
+    searchOne('laws',      q, CATALOGS.laws),
+    searchOne('rules',     q, CATALOGS.rules)
+  ]);
+  $('[data-counts]').textContent = `Matches — Textbooks: ${t} · Laws: ${l} · Rules: ${r}`;
+}
 
-  function renderError(where, msg) {
-    out[where].innerHTML = `<div class="err">${msg}</div>`;
-  }
+// wire up
+(function(){
+  const form = $('[data-form]');
+  const box  = $('[data-q]');
+  const q0 = new URLSearchParams(location.search).get('q') || '';
+  if(q0) box.value = q0;
 
-  function updateCounts(c) {
-    out.counts.textContent = `Matches — Textbooks: ${c.textbooks} · Laws: ${c.laws} · Rules: ${c.rules}`;
-  }
-
-  // --- Search pipeline -------------------------------------------------------
-  async function searchAll(q) {
-    const terms = termsFromQuery(q);
-    const counts = { textbooks: 0, laws: 0, rules: 0 };
-
-    // clear
-    out.textbooks.innerHTML = '';
-    out.laws.innerHTML = '';
-    out.rules.innerHTML = '';
-    updateCounts(counts);
-
-    if (!terms.length) return;
-
-    // Fetch all catalogs (local)
-    let catTB = [], catLaws = [], catRules = [];
-    try { catTB = await fetchJSON(CATALOGS.textbooks); }
-    catch (e) { renderError('textbooks', `Textbooks catalog error: ${e.message}`); }
-
-    try { catLaws = await fetchJSON(CATALOGS.laws); }
-    catch (e) { renderError('laws', `Laws catalog error: ${e.message}`); }
-
-    try { catRules = await fetchJSON(CATALOGS.rules); }
-    catch (e) { renderError('rules', `Rules catalog error: ${e.message}`); }
-
-    // helper to process a list with small concurrency
-    async function processList(items, where, badge) {
-      const bucket = out[where];
-      const queue = items.slice(); // copy
-      const MAX = 4; // small concurrency
-      const workers = new Array(MAX).fill(0).map(async () => {
-        while (queue.length) {
-          const item = queue.shift();
-          try {
-            const url = absoluteTxt(item.url_txt);
-            const txt = await fetchTXT(url);
-            const snips = findSnippets(txt, terms, 1000, 3);
-            if (snips.length) {
-              counts[where] += 1;
-              const html = cardHTML(item, snips.map(s => highlight(s, terms)), badge);
-              bucket.insertAdjacentHTML('beforeend', html);
-              updateCounts(counts);
-            }
-          } catch (err) {
-            // if the TXT fetch fails, show a one-line error so we can fix paths
-            const rel = item.url_txt || '';
-            bucket.insertAdjacentHTML('beforeend',
-              `<div class="err">Fetch failed: ${item.title} (${rel})</div>`);
-          }
-        }
-      });
-      await Promise.all(workers);
-    }
-
-    await Promise.all([
-      processList(catTB, 'textbooks', 'textbooks'),
-      processList(catLaws, 'laws', 'laws'),
-      processList(catRules, 'rules', 'rules')
-    ]);
-
-    updateCounts(counts);
-  }
-
-  // --- Wire up form & initial load ------------------------------------------
-  out.form.addEventListener('submit', ev => {
+  form.addEventListener('submit', (ev)=>{
     ev.preventDefault();
-    const q = out.q.value.trim();
-    const url = new URL(location.href);
-    if (q) url.searchParams.set('q', q); else url.searchParams.delete('q');
-    history.replaceState({}, '', url);
+    const q = box.value.trim();
+    if(!q) return;
+    history.replaceState(null,'',`?q=${encodeURIComponent(q)}`);
     searchAll(q);
   });
 
-  // initial run
-  searchAll(out.q.value.trim());
+  if(box.value.trim()) searchAll(box.value);
 })();
