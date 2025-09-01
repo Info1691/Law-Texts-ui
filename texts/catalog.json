@@ -5,7 +5,7 @@
     "jurisdiction": "uk",
     "reference": "lewin-2020",
     "year": 2020,
-    "url_txt": "./data/textbooks/uk/Lewin-on-Trusts.txt"
+    "url_txt": "/data/textbooks/uk/Lewin-on-Trusts.txt"
   },
   {
     "id": "underhill-20-01",
@@ -13,7 +13,7 @@
     "jurisdiction": "uk",
     "reference": "underhill-20-01",
     "year": 2020,
-    "url_txt": "./data/textbooks/uk/underhill-20-01-concepts.txt"
+    "url_txt": "/data/textbooks/uk/underhill-20-01-concepts.txt"
   },
   {
     "id": "underhill-20-02",
@@ -21,7 +21,7 @@
     "jurisdiction": "uk",
     "reference": "underhill-20-02",
     "year": 2020,
-    "url_txt": "./data/textbooks/uk/underhill-20-02-creation-of-trusts.txt"
+    "url_txt": "/data/textbooks/uk/underhill-20-02-creation-of-trusts.txt"
   },
   {
     "id": "underhill-20-03",
@@ -29,7 +29,7 @@
     "jurisdiction": "uk",
     "reference": "underhill-20-03",
     "year": 2020,
-    "url_txt": "./data/textbooks/uk/underhill-20-03-trustees-powers-duties-and-liabilities.txt"
+    "url_txt": "/data/textbooks/uk/underhill-20-03-trustees-powers-duties-and-liabilities.txt"
   },
   {
     "id": "birks-pretto-2002",
@@ -37,7 +37,7 @@
     "jurisdiction": "uk",
     "reference": "birks-pretto",
     "year": 2002,
-    "url_txt": "./data/textbooks/uk/breach-of-trust-text-by-birks-and-pretto.txt"
+    "url_txt": "/data/textbooks/uk/breach-of-trust-text-by-birks-and-pretto.txt"
   },
   {
     "id": "litigating-jersey",
@@ -45,7 +45,7 @@
     "jurisdiction": "jersey",
     "reference": "litigating-jersey",
     "year": 2017,
-    "url_txt": "./data/textbooks/jersey/litigating-trust-disputes-in-jersey-law.txt"
+    "url_txt": "/data/textbooks/jersey/litigating-trust-disputes-in-jersey-law.txt"
   },
   {
     "id": "principles-jersey-trusts",
@@ -53,6 +53,6 @@
     "jurisdiction": "jersey",
     "reference": "principles-jersey-trusts",
     "year": 2015,
-    "url_txt": "./data/textbooks/jersey/Principles-of-Jersey-Trusts.txt"
+    "url_txt": "/data/textbooks/jersey/Principles-of-Jersey-Trusts.txt"
   }
 ]
