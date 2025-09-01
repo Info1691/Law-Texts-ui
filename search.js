@@ -1,6 +1,8 @@
-// Catalog locations — DO NOT point at local ./data unless the TXT actually lives here
+// Catalog locations
 const CATALOGS = {
-  textbooks: 'https://info1691.github.io/law-index/catalogs/ingest-catalog.json',
+  // ⬇⬇ Textbooks now use YOUR repo's local catalog that matches data/textbooks/... ⬇⬇
+  textbooks: './texts/catalog.json',
+  // Laws and Rules continue to read from their own UIs
   laws:      'https://info1691.github.io/laws-ui/laws.json',
   rules:     'https://info1691.github.io/rules-ui/rules.json'
 };
@@ -21,9 +23,7 @@ async function getTXT(absUrl){
 }
 // resolve item.url_txt relative to its catalog file and encode spaces/()
 function resolveUrl(itemUrl, catalogUrl){
-  // new URL handles absolute or relative correctly; it also resolves .. segments
   const abs = new URL(itemUrl, catalogUrl).href;
-  // encode only characters that break GH Pages when present (space, parentheses)
   return abs.replace(/ /g, '%20').replace(/\(/g, '%28').replace(/\)/g, '%29');
 }
 
@@ -74,9 +74,7 @@ async function searchOne(kind, q, catalogUrl){
           }));
         }
       }catch(e){
-        // If a single TXT is missing, skip it silently (catalog might mix sources)
-        // Uncomment next line to show per-item failures:
-        // out.insertAdjacentHTML('beforeend', `<p class="error">TXT missing: ${txtUrl}</p>`);
+        // per-item TXT missing — skip silently
       }
     }
   }catch(e){
