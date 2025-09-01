@@ -1,51 +1,58 @@
 [
   {
-    "slug": "lewin-on-trusts-20e",
-    "title": "Lewin on Trusts (20th ed)",
-    "reference": "Lewin",
+    "id": "lewin-2020",
+    "title": "Lewin On Trusts 20th Ed 2020",
     "jurisdiction": "uk",
-    "kind": "txt",
-    "pageOffset": 0,
+    "reference": "Lewin 20th",
     "year": 2020,
-    "txt": "texts/uk/Lewin-on-Trusts.txt"
+    "url_txt": "./data/texts/uk/Lewin-on-Trusts.txt"
   },
   {
-    "slug": "underhill-hayton-20e",
-    "title": "Underhill & Hayton: Law of Trusts (20th ed)",
-    "reference": "Underhill & Hayton",
+    "id": "underhill-20-01",
+    "title": "Underhill & Hayton Law of Trusts (20th) — Concepts",
     "jurisdiction": "uk",
-    "kind": "txt",
-    "pageOffset": 0,
+    "reference": "Underhill 20-01",
     "year": 2020,
-    "txt": "texts/uk/Underhill-20.txt"
+    "url_txt": "./data/texts/uk/underhill-20-01-concepts.txt"
   },
   {
-    "slug": "breach-of-trust-birks-pretto",
-    "title": "Breach of Trust",
+    "id": "underhill-20-02",
+    "title": "Underhill & Hayton Law of Trusts (20th) — Creation",
+    "jurisdiction": "uk",
+    "reference": "Underhill 20-02",
+    "year": 2020,
+    "url_txt": "./data/texts/uk/underhill-20-02-creation-of-trusts.txt"
+  },
+  {
+    "id": "underhill-20-03",
+    "title": "Underhill & Hayton Law of Trusts (20th) — Trustees’ powers/duties",
+    "jurisdiction": "uk",
+    "reference": "Underhill 20-03",
+    "year": 2020,
+    "url_txt": "./data/texts/uk/underhill-20-03-trustees-powers-duties-and-liabilities.txt"
+  },
+  {
+    "id": "birks-pretto",
+    "title": "Breach Of Trust Text By Birks And Pretto",
+    "jurisdiction": "uk",
     "reference": "Birks & Pretto",
-    "jurisdiction": "uk",
-    "kind": "txt",
-    "pageOffset": 0,
     "year": 2002,
-    "txt": "texts/uk/Breach-of-Trust-Birks-Pretto.txt"
+    "url_txt": "./data/texts/uk/breach-of-trust-text-by-birks-and-pretto.txt"
   },
   {
-    "slug": "litigating-trust-disputes-in-jersey",
-    "title": "Litigating Trust Disputes in Jersey",
-    "reference": "Sheedy–Baker",
+    "id": "litigating-jsy",
+    "title": "Litigating Trust Disputes In Jersey Law",
     "jurisdiction": "jersey",
-    "kind": "txt",
-    "pageOffset": -83,
-    "year": 2020,
-    "txt": "texts/jersey/Litigating-Trust-Disputes-in-Jersey.txt"
+    "reference": "LTDJL",
+    "year": 2014,
+    "url_txt": "./data/texts/jersey/litigating-trust-disputes-in-jersey-law.txt"
   },
   {
-    "slug": "demo-jersey",
-    "title": "Demo Jersey",
-    "reference": "demo",
+    "id": "pojt",
+    "title": "Principles Of Jersey Trusts",
     "jurisdiction": "jersey",
-    "kind": "txt",
-    "pageOffset": 0,
-    "txt": "texts/jersey/Demo-Jersey.txt"
+    "reference": "POJT",
+    "year": 2012,
+    "url_txt": "./data/texts/jersey/Principles-of-Jersey-Trusts.txt"
   }
 ]
