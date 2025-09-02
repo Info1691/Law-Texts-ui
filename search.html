@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Trust Law Textbooks — Search (beta)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="/logo.png" />
+  <link rel="stylesheet" href="/app.css" />
+  <style>
+    .container { max-width: 1100px; margin: 0 auto; padding: 24px; }
+    header { display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+    header img { width:28px; height:28px; object-fit:contain; background:#fff; border-radius:4px; }
+    .bar { display:flex; gap:8px; margin-bottom:8px; }
+    input[type=text]{ flex:1; padding:10px 12px; border:1px solid #d0d7de; border-radius:8px; }
+    button { padding:10px 14px; border:0; border-radius:8px; cursor:pointer; }
+    .muted{ color:#6e7781; font-size:14px; }
+    h2{ margin:18px 0 8px; }
+    .card{ border:1px solid #d0d7de; border-radius:12px; padding:14px; margin:10px 0; background:#fff;}
+    .title{ font-weight:600; }
+    .pill{ font-size:12px; padding:2px 8px; border:1px solid #d0d7de; border-radius:999px; margin-left:8px; }
+    .err{ color:#b42318; }
+    mark{ background:#fff3b0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <img src="/logo.png" alt="Logo">
+      <h1 style="margin:0;">Search (beta)</h1>
+    </header>
+
+    <form id="qform" class="bar" role="search">
+      <input id="q" type="text" placeholder="Search textbooks + laws + rules… e.g., beddoe, beneficiaries' consent, litigation costs" />
+      <button type="submit">Search</button>
+    </form>
+
+    <p class="muted">
+      Searches: <strong>Textbooks</strong> (local catalog) + <strong>Laws</strong> (laws-ui) + <strong>Rules</strong> (rules-ui).
+      Results show quotable snippets; click the title to open the full TXT.
+    </p>
+    <p class="muted" id="counts">Matches — Textbooks: 0 · Laws: 0 · Rules: 0</p>
+
+    <h2>Textbooks</h2>
+    <section id="textbooks"></section>
+
+    <h2>Laws</h2>
+    <section id="laws"></section>
+
+    <h2>Rules</h2>
+    <section id="rules"></section>
+  </div>
+
+  <script>
+  // ---- catalogs (all absolute so this works from anywhere) ----
+  const CATALOGS = {
+    // Centralised, public store (see section B below)
+    textbooks: 'https://info1691.github.io/law-index/catalogs/ingest-catalog.json',
+    laws:      'https://info1691.github.io/law-index/laws.json',
+    rules:     'https://info1691.github.io/law-index/rules.json'
+  };
+
+  const $ = sel => document.querySelector(sel);
+  const sec = (id) => $(id);
+  const qInput = $('#q');
+  const tb = $('#textbooks'), lw = $('#laws'), rl = $('#rules'), counts = $('#counts');
+
+  // read ?q=… if present
+  const u = new URL(location.href);
+  const q0 = u.searchParams.get('q') || '';
+  qInput.value = q0;
+
+  $('#qform').addEventListener('submit', e => {
+    e.preventDefault();
+    const q = qInput.value.trim();
+    const u2 = new URL(location.href); u2.searchParams.set('q', q);
+    history.replaceState({}, '', u2.toString());
+    run(q);
+  });
+
+  function tokens(q){ return q.toLowerCase().split(/\s+/).filter(Boolean); }
+  function hasAll(hay, toks){ const L = hay.toLowerCase(); return toks.every(t => L.includes(t)); }
+  function snippet(text, toks, span=160){
+    const L = text.toLowerCase();
+    let i = -1; for(const t of toks){ const j=L.indexOf(t); if(j!==-1&&(i===-1||j<i)) i=j; }
+    if(i===-1) return text.slice(0, span*2)+'…';
+    const s=Math.max(0, i-span), e=Math.min(text.length, i+span);
+    let out = text.slice(s,e);
+    toks.forEach(t => { const re=new RegExp(`(${t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`,'ig'); out=out.replace(re,'<mark>$1</mark>'); });
+    return (s>0?'…':'')+out+(e<text.length?'…':'');
+  }
+
+  async function fetchJSON(url){
+    const r = await fetch(url, {cache:'no-store'});
+    if(!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+    return await r.json();
+  }
+
+  function card(item, toks){
+    const meta = `${(item.jurisdiction||'').toUpperCase()} · ${item.year||''} · ${(item.tags||[]).join(', ')}`;
+    const snip = item.preview ? snippet(item.preview, toks) : '';
+    return `<article class="card">
+      <div class="title">${item.title || item.name}<span class="pill">${meta}</span></div>
+      ${snip?`<p>${snip}</p>`:''}
+      ${item.url_txt?`<p><a class="pill" href="${item.url_txt}" target="_blank" rel="noopener">open TXT</a></p>`:''}
+    </article>`;
+  }
+
+  async function searchCatalog(url, toks){
+    const list = await fetchJSON(url);
+    const items = [];
+    for(const it of list){
+      try{
+        // light preview fetch for snippet
+        if(it.url_txt){
+          const r = await fetch(it.url_txt, {cache:'no-store'});
+          if(r.ok){
+            const text = await r.text();
+            // quick filter
+            if(!hasAll(text, toks)) continue;
+            it.preview = text.slice(0, 4000); // enough to build a snippet
+            items.push(it);
+          }
+        }
+      }catch(_){}
+    }
+    return items;
+  }
+
+  async function run(q){
+    tb.innerHTML = lw.innerHTML = rl.innerHTML = '';
+    const toks = tokens(q);
+    if(!toks.length){ counts.textContent = 'Matches — Textbooks: 0 · Laws: 0 · Rules: 0'; return; }
+
+    try{
+      const [tbi, lwi, rli] = await Promise.all([
+        searchCatalog(CATALOGS.textbooks, toks),
+        searchCatalog(CATALOGS.laws, toks),
+        searchCatalog(CATALOGS.rules, toks)
+      ]);
+
+      tb.innerHTML = tbi.length? tbi.map(it=>card(it,toks)).join('') : '<p class="muted">No matches.</p>';
+      lw.innerHTML = lwi.length? lwi.map(it=>card(it,toks)).join('') : '<p class="muted">No matches.</p>';
+      rl.innerHTML = rli.length? rli.map(it=>card(it,toks)).join('') : '<p class="muted">No matches.</p>';
+
+      counts.textContent = `Matches — Textbooks: ${tbi.length} · Laws: ${lwi.length} · Rules: ${rli.length}`;
+    }catch(err){
+      console.error(err);
+      counts.textContent = 'Matches — Textbooks: 0 · Laws: 0 · Rules: 0';
+    }
+  }
+
+  if(q0) run(q0);
+  </script>
+</body>
+</html>
