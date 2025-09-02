@@ -3,18 +3,18 @@
     "title": "Trusts (Jersey) Law 1984",
     "jurisdiction": "jersey",
     "year": "1984",
-    "url_txt": "./data/laws/jersey/JTL-1984.txt"
+    "url_txt": "https://info1691.github.io/laws-ui/data/laws/jersey/JTL-1984.txt"
   },
   {
     "title": "Companies (Jersey) Law 1991",
     "jurisdiction": "jersey",
     "year": "1991",
-    "url_txt": "./data/laws/jersey/Companies (Jersey) Law 1991.txt"
+    "url_txt": "https://info1691.github.io/laws-ui/data/laws/jersey/Companies%20(Jersey)%20Law%201991.txt"
   },
   {
     "title": "Financial Services (Jersey) Law 1998",
     "jurisdiction": "jersey",
     "year": "1998",
-    "url_txt": "./data/laws/jersey/Financial Services (Jersey) Law 1998.txt"
+    "url_txt": "https://info1691.github.io/laws-ui/data/laws/jersey/Financial%20Services%20(Jersey)%20Law%201998.txt"
   }
 ]
