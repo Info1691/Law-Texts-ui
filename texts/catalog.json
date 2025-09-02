@@ -1,58 +1,32 @@
 [
   {
-    "id": "lewin-20e",
     "title": "Lewin On Trusts 20th Ed 2020",
     "jurisdiction": "uk",
-    "reference": "Lewin 20e",
-    "year": 2020,
-    "url_txt": "https://info1691.github.io/law-index/data/texts/uk/Lewin-on-Trusts.txt"
+    "year": "2020",
+    "url_txt": "https://texts.wwwbcb.org/data/textbooks/uk/Lewin-on-Trusts.txt"
   },
   {
-    "id": "underhill-20-01",
     "title": "Underhill & Hayton Law of Trusts (20th) — Concepts",
     "jurisdiction": "uk",
-    "reference": "Underhill 20e ch1",
-    "year": 2020,
-    "url_txt": "https://info1691.github.io/law-index/data/texts/uk/underhill-20-01-concepts.txt"
+    "year": "",
+    "url_txt": "https://texts.wwwbcb.org/data/textbooks/uk/underhill-20-01-concepts.txt"
   },
   {
-    "id": "underhill-20-02",
     "title": "Underhill & Hayton Law of Trusts (20th) — Creation of Trusts",
     "jurisdiction": "uk",
-    "reference": "Underhill 20e ch2",
-    "year": 2020,
-    "url_txt": "https://info1691.github.io/law-index/data/texts/uk/underhill-20-02-creation-of-trusts.txt"
+    "year": "",
+    "url_txt": "https://texts.wwwbcb.org/data/textbooks/uk/underhill-20-02-creation-of-trusts.txt"
   },
   {
-    "id": "underhill-20-03",
     "title": "Underhill & Hayton Law of Trusts (20th) — Trustees’ powers, duties and liabilities",
     "jurisdiction": "uk",
-    "reference": "Underhill 20e ch3",
-    "year": 2020,
-    "url_txt": "https://info1691.github.io/law-index/data/texts/uk/underhill-20-03-trustees-powers-duties-and-liabilities.txt"
+    "year": "",
+    "url_txt": "https://texts.wwwbcb.org/data/textbooks/uk/underhill-20-03-trustees-powers.txt"
   },
   {
-    "id": "birks-pretto",
-    "title": "Breach of Trust — Birks & Pretto",
-    "jurisdiction": "uk",
-    "reference": "Birks",
-    "year": 2002,
-    "url_txt": "https://info1691.github.io/law-index/data/texts/uk/breach-of-trust-text-by-birks-and-pretto.txt"
-  },
-  {
-    "id": "litigating-jersey",
-    "title": "Litigating Trust Disputes in Jersey Law",
+    "title": "Principles Of Jersey Trusts",
     "jurisdiction": "jersey",
-    "reference": "Jersey litigation",
-    "year": 2017,
-    "url_txt": "https://info1691.github.io/law-index/data/texts/jersey/litigating-trust-disputes-in-jersey-law.txt"
-  },
-  {
-    "id": "principles-jersey",
-    "title": "Principles of Jersey Trusts",
-    "jurisdiction": "jersey",
-    "reference": "Jersey principles",
-    "year": 2015,
-    "url_txt": "https://info1691.github.io/law-index/data/texts/jersey/Principles-of-Jersey-Trusts.txt"
+    "year": "",
+    "url_txt": "https://texts.wwwbcb.org/data/textbooks/jersey/Principles-of-Jersey-Trusts.txt"
   }
 ]
