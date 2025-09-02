@@ -1,129 +1,152 @@
-// ---- Catalog locations ----
+/* search.js — full, drop-in */
+
 const CATALOGS = {
-  // Local textbooks catalog (this repo)
-  textbooks: './texts/catalog.json',
-  // Published catalogs in the other UIs
-  laws:  'https://info1691.github.io/laws-ui/laws.json',
-  rules: 'https://info1691.github.io/rules-ui/rules.json',
+  textbooks: 'https://texts.wwwbcb.org/texts/catalog.json',
+  laws:      'https://info1691.github.io/laws-ui/laws.json',
+  rules:     'https://info1691.github.io/rules-ui/rules.json'
 };
 
-// ------------- tiny DOM helpers -------------
-const $  = (s, el=document) => el.querySelector(s);
-const sec = (n) => $(`[data-section="${n}"]`);
+// --- tiny helpers -----------------------------------------------------------
+const $ = (s) => document.querySelector(s);
+const esc = (s) => s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const sleep = (ms) => new Promise(r=>setTimeout(r,ms));
 
-// ------------- fetch helpers -------------
-async function getJSON(url){
-  const r = await fetch(url, { cache: 'no-store' });
-  if(!r.ok) throw new Error(`${r.status} ${url}`);
-  return r.json();
+// parse q into tokens; keep "quoted phrases" intact
+function parseQuery(q){
+  const out=[]; q=(q||'').trim();
+  const rx=/"([^"]+)"|(\S+)/g; let m;
+  while((m=rx.exec(q))) out.push((m[1]||m[2]).toLowerCase());
+  return out;
 }
-async function getTXT(url){
-  const r = await fetch(url, { cache: 'no-store' });
-  if(!r.ok) throw new Error(`${r.status} ${url}`);
-  return r.text();
+function matchLine(hay, tokens, orMode){
+  hay = hay.toLowerCase();
+  if(orMode) return tokens.some(t=>hay.includes(t));
+  return tokens.every(t=>hay.includes(t));
 }
-
-/**
- * Resolve a possibly-relative item URL (from the catalog) against the
- * catalog URL (which may itself be relative). We first absolutize the
- * catalog URL using the current page as base, then resolve the item.
- */
-function resolveUrl(itemUrl, catalogUrl){
-  const catalogAbs = new URL(catalogUrl, window.location.href);
-  const itemAbs    = new URL(itemUrl, catalogAbs);
-  // Encode spaces/parentheses to satisfy GitHub Pages
-  return itemAbs.href
-    .replace(/ /g, '%20')
-    .replace(/\(/g, '%28')
-    .replace(/\)/g, '%29');
-}
-
-// ------------- search + render -------------
-function findSnippets(text, terms, windowChars = 480){
-  const hay = text.toLowerCase();
-  const idx = terms.map(t => hay.indexOf(t));
-  if (idx.some(i => i < 0)) return [];
-  const start = Math.max(0, Math.min(...idx) - Math.floor(windowChars/3));
-  const end   = Math.min(text.length, Math.max(...idx) + Math.floor(windowChars*2/3));
-  return [ text.slice(start, end) ];
-}
-function highlight(html, terms){
-  let out = html;
-  terms.sort((a,b)=>b.length-a.length).forEach(t=>{
-    const re = new RegExp(`(${t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`,'gi');
-    out = out.replace(re,'<mark>$1</mark>');
+// highlight tokens
+function hi(s, tokens){
+  let out = esc(s);
+  tokens.forEach(t=>{
+    if(!t) return;
+    const rx = new RegExp(t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi');
+    out = out.replace(rx, m=>`<mark>${esc(m)}</mark>`);
   });
   return out;
 }
-function card({ title, meta, url, snippet }){
-  return `<article class="card">
-    <h3>${title}</h3>
-    <div class="meta">${meta}</div>
-    ${snippet ? `<p class="snippet">…${snippet}…</p>` : ''}
-    <a class="pill" href="${url}" target="_blank" rel="noopener">open TXT</a>
-  </article>`;
+// cut window around first hit
+function windowAround(text, tokens, win){
+  const low=text.toLowerCase();
+  let idx=-1;
+  for(const t of tokens){
+    const i = low.indexOf(t);
+    if(i>=0 && (idx<0 || i<idx)) idx=i;
+  }
+  if(idx<0) idx=0;
+  const start = Math.max(0, idx - Math.floor(win/2));
+  const end = Math.min(text.length, start + win);
+  const prefix = start>0 ? '…' : '';
+  const suffix = end<text.length ? '…' : '';
+  return prefix + text.slice(start,end) + suffix;
 }
 
-async function searchOne(kind, q, catalogUrl){
-  const host = sec(kind);
-  host.innerHTML = '';
-  let count = 0;
+// fetch catalog then fetch each TXT and search
+async function searchSource(kind, catalogUrl, tokens, orMode, win, perDoc){
+  const container = {textbooks: '#tb', laws: '#lw', rules: '#rl'}[kind];
+  const out = $(container); out.innerHTML = '';
+  let count=0;
 
+  let items=[];
   try{
-    const items = await getJSON(catalogUrl);
-    const terms = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    const r = await fetch(catalogUrl, {mode:'cors'});
+    if(!r.ok) throw new Error(`${r.status}`);
+    items = await r.json();
+  }catch(e){
+    out.innerHTML = `<p class="error">Catalog error: ${esc(catalogUrl)} — ${esc(e.message)}</p>`;
+    return 0;
+  }
 
-    for(const it of items){
-      if(!it.url_txt) continue;
+  for(const it of items){
+    const title = it.title || '(untitled)';
+    const url = it.url_txt;
+    if(!url){ continue; }
 
-      const txtUrl = resolveUrl(it.url_txt, catalogUrl);
+    let txt='';
+    try{
+      const r = await fetch(url, {mode:'cors'});
+      if(!r.ok) throw new Error(`${r.status}`);
+      txt = await r.text();
+    }catch(e){
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="title">${esc(title)}</div>
+        <div class="meta">${esc(it.jurisdiction||'')} ${esc(it.year||'')}</div>
+        <div class="error">Fetch failed: ${esc(url)} — ${esc(e.message)}</div>`;
+      out.appendChild(card);
+      continue;
+    }
 
-      try{
-        const txt = await getTXT(txtUrl);
-        const snippets = findSnippets(txt, terms, 520);
-        if (snippets.length){
-          count++;
-          host.insertAdjacentHTML('beforeend', card({
-            title: it.title || it.id || 'Untitled',
-            meta: `${(it.jurisdiction||'').toUpperCase()}${it.year ? ` · ${it.year}` : ''}`,
-            url: txtUrl,
-            snippet: highlight(snippets[0], terms)
-          }));
-        }
-      }catch(e){
-        host.insertAdjacentHTML('beforeend',
-          `<p class="error">Fetch failed: ${(it.title||it.id)} (<code>${txtUrl}</code>)</p>`);
+    const lines = txt.split(/\r?\n/);
+    const hits = [];
+    for(let i=0;i<lines.length && hits.length<perDoc;i++){
+      const line = lines[i];
+      if(!line) continue;
+      if(matchLine(line, tokens, orMode)){
+        const snippet = windowAround(line, tokens, win);
+        hits.push(snippet);
       }
     }
-  }catch(e){
-    host.insertAdjacentHTML('beforeend', `<p class="error">Catalog error: ${e.message}</p>`);
+    if(hits.length){
+      count += 1;
+      const card = document.createElement('div');
+      card.className = 'card';
+      const chips = [
+        it.jurisdiction ? `<span class="pill">${esc(it.jurisdiction)}</span>`:''
+      ].join('');
+      const first = hi(hits[0], tokens);
+      const rest = hits.slice(1).map(h=>hi(h,tokens)).join('\n');
+      card.innerHTML = `
+        <div class="title">${esc(title)}</div>
+        <div class="meta">${chips} ${esc(it.year||'')}</div>
+        <div class="snippet">${first}${rest?'\n'+rest:''}</div>
+        <a class="open" target="_blank" href="${esc(url)}">open TXT</a>`;
+      out.appendChild(card);
+    }
+    // be polite to GH Pages
+    await sleep(35);
   }
   return count;
 }
 
-async function searchAll(q){
-  const [t, l, r] = await Promise.all([
-    searchOne('textbooks', q, CATALOGS.textbooks),
-    searchOne('laws',      q, CATALOGS.laws),
-    searchOne('rules',     q, CATALOGS.rules)
+async function runSearch(){
+  const q = $('#q').value.trim();
+  const tokens = parseQuery(q);
+  const orMode = $('#orMode').checked;
+  const win = Math.max(60, Math.min(1000, parseInt($('#win').value||240,10)));
+  const perDoc = Math.max(1, Math.min(12, parseInt($('#lim').value||6,10)));
+
+  if(!tokens.length){
+    $('#tb').innerHTML=''; $('#lw').innerHTML=''; $('#rl').innerHTML='';
+    $('#counts').textContent = 'Matches — Textbooks: 0 · Laws: 0 · Rules: 0';
+    return;
+  }
+
+  const [t,l,r] = await Promise.all([
+    searchSource('textbooks', CATALOGS.textbooks, tokens, orMode, win, perDoc),
+    searchSource('laws',      CATALOGS.laws,      tokens, orMode, win, perDoc),
+    searchSource('rules',     CATALOGS.rules,     tokens, orMode, win, perDoc)
   ]);
-  $('[data-counts]').textContent = `Matches — Textbooks: ${t} · Laws: ${l} · Rules: ${r}`;
+
+  $('#counts').textContent = `Matches — Textbooks: ${t} · Laws: ${l} · Rules: ${r}`;
 }
 
-// ------------- init -------------
-(function(){
-  const form = $('[data-form]');
-  const box  = $('[data-q]');
-  const q0 = new URLSearchParams(location.search).get('q') || '';
-  if (q0) box.value = q0;
+// wire up
+const form = $('#searchForm');
+form.addEventListener('submit', (e)=>{ e.preventDefault(); runSearch(); });
 
-  form.addEventListener('submit', (ev)=>{
-    ev.preventDefault();
-    const q = box.value.trim();
-    if(!q) return;
-    history.replaceState(null, '', `?q=${encodeURIComponent(q)}`);
-    searchAll(q);
-  });
-
-  if (box.value.trim()) searchAll(box.value);
+// support ?q= in URL
+(function initFromURL(){
+  const u = new URL(location.href);
+  const q = u.searchParams.get('q')||'';
+  if(q){ $('#q').value = q; runSearch(); }
 })();
