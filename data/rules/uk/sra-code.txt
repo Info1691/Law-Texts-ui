@@ -1,0 +1,153 @@
+SRA Standards and Regulations
+SRA Code of Conduct for Solicitors, RELs, RFLs and RSLs
+
+Guidance, changes, terms, notes and tags
+
+Code of Conduct for Solicitors, RELs, RFLs and RSLs
+
+
+1: Maintaining trust and acting fairly
+i
+	1	You do not unfairly discriminate by allowing your personal views to affect your professional relationships and the way in which you provide your services.
+	2	You do not abuse your position by taking unfair advantage of clients or others.
+	3	You perform all undertakings given by you, and do so within an agreed timescale or if no timescale has been agreed then within a reasonable amount of time.
+	4	You do not mislead or attempt to mislead your clients, the court or others, either by your own acts or omissions or allowing or being complicit in the acts or omissions of others (including your client).
+	5	You treat colleagues fairly and with respect. You do not bully or harass them or discriminate unfairly against them. If you are a manager you challenge behaviour that does not meet this standard.
+
+2: Dispute resolution and proceedings before courts, tribunals and inquiries
+i
+	1	You do not misuse or tamper with evidence or attempt to do so.
+	2	You do not seek to influence the substance of evidence, including generating false evidence or persuading witnesses to change their evidence.
+	3	You do not provide or offer to provide any benefit to witnesses dependent upon the nature of their evidence or the outcome of the case.
+	4	You only make assertions or put forward statements, representations or submissions to the court or others which are properly arguable.
+	5	You do not place yourself in contempt of court, and you comply with court orders which place obligations on you.
+	6	You do not waste the court's time.
+	7	You draw the court's attention to relevant cases and statutory provisions, or procedural irregularities of which you are aware, and which are likely to have a material effect on the outcome of the proceedings.
+
+3: Service and competence
+i
+	1	You only act for clients on instructions from the client, or from someone properly authorised to provide instructions on their behalf. If you have reason to suspect that the instructions do not represent your client's wishes, you do not act unless you have satisfied yourself that they do. However, in circumstances where you have legal authority to act notwithstanding that it is not possible to obtain or ascertain the instructions of your client, then you are subject to the overriding obligation to protect your client's best interests.
+	2	You ensure that the service you provide to clients is competent and delivered in a timely manner.
+	3	You maintain your competence to carry out your role and keep your professional knowledge and skills up to date.
+	4	You consider and take account of your client's attributes, needs and circumstances.
+	5	Where you supervise or manage others providing legal services:
+		1	you remain accountable for the work carried out through them; and
+		2	you effectively supervise work being done for clients.
+	6	You ensure that the individuals you manage are competent to carry out their role, and keep their professional knowledge and skills, as well as understanding of their legal, ethical and regulatory obligations, up to date. 
+
+4: Client money and assets
+i
+	1	You properly account to clients for any financial benefit you receive as a result of their instructions, except where they have agreed otherwise.
+	2	You safeguard money and assets entrusted to you by clients and others.
+	3	You do not personally hold client money save as permitted under regulation 10.2(b)(vii) of the Authorisation of Individuals Regulations, unless you work in an authorised body, or in an organisation of a kind prescribed under this rule on any terms that may be prescribed accordingly.
+Business requirements
+
+5.1-5.3: Referrals, introductions and separate businesses
+i
+	1	In respect of any referral of a client by you to another person, or of any third party who introduces business to you or with whom you share your fees, you ensure that:
+		1	clients are informed of any financial or other interest which you or your business or employer has in referring the client to another personor which an introducer has in referring the client to you;
+		2	clients are informed of any fee sharing arrangement that is relevant to their matter;
+		3	the fee sharing agreement is in writing;
+		4	you do not receive payments relating to a referral or make payments to an introducer in respect of clients who are the subject of criminal proceedings; and
+		5	any client referred by an introducer has not been acquired in a way which would breach the SRA's regulatory arrangements if the personacquiring the client were regulated by the SRA.
+	2	Where it appears to the SRA that you have made or received a referral fee, the payment will be treated as a referral fee unless you show that the payment was not made as such.
+	3	You only:
+		1	refer, recommend or introduce a client to a separate business; or
+		2	divide, or allow to be divided, a client's matter between you and a separate business;
+	4	where the client has given informed consent to your doing so.
+
+5.4-5.6: Other business requirements
+i
+	1	You must not be a manager, employee, member or interest holder of a business that:
+		1	has a name which includes the word "solicitors"; or
+		2	describes its work in a way that suggests it is a solicitors' firm;
+	2	unless it is an authorised body.
+	1	If you are a solicitor who holds a practising certificate, an REL, RFL or RSL, you must complete and deliver to the SRA an annual return in the prescribed form.
+	2	If you are a solicitor or an REL carrying on reserved legal activities for the public or a section of the public in a non-commercial body, you must ensure that:
+		1	the body takes out and maintains indemnity insurance; and
+		2	this insurance provides adequate and appropriate cover in respect of the services that you provide or have provided, whether or not they comprise reserved legal activities, taking into account any alternative arrangements the body or its clients may make.
+Conflict, confidentiality and disclosure
+6.1-6.2: Conflict of interests
+i
+	1	You do not act if there is an own interest conflict or a significant risk of such a conflict.
+	2	You do not act in relation to a matter or particular aspect of it if you have a conflict of interest or a significant risk of such a conflict in relation to that matter or aspect of it, unless:
+		1	the clients have a substantially common interest in relation to the matter or the aspect of it, as appropriate; or
+		2	the clients are competing for the same objective,  and the conditions below are met, namely that:
+			i	all the clients have given informed consent, given or evidenced in writing, to you acting;
+			ii	where appropriate, you put in place effective safeguards to protect your clients' confidential information; and
+			iii	you are satisfied it is reasonable for you to act for all the clients.
+
+6.3-6.5: Confidentiality and disclosure
+i
+	1	You keep the affairs of current and former clients confidential unless disclosure is required or permitted by law or the client consents.
+	2	Where you are acting for a client on a matter, you make the client aware of all information material to the matter of which you have knowledge, except when:
+		1	the disclosure of the information is prohibited by legal restrictions imposed in the interests of national security or the prevention of crime;
+		2	your client gives informed consent, given or evidenced in writing, to the information not being disclosed to them;
+		3	you have reason to believe that serious physical or mental injury will be caused to your client or another if the information is disclosed; or
+		4	the information is contained in a privileged document that you have knowledge of only because it has been mistakenly disclosed.
+	3	You do not act for a client in a matter where that client has an interest adverse to the interest of another current or former client of you or your business or employer, for whom you or your business or employer holds confidential information which is material to that matter, unless:
+		1	effective measures have been taken which result in there being no real risk of disclosure of the confidential information; or 
+		2	the current or former client whose information you or your business or employer holds has given informed consent, given or evidenced in writing, to you acting, including to any measures taken to protect their information.  
+
+7: Cooperation and accountability
+i
+	1	You keep up to date with and follow the law and regulation governing the way you work.
+	2	You are able to justify your decisions and actions in order to demonstrate compliance with your obligations under the SRA's regulatory arrangements.
+	3	You cooperate with the SRA, other regulators, ombudsmen, and those bodies with a role overseeing and supervising the delivery of, or investigating concerns in relation to, legal services.
+	4	You respond promptly to the SRA and:
+		1	provide full and accurate explanations, information and documents in response to any request or requirement; and
+		2	ensure that relevant information which is held by you, or by third parties carrying out functions on your behalf which are critical to the delivery of your legal services, is available for inspection by the SRA.
+	5	You do not attempt to prevent anyone from providing information to the SRA or any other body exercising regulatory, supervisory, investigatory or prosecutory functions in the public interest.
+	6	You notify the SRA promptly if:
+		1	you are subject to any criminal charge, conviction or caution, subject to the Rehabilitation of Offenders Act 1974;
+		2	a relevant insolvency event occurs in relation to you; or
+		3	if you become aware:
+			i	of any material changes to information previously provided to the SRA, by you or on your behalf, about you or your practice, including any change to information recorded in the register; and
+			ii	that information provided to the SRA, by you or on your behalf, about you or your practice is or may be false, misleading, incomplete or inaccurate.
+	7	You report promptly to the SRA or another approved regulator, as appropriate, any facts or matters that you reasonably believe are capable of amounting to a serious breach of their regulatory arrangements by any person regulated by them (including you).
+	8	Notwithstanding paragraph 7.7, you inform the SRA promptly of any facts or matters that you reasonably believe should be brought to its attention in order that it may investigate whether a serious breach of its regulatory arrangementshas occurred or otherwise exercise its regulatory powers.
+	9	You do not subject any person to detrimental treatment for making or proposing to make a report or providing or proposing to provide information based on a reasonably held belief under paragraph 7.7 or 7.8 above, or paragraph 3.9, 3.10, 9.1(d) or (e) or 9.2(b) or (c) of the SRA Code of Conduct for Firms, irrespective of whether the SRA or another approved regulator subsequently investigates or takes any action in relation to the facts or matters in question.
+	10	You act promptly to take any remedial action requested by the SRA. If requested to do so by the SRA you investigate whether there have been any serious breaches that should be reported to the SRA.
+	11	You are honest and open with clients if things go wrong, and if a client suffers loss or harm as a result you put matters right (if possible) and explain fully and promptly what has happened and the likely impact. If requested to do so by the SRA you investigate whether anyone may have a claim against you, provide the SRA with a report on the outcome of your investigation, and notify relevant persons that they may have such a claim, accordingly.
+	12	Any obligation under this section or otherwise to notify, or provide information to, the SRA will be satisfied if you provide information to your firm's COLP or COFA, as and where appropriate, on the understanding that they will do so.
+When you are providing services to the public or a section of the public
+
+8.1: Client identification
+i
+	1	You identify who you are acting for in relation to any matter. 
+
+8.2-8.5: Complaints handling
+i
+	1	You ensure that, as appropriate in the circumstances, you either establish and maintain, or participate in, a procedure for handling complaints in relation to the legal services you provide.
+	2	You ensure that clients are informed in writing at the time of engagement about:
+		1	their right to complain to you about your services and your charges;
+		2	how a complaint can be made and to whom; and
+		3	any right they have to make a complaint to the Legal Ombudsman and when they can make any such complaint.
+	3	You ensure that when clients have made a complaint to you, if this has not been resolved to the client's satisfaction within 8 weeks following the making of a complaint they are informed, in writing:
+		1	of any right they have to complain to the Legal Ombudsman, the time frame for doing so and full details of how to contact the Legal Ombudsman; and
+		2	if a complaint has been brought and your complaints procedure has been exhausted:
+			1	that you cannot settle the complaint;
+			2	of the name and website address of an alternative dispute resolution (ADR) approved body which would be competent to deal with the complaint; and
+			3	whether you agree to use the scheme operated by that body.
+	4	You ensure that complaints are dealt with promptly, fairly, and free of charge. 
+
+8.6-8.11: Client information and publicity
+i
+	1	You give clients information in a way they can understand. You ensure they are in a position to make informed decisions about the services they need, how their matter will be handled and the options available to them.
+	2	You ensure that clients receive the best possible information about how their matter will be priced and, both at the time of engagement and when appropriate as their matter progresses, about the likely overall cost of the matter and any costs incurred.
+	3	You ensure that any publicity in relation to your practice is accurate and not misleading, including that relating to your charges and the circumstances in which interest is payable by or to clients.
+	4	You do not make unsolicited approaches to members of the public, with the exception of current or former clients, in order to advertise legal services provided by you, or your business or employer.
+	5	You ensure that clients understand whether and how the services you provide are regulated. This includes:
+		1	explaining which activities will be carried out by you, as an authorised person;
+		2	explaining which services provided by you, your business or employer, and any separate business are regulated by an approved regulator; and
+		3	ensuring that you do not represent any business or employer which is not authorised by the SRA, including any separate business, as being regulated by the SRA.
+	6	You ensure that clients understand the regulatory protections available to them.
+Supplemental notes
+Made by the SRA Board on 16 December 2024.
+Made under sections 2, 13, 28, 31, 32, 33A, 34 and 37 of the Solicitors Act 1974, section 89 of, and paragraphs 2 and 3 of Schedule 14 to, the Courts and Legal Services Act 1990, section 9 of the Administration of Justice Act 1985, section 83 of, and Schedule 11 to, the Legal Services Act 2007, and section 57(2) and (8) of the Legal Aid, Sentencing and Punishment of Offenders Act 2012.
+
+
+
+   
+
+
