@@ -1,0 +1,1416 @@
+TRUSTS (JERSEY) LAW 1984
+Contents
+Article
+PART 1 5
+GENERAL 5
+1 Interpretation ................................................................................................................. 5
+2 Existence of a trust ......................................................................................................... 7
+3 Recognition of a trust by the law of Jersey .................................................................... 7
+4 Proper law of a trust ....................................................................................................... 7
+5 Jurisdiction of court ........................................................................................................ 8
+PART 2 8
+PROVISIONS APPLICABLE ONLY TO A JERSEY TRUST 8
+6 Application of Part 2 ....................................................................................................... 8
+Creation, validity and duration of Jersey trusts
+7 Creation of a trust ........................................................................................................... 8
+8 Property which may be placed in a trust........................................................................ 8
+9 Extent of application of law of Jersey to creation, etc. of a trust .................................. 8
+9A 10 10A 11 12 14 15 Powers reserved by settlor ........................................................................................... 10
+Beneficiaries of a trust .................................................................................................. 11
+Disclaimer of interest ................................................................................................... 12
+Validity of a Jersey trust ............................................................................................... 12
+Trusts for non-charitable purposes .............................................................................. 13
+13 Enforcers ....................................................................................................................... 13
+Resignation or removal of enforcer ............................................................................. 13
+Duration of a Jersey trust ............................................................................................. 14
+Appointment, retirement and discharge of trustees
+16 17 18 19 Number of trustees ...................................................................................................... 14
+Appointment out of court of new or additional trustee .............................................. 14
+Prohibition of renunciation after acceptance .............................................................. 15
+Resignation or removal of trustee ................................................................................ 15
+20 ...................................................................................................................................... 16
+Official Consolidated Version
+14 February 2023 – Current
+Page - 2Trusts (Jersey) Law 1984 Contents
+Duties of trustees
+21 22 Duties of trustee ........................................................................................................... 16
+Duty of co-trustees to act together .............................................................................. 17
+23 Impartiality of trustee................................................................................................... 17
+General powers of trustees
+24 25 26 27 28 Powers of trustee ......................................................................................................... 17
+Delegation by trustee ................................................................................................... 17
+Remuneration and expenses of trustee ....................................................................... 18
+Power to appropriate ................................................................................................... 18
+Corporate trustee acting by resolution ........................................................................ 18
+29 Disclosure ..................................................................................................................... 18
+Liability for breach of trust
+30 31 32 34 Liability for breach of trust ........................................................................................... 19
+Trustee acting in respect of more than one trust ........................................................ 20
+Trustee’s liability to third parties ................................................................................. 21
+33 Constructive trustee ..................................................................................................... 21
+Position of outgoing trustee ......................................................................................... 21
+Protective trusts; class interests; and certain powers
+35 37 38 39 40 41 Spendthrift or protective trust ..................................................................................... 22
+36 Class interests ............................................................................................................... 22
+Variation of terms of a trust ......................................................................................... 22
+Power of accumulation and advancement................................................................... 22
+Power of appointment ................................................................................................. 24
+Power of revocation ..................................................................................................... 24
+Power to provide for change of proper law ................................................................. 24
+Failure, lapse and termination of trusts
+42 43 Failure or lapse of interest............................................................................................ 24
+Termination of a Jersey trust ........................................................................................ 25
+Security
+43A Security ......................................................................................................................... 25
+Powers of the court
+44 45 46 47 47A 47B 47C 47D 47E 47F Appointment of resident trustee ................................................................................. 26
+Power to relieve trustee from personal liability .......................................................... 26
+Power to make beneficiary indemnify for breach of trust ........................................... 27
+Variation of terms of a Jersey trust by the court and approval of particular
+transactions .................................................................................................................. 27
+Trusts for charitable or non-charitable purposes ........................................................ 28
+Articles 47D to 47J: Interpretation ............................................................................... 28
+Determination of “mistake” ......................................................................................... 29
+Application of powers under Articles 47E to 47I .......................................................... 29
+Power to set aside a transfer or disposition of property to a trust due to mistake .... 29
+Power to set aside a transfer or disposition of property to a trust exercised by
+fiduciary power ............................................................................................................. 30
+Official Consolidated Version
+14 February 2023 – Current
+Page - 3Trusts (Jersey) Law 1984 Contents
+47G 47H 47I 47J Power to set aside the exercise of powers in relation to a trust or trust property due
+to mistake ..................................................................................................................... 30
+Power to set aside the exercise of fiduciary powers in relation to a trust or trust
+property ........................................................................................................................ 31
+Applications and orders under Articles 47E to 47H ..................................................... 31
+Savings in respect of applications made under Articles 47E to 47H ............................ 32
+PART 3 32
+PROVISIONS APPLICABLE TO A FOREIGN TRUST 48 49 32
+Application of Part 3 ..................................................................................................... 32
+Enforceability of a foreign trust .................................................................................... 32
+PART 4 33
+PROVISIONS OF GENERAL APPLICATION 33
+50 51 52 53 54 55 57 Application of Part 4 ..................................................................................................... 33
+Applications to and certain powers of the court ......................................................... 33
+Execution of instruments by order of the court ........................................................... 33
+Payment of costs .......................................................................................................... 34
+Nature of trustee’s estate, following trust property and insolvency of trustee .......... 34
+Protection to persons dealing with trustee.................................................................. 34
+56 ...................................................................................................................................... 35
+Limitation of actions or prescription ............................................................................ 35
+PART 5 36
+SUPPLEMENTAL 36
+58 60 Application of this Law ................................................................................................. 36
+59 Saving provisions .......................................................................................................... 36
+Rules of Court ............................................................................................................... 36
+61 Citation ......................................................................................................................... 37
+ENDNOTES 38
+Table of Legislation History .......................................................................................................... 38
+Table of Renumbered Provisions ................................................................................................. 38
+Table of Endnote References ....................................................................................................... 40
+Official Consolidated Version
+14 February 2023 – Current
+Page - 4Trusts (Jersey) Law 1984 Article 1
+TRUSTS (JERSEY) LAW 1984
+A LAW to make provision with regard to trusts, trustees and persons interested under
+trusts and for connected purposes
+Commencement [see endnotes]
+PART 1
+GENERAL
+1 Interpretation
+(1) In this Law, unless the context otherwise requires –
+“beneficiary” means a person entitled to benefit under a trust or in whose favour a
+discretion to distribute property held on trust may be exercised;
+“breach of trust” means a breach of any duty imposed on a trustee by this Law or
+by the terms of the trust;
+“corporate trustee” means a trustee which is a corporation;
+“corporation” means a body corporate wherever incorporated (other than a limited
+liability company registered as a body corporate under the Limited Liability
+Companies (Jersey) Law 2018);
+“court” means the Inferior Number of the Royal Court;
+“enforcer” shall be construed in accordance with Article 13;
+“foreign trust” means a trust whose proper law is the law of some jurisdiction other
+than Jersey;
+“insurance” includes assurance;
+“interdict” means a person, other than a minor, who under the law of Jersey or
+under the law of the person’s domicile does not have legal capacity;
+“interest of a beneficiary” means the beneficiary’s interest under a trust and
+references to the beneficiary’s interest have a corresponding meaning;
+“Jersey trust” means a trust whose proper law is the law of Jersey;
+Official Consolidated Version
+14 February 2023 – Current
+Page - 5Trusts (Jersey) Law 1984 Article 1
+(c) (d) (e) (f) “minor” means a person who under the law of Jersey or under the law of the
+person’s domicile has not reached the age of legal capacity;
+“officer” means –
+(a) (b) in the case of a foundation, a member of the council of the foundation;
+in the case of an incorporated limited partnership, a general partner or a
+limited partner who is participating in the management of the partnership;
+in the case of any corporation other than those mentioned in sub-
+paragraph (a) and (b), a director, manager, secretary or other similar officer
+of the corporation;
+in the case of a limited liability partnership, a partner;
+in the case of a separate limited partnership or any partnership with a
+separate legal personality, except a limited liability partnership, a general
+partner or a limited partner who is participating in the management of the
+partnership; or
+in any case other than those mentioned in sub-paragraphs (a), (b), (c), (d)
+and (e), any other person purporting to act in a capacity described in any of
+sub-paragraphs (a), (b), (c), (d) and (e);
+“personal representative” means the executor or administrator for the time being of
+a deceased person and, in the context of a Jersey trust, includes the principal heir;
+“professional trustee” means a trustee who is registered under Article 9 of the
+Financial Services (Jersey) Law 1998, by the Jersey Financial Services
+Commission, to carry on trust company business within the meaning of Article 2(3)
+of that Law;
+“property” means property of any description wherever situated, and, in relation to
+rights and interests includes those rights and interests whether vested, contingent,
+defeasible or future;
+“purpose” means any purpose whatsoever, whether or not –
+(a) involving the conferral of any benefit on any person; or
+(b) consuming or capable of consuming the income or capital of the trust,
+including without limitation the acquisition, holding, ownership, management or
+disposal of property and the exercise of functions;
+“settlor” means a person who provides trust property or makes a testamentary
+disposition on trust or to a trust;
+“terms of a trust” means the written or oral terms of a trust, and also means any
+other terms made applicable by the proper law;
+“trust” includes –
+(a) the trust property; and
+(b) trust;
+the rights, powers, duties, interests, relationships and obligations under a
+“trust property” means the property for the time being held in a trust;
+“unit trust” means any trust established for the purpose, or having the effect, of
+providing, for persons having funds available for investment, facilities for the
+Official Consolidated Version
+14 February 2023 – Current
+Page - 6Trusts (Jersey) Law 1984 Article 2
+(2) participation by them as beneficiaries under the trust, in any profits or income
+arising from the acquisition, holding, management or disposal of any property
+whatsoever.1
+This Law shall not be construed as a codification of laws regarding trusts, trustees
+and persons interested under trusts.
+2 Existence of a trust
+A trust exists where a person (known as a trustee) holds or has vested in the person or is
+deemed to hold or have vested in the person property (of which the person is not the
+owner in the person’s own right) –
+(a) for the benefit of any person (known as a beneficiary) whether or not yet
+ascertained or in existence;
+(b) (c) for any purpose which is not for the benefit only of the trustee; or
+for such benefit as is mentioned in sub-paragraph (a) and also for any such purpose
+as is mentioned in sub-paragraph (b).
+3 Recognition of a trust by the law of Jersey
+Subject to this Law, a trust shall be recognized by the law of Jersey as valid and
+enforceable.
+4 Proper law of a trust
+(1) Subject to Article 41, the proper law of a trust shall be the law of the jurisdiction –
+(a) expressed by the terms of the trust as the proper law; or failing that
+(b) to be implied from the terms of the trust; or failing either
+(c) with which the trust at the time it was created had the closest connection.
+2
+(2) The references in paragraph (1) to “failing that” or “failing either” include
+references to cases –
+(3) (a) where no law is expressed or implied under sub-paragraph (a) or (b) of that
+paragraph; and
+(b) where a law is so expressed or implied, but that law does not provide for
+trusts or the category of trusts concerned.3
+In ascertaining, for the purpose of paragraph (1)(c), the law with which a trust had
+the closest connection, reference shall be made in particular to –
+(a) (b) (c) (d) the place of administration of the trust designated by the settlor;
+the situs of the assets of the trust;
+the place of residence or business of the trustee;
+the objects of the trust and the places where they are to be fulfilled.4
+Official Consolidated Version
+14 February 2023 – Current
+Page - 7Trusts (Jersey) Law 1984 Article 5
+5 Jurisdiction of court
+The court has jurisdiction where –
+(a) (b) (c) (d) the trust is a Jersey trust;
+a trustee of a foreign trust is resident in Jersey;
+any trust property of a foreign trust is situated in Jersey; or
+administration of any trust property of a foreign trust is carried on in Jersey.
+PART 2
+PROVISIONS APPLICABLE ONLY TO A JERSEY TRUST
+6 Application of Part 2
+This Part of this Law shall apply only to a Jersey trust.
+Creation, validity and duration of Jersey trusts
+7 Creation of a trust
+(1) (2) (3) Subject to paragraph (3), a trust may come into existence in any manner.
+Without prejudice to the generality of paragraph (1), a trust may come into
+existence by oral declaration, or by an instrument in writing (including a will or
+codicil) or arise by conduct.
+A unit trust may be created only by an instrument in writing.
+8 Property which may be placed in a trust
+Subject to Article 11(2) –
+(a) any property may be held by or vested in a trustee upon trust; and
+(b) a trustee may accept from any person property to be added to the trust property.
+9 Extent of application of law of Jersey to creation, etc. of a trust5
+(1) Subject to paragraph (3), any question concerning –
+(a) the validity or interpretation of a trust;
+(b) the validity or effect of any transfer or other disposition of property to a
+trust;
+(c) (d) the capacity of a settlor;
+the administration of the trust, whether the administration be conducted in
+Jersey or elsewhere, including questions as to the powers, obligations,
+liabilities and rights of trustees and their appointment or removal;
+Official Consolidated Version
+14 February 2023 – Current
+Page - 8Trusts (Jersey) Law 1984 Article 9
+(2) (2A) (e) the existence and extent of powers, conferred or retained, including powers
+of variation or revocation of the trust and powers of appointment and the
+validity of any exercise of such powers;
+(f) the exercise or purported exercise by a foreign court of any statutory or non-
+statutory power to vary the terms of a trust; or
+(g) the nature and extent of any beneficial rights or interests in the property,
+shall be determined in accordance with the law of Jersey and no rule of foreign law
+shall affect such question.6
+Without prejudice to the generality of paragraph (1), any question mentioned in
+that paragraph shall be determined without consideration of whether or not –
+(a) any foreign law prohibits or does not recognise the concept of a trust; or
+(b) the trust or disposition avoids or defeats rights, claims, or interests conferred
+by any foreign law upon any person by reason of a personal relationship or
+by way of heirship rights, or contravenes any rule of foreign law or any
+foreign judicial or administrative order or action intended to recognize,
+protect, enforce or give effect to any such rights, claims or interests.7
+Subject to paragraph (2), paragraph (1) –
+(a) does not validate any disposition of property which is neither owned by the
+settlor nor the subject of a power of disposition vested in the settlor;
+(b) does not affect the recognition of the law of any other jurisdiction in
+determining whether the settlor is the owner of any property or the holder of
+any such power;
+(c) is subject to any express provision to the contrary in the terms of the trust or
+disposition;
+(d) does not, in determining the capacity of a corporation or other person having
+legal personality, affect the recognition of the law of its place of
+incorporation or establishment, as the case may be;
+(e) does not affect the recognition of the law of any other jurisdiction
+prescribing the formalities for the disposition of property;
+(f) does not validate any trust or disposition of immovable property situate in a
+jurisdiction other than Jersey which is invalid under the law of that
+jurisdiction; and
+(g) does not validate any testamentary disposition which is invalid under the law
+of the testator’s domicile at the time of his death. 8
+(3) The law of Jersey relating to légitime shall not apply to the determination of any
+question mentioned in paragraph (1) unless the settlor is domiciled in Jersey.9
+(3A) The law of Jersey relating to conflict of laws (other than this Article) shall not
+apply to the determination of any question mentioned in paragraph (1).10
+(4) No –
+(a) judgment of a foreign court; or
+(b) decision of any other foreign tribunal (whether in an arbitration or
+otherwise),
+Official Consolidated Version
+14 February 2023 – Current
+Page - 9Trusts (Jersey) Law 1984 Article 9A
+with respect to a trust shall be enforceable, or given effect, to the extent that it is
+inconsistent with this Article, irrespective of any applicable law relating to conflict
+of laws.11
+(5) The rule donner et retenir ne vaut shall not apply to any question concerning the
+validity, effect or administration of a trust, or a transfer or other disposition of
+property to a trust.
+(6) In this Article –
+“foreign” refers to any jurisdiction other than Jersey;
+“heirship rights” means rights, claims or interests in, against or to property of a
+person arising or accruing in consequence of his or her death, other than rights,
+claims or interests created by will or other voluntary disposition by such person or
+resulting from an express limitation in the disposition of his or her property;
+“légitime” and “donner et retenir ne vaut” have the meanings assigned to them by
+Jersey customary law;
+“personal relationship” includes the situation where there exists, or has in the past
+existed, any of the following relationships –
+(a) any relationship between a person and the settlor or a beneficiary, by blood,
+marriage, civil partnership or adoption (whether or not the marriage, civil
+partnership or adoption is recognised by law);
+(b) any arrangement between a person and the settlor or a beneficiary such as to
+give rise in any jurisdiction to any rights, obligations or responsibilities
+analogous to those of parent and child, spouses or civil partners; or
+(c) any relationship between –
+(i) a person who has a relationship mentioned in either of paragraphs (a)
+and (b) with the settlor or a beneficiary, and
+(ii) a third person who does not have a relationship mentioned in either of
+paragraphs (a) and (b) with the settlor or a beneficiary.
+12
+(7) Despite Article 59, this Article applies to trusts whenever constituted or created.
+9A Powers reserved by settlor13
+(1) The reservation or grant by a settlor of a trust of –
+(a) any beneficial interest in the trust property; or
+(b) any or all of the powers mentioned in paragraph (2),
+shall not affect the validity of the trust nor delay the trust taking effect and in
+construing the terms of the trust, if the trust is not expressed to be a will or
+testament or to come into effect upon the death of the settlor, it shall be presumed
+that the trust shall take immediate effect, except as otherwise expressed.
+14
+(2) The powers are –
+(a) to revoke, vary or amend the terms of a trust or any trusts or powers arising
+wholly or partly under it;
+Official Consolidated Version
+14 February 2023 – Current
+Page - 10Trusts (Jersey) Law 1984 Article 10
+(3) (3A) (4) (b) (c) to advance, appoint, pay or apply income or capital of the trust property or to
+give directions for the making of such advancement, appointment, payment
+or application;
+to act as, or give directions as to the appointment or removal of –
+(i) an officer of any corporation, or
+(ii) an officer of a limited liability partnership, separate limited
+partnership or any other partnership having separate legal personality,
+in which the trust holds an interest whether or not such interest in the
+corporation or partnership is wholly, partly, directly or indirectly held by the
+trust;
+(d) to give directions to the trustee in connection with the purchase, retention,
+sale, management, lending, pledging or charging of the trust property or the
+exercise of any powers or rights arising from such property;
+(e) to appoint or remove any trustee, enforcer or beneficiary, or any other person
+who holds a power, discretion or right, or who acts in connection with the
+trust or in relation to trust property;
+(f) (g) (h) to appoint or remove an investment manager or investment adviser;
+to change the proper law of the trust;
+to restrict the exercise of any powers or discretions of a trustee by requiring
+that they shall only be exercisable with the consent of the settlor or any other
+person specified in the terms of the trust.15
+Where a power mentioned in paragraph (2) has been reserved or granted by the
+settlor, a trustee who acts in accordance with the exercise of the power is not acting
+in breach of trust.
+The reservation or grant by a settlor of a trust of –
+(a) (b) any beneficial interest in the trust property; or
+any or all of the powers mentioned in paragraph (2),
+shall not of itself constitute the settlor or the person to whom the power or
+beneficial interest is granted, a trustee.16
+The States may make Regulations amending paragraph (2).
+10 Beneficiaries of a trust
+(1) A beneficiary shall be –
+(a) identifiable by name; or
+(b) ascertainable by reference to –
+(i) a class, or
+(ii) a relationship to some person whether or not living at the time of the
+creation of the trust or at the time which under the terms of the trust is
+the time by reference to which members of a class are to be
+determined.
+Official Consolidated Version
+14 February 2023 – Current
+Page - 11Trusts (Jersey) Law 1984 Article 10A
+(2) (3) The terms of a trust may provide for the addition of a person as a beneficiary or the
+exclusion of a beneficiary from benefit.
+Subject to Article 30(10), the terms of a trust may impose upon a beneficiary an
+obligation as a condition for benefit.17
+(4) 18
+(5) 19
+(6) 20
+(7) 21
+(8) 22
+(9) 23
+(10) (11) (12) The interest of a beneficiary shall constitute movable property.
+Subject to the terms of the trust, a beneficiary may sell, pledge, charge, transfer or
+otherwise deal with his or her interest in any manner.
+A settlor or a trustee of a trust may also be a beneficiary of the trust.
+10A Disclaimer of interest24
+(1) (2) (3) Despite the terms of the trust, a beneficiary may disclaim, either permanently or for
+such period as he or she may specify, the whole or any part of his or her interest
+under a trust if he or she does so in writing.
+Paragraph (1) applies whether or not the beneficiary has received any benefit from
+the interest.
+Subject to the terms of the trust, if the disclaimer so provides it may be revoked in
+accordance with its terms.
+11 Validity of a Jersey trust
+(1) Subject to paragraphs (2) and (3), a trust shall be valid and enforceable in
+accordance with its terms.
+(2) Subject to Article 12, a trust shall be invalid –
+(a) to the extent that –
+(i) it purports to do anything the doing of which is contrary to the law of
+Jersey,
+(ii) it purports to confer any right or power or impose any obligation the
+exercise or carrying out of which is contrary to the law of Jersey,
+(iii) it purports to apply directly to immovable property situated in Jersey,
+or
+(b) (iv) it is created for a purpose in relation to which there is no beneficiary,
+not being a charitable purpose;
+to the extent that the court declares that –
+(i) the trust was established by duress, fraud, mistake, undue influence or
+misrepresentation or in breach of fiduciary duty,
+Official Consolidated Version
+14 February 2023 – Current
+Page - 12Trusts (Jersey) Law 1984 Article 12
+(3) (ii) (iii) the trust is immoral or contrary to public policy, or
+the terms of the trust are so uncertain that its performance is rendered
+impossible.25
+Where a trust is created for 2 or more purposes of which some are lawful and
+others are unlawful –
+(a) (b) if those purposes cannot be separated the trust shall be invalid;
+where those purposes can be separated the court may declare that the trust is
+valid as to the purposes which are lawful.
+(4) Where a trust is partially invalid the court may declare what property is trust
+property, and what property is not trust property.
+(5) Where paragraph (2)(a)(iii) applies, any person in whom the title to such
+immovable property is vested shall not be, and shall not be deemed to be, a trustee
+of such immovable property.
+(6) Property as to which a trust is wholly or partially invalid shall, subject to
+paragraph (5) and subject to any order of the court, be held by the trustee in trust
+for the settlor absolutely or if the settlor is dead for his or her personal
+representative.
+(7) In paragraph (6) “settlor” means the particular person who provided the property as
+to which the trust is wholly or partially invalid.
+(8) An application to the court under this Article may be made by any person referred
+to in Article 51(3).
+12 Trusts for non-charitable purposes26
+A trust shall not be invalid to any extent by reason of Article 11(2)(a)(iv) if the terms of
+the trust provide for the appointment of an enforcer in relation to its non-charitable
+purposes, and for the appointment of a new enforcer at any time when there is none.
+13 Enforcers27
+(1) (2) (3) It shall be the duty of an enforcer to enforce the trust in relation to its non-
+charitable purposes.
+The appointment of a person as enforcer of a trust in relation to its non-charitable
+purposes shall not have effect if the person is also a trustee of the trust.
+Article 21(4) shall apply to an enforcer as if the reference in sub-paragraph (b) of
+that paragraph to “a trustee” were a reference to “an enforcer” and the references in
+that sub-paragraph to the “trustee’s trusteeship” and “such trusteeship” were both
+references to the “enforcer’s appointment”.
+14 Resignation or removal of enforcer28
+(1) Subject to paragraph (3), an enforcer may resign his or her office by notice in
+writing delivered to the trustee.
+(2) A resignation takes effect on the delivery of notice in accordance with
+paragraph (1).
+Official Consolidated Version
+14 February 2023 – Current
+Page - 13Trusts (Jersey) Law 1984 Article 15
+(3) (4) A resignation given in order to facilitate a breach of trust shall be of no effect.
+An enforcer shall cease to be enforcer of the trust in relation to its non-charitable
+purposes immediately upon –
+(a) (b) (c) the enforcer’s removal from office by the court;
+the enforcer’s resignation becoming effective;
+the coming into effect of a provision in the terms of a trust under which the
+enforcer is removed from office or otherwise ceases to hold office; or
+(d) the enforcer’s appointment as a trustee of the trust.
+15 Duration of a Jersey trust29
+(1) Unless its terms provide otherwise, a trust may continue in existence for an
+unlimited period.
+(2) No rule against perpetuities or excessive accumulations shall apply to a trust or to
+any advancement, appointment, payment or application of assets from a trust.
+(3) Except where the terms of a trust provide to the contrary, any advancement,
+appointment, payment or application of assets from that trust to another trust shall
+be valid even if that other trust may continue after the date by which the first trust
+must terminate.
+Appointment, retirement and discharge of trustees
+16 Number of trustees30
+(1) (2) Subject to the terms of the trust, a trust must have at least one trustee.
+A trust shall not fail on grounds of having fewer trustees than required by this Law
+or the terms of the trust.
+(3) If the number of trustees falls below the minimum number required by
+paragraph (1) or, if greater, by the terms of the trust, the required number of new
+trustees must be appointed as soon as practicable.
+(4) While there are fewer trustees than are required by the terms of the trust, the
+existing trustees may only act for the purpose of preserving the trust property.
+17 Appointment out of court of new or additional trustee
+(1) Paragraph (1A) applies if –
+(a) the terms of a trust do not provide for the appointment of a new or additional
+trustee;
+(1A) (b) (c) any such terms providing for any such appointment have lapsed or failed; or
+the person who has the power to make any such appointment is not capable
+of exercising the power,
+and there is no other power to make the appointment.31
+A new or additional trustee may be appointed by –
+Official Consolidated Version
+14 February 2023 – Current
+Page - 14Trusts (Jersey) Law 1984 Article 18
+(2) (3) (4) (a) the trustees for the time being;
+(b) the last remaining trustee; or
+(c) the personal representative or liquidator of the last remaining trustee.32
+Subject to the terms of the trust, a trustee appointed under this Article shall have
+the same powers, discretions and duties and may act as if the trustee had been
+originally appointed a trustee.
+A trustee having power to appoint a new trustee who fails to exercise such power
+may be removed from office by the court.
+On the appointment of a new or additional trustee anything requisite for vesting the
+trust property in the trustees for the time being of the trust shall be done.
+18 Prohibition of renunciation after acceptance
+(1) No person shall be obliged to accept appointment as a trustee, but a person who
+knowingly does any act or thing in relation to the trust property consistent with the
+status of a trustee of that property shall be deemed to have accepted appointment as
+a trustee.
+(2) (3) A person who has not accepted and is not deemed to have accepted appointment as
+a trustee may disclaim such appointment within a reasonable period of time after
+becoming aware of it by notice in writing to the settlor or to the trustees.
+If the settlor is dead or cannot be found and there are no other trustees a person to
+whom paragraph (2) applies may apply to the court for relief from the person’s
+appointment and the court may make such order as it thinks fit.
+19 Resignation or removal of trustee
+(1) Subject to paragraph (3), a trustee, not being a sole trustee, may resign his or her
+office by notice in writing delivered to his or her co-trustees.
+(2) A resignation takes effect on the delivery of notice in accordance with
+paragraph (1).
+(3) If two or more trustees purport to resign simultaneously, the effect of which would
+mean that there would be no trustee, the resignations shall have no effect.33
+(4) A trustee shall cease to be a trustee of the trust immediately upon –
+(a) the trustee’s removal from office by the court; or
+(b) the trustee’s resignation becoming effective; or
+(c) the coming into effect of a provision in the terms of a trust under which the
+trustee is removed from office or otherwise ceases to hold office.
+(5) A person who ceases to be a trustee under this Article shall concur in executing all
+documents necessary for the vesting of the trust property in the new or continuing
+trustees.
+Official Consolidated Version
+14 February 2023 – Current
+Page - 15Trusts (Jersey) Law 1984 Article 20
+20 34
+Duties of trustees
+21 Duties of trustee
+(1) (2) A trustee shall in the execution of his or her duties and in the exercise of his or her
+powers and discretions –
+(a) act –
+(i) with due diligence,
+(ii) as would a prudent person,
+(iii) to the best of the trustee’s ability and skill; and
+(b) observe the utmost good faith.
+Subject to this Law, a trustee shall carry out and administer the trust in accordance
+with its terms.
+(3) (a) (b) (4) Except –
+(a) (b) Subject to the terms of the trust, a trustee shall –
+so far as is reasonable preserve the value of the trust property;
+so far as is reasonable enhance the value of the trust property.35
+with the approval of the court; or
+as permitted by this Law or expressly provided by the terms of the trust,
+a trustee shall not –
+(5) (6) (7) (8) (i) (ii) directly or indirectly profit from the trustee’s trusteeship;
+cause or permit any other person to profit directly or indirectly from such
+trusteeship; or
+(iii) on the trustee’s own account enter into any transaction with the trustees or
+relating to the trust property which may result in such profit.
+A trustee shall keep accurate accounts and records of the trustee’s trusteeship.
+A trustee shall keep trust property separate from his or her personal property and
+separately identifiable from any other property of which he or she is a trustee.
+A trustee of a trust for non-charitable purposes shall, at any time when there is no
+enforcer in relation to them, take such steps as may be necessary to secure the
+appointment of a new enforcer.36
+Where the trustee of a trust for non-charitable purposes has reason to believe that
+the enforcer in relation to them is unwilling or refuses to act, or is unfit to act or
+incapable of acting, the trustee shall apply to the court for the removal of the
+enforcer and the appointment of a replacement.37
+Official Consolidated Version
+14 February 2023 – Current
+Page - 16Trusts (Jersey) Law 1984 Article 22
+22 Duty of co-trustees to act together
+(1) Subject to the terms of the trust, where there is more than one trustee all the
+trustees shall join in performing the trust.
+(2) Subject to paragraph (3), where there is more than one trustee no power or
+discretion given to the trustees shall be exercised unless all the trustees agree on its
+exercise.
+(3) The terms of a trust may empower trustees to act by a majority but a trustee who
+dissents from a decision of the majority of the trustees may require the trustee’s
+dissent to be recorded in writing.
+23 Impartiality of trustee
+Subject to the terms of the trust, where there is more than one beneficiary, or more than
+one purpose, or at least one beneficiary and at least one purpose, a trustee shall be
+impartial and shall not execute the trust for the advantage of one at the expense of
+another.38
+General powers of trustees
+24 Powers of trustee
+(1) (2) (3) (4) Subject to the terms of the trust and subject to the trustee’s duties under this Law, a
+trustee shall in relation to the trust property have all the same powers as a natural
+person acting as the beneficial owner of such property.
+A trustee shall exercise the trustee’s powers only in the interests of the
+beneficiaries and in accordance with the terms of the trust.
+The terms of a trust may require a trustee to obtain the consent of some other
+person before exercising a power or a discretion.
+A person who consents as provided in paragraph (3) shall not by virtue of so doing
+be deemed to be a trustee.
+25 Delegation by trustee
+(1) Subject to the terms of the trust, a trustee may delegate the execution or exercise of
+any of his or her trusts or powers (both administrative and dispositive) and any
+delegate may further so delegate any such trusts or powers.39
+(2) Except where the terms of the trust specifically provide to the contrary, a trustee –
+(a) may delegate management of trust property to and employ investment
+managers whom the trustee reasonably considers competent and qualified to
+manage the investment of trust property; and
+(b) may employ accountants, advocates, attorneys, bankers, brokers, custodians,
+investment advisers, nominees, property agents, solicitors and other
+professional agents or persons to act in relation to any of the affairs of the
+trust or to hold any of the trust property.
+Official Consolidated Version
+14 February 2023 – Current
+Page - 17Trusts (Jersey) Law 1984 Article 26
+(3) (4) A trustee shall not be liable for any loss to the trust arising from a delegation or
+appointment under this Article who, in good faith and without neglect, makes such
+delegation or appointment or permits the continuation thereof.
+40
+A trustee may authorize a person referred to in paragraph (2) to retain any
+commission or other payment usually payable in relation to any transaction.
+26 Remuneration and expenses of trustee
+(1) Unless authorized by –
+(a) the terms of the trust;
+(b) the consent in writing of all of the beneficiaries; or
+(c) any order of the court,
+a trustee shall not be entitled to remuneration for his or her services.
+(1A) Despite paragraph (1), where the terms of a trust are silent as to his or her
+remuneration, a professional trustee shall be entitled to reasonable remuneration for
+services that the professional trustee provides after this paragraph comes into
+force.41
+(2) A trustee may reimburse himself or herself out of the trust for or pay out of the
+trust all expenses and liabilities reasonably incurred in connection with the trust.42
+27 Power to appropriate
+Subject to the terms of the trust, a trustee may, without the consent of any beneficiary,
+appropriate trust property in or towards satisfaction of the interest of a beneficiary in such
+manner and in accordance with such valuation as the trustee thinks fit.
+28 Corporate trustee acting by resolution
+A corporate trustee may –
+(a) act in connection with a trust by a resolution of such corporate trustee or of its
+board of directors or other governing body; or
+(b) by such a resolution appoint one or more of its officers or employees to act on its
+behalf in connection with the trust.
+29 Disclosure43
+(1) (2) Subject to any order of the court, the terms of a trust may –
+(a) confer upon any person a right to request the disclosure of information or a
+document concerning the trust;
+(b) determine the extent of the right of any person to information or a document
+concerning the trust; or
+(c) impose a duty upon a trustee to disclose information or a document
+concerning the trust to any person.
+Subject to the terms of the trust and to any order of the court –
+Official Consolidated Version
+14 February 2023 – Current
+Page - 18Trusts (Jersey) Law 1984 Article 30
+(3) (4) (5) (a) (b) a beneficiary under the trust not being a charity;
+a charity which is referred to by name in the terms of the trust as a
+beneficiary under the trust; or
+(c) an enforcer,
+may request disclosure by the trustee of documents which relate to or form part of
+the accounts of the trust.
+Subject to any order of the court, a trustee may refuse to comply with –
+(a) a request for disclosure of information or a document concerning the trust
+under paragraph (1)(a) or any document which relates to or forms part of the
+accounts of the trust under paragraph (2); or
+(b) any other request for disclosure of information or a document concerning the
+trust,
+where the trustee in the exercise of its discretion is satisfied that it is in the interests
+of one or more of the beneficiaries, or the beneficiaries as a whole, to refuse the
+request.
+Notwithstanding paragraphs (1), (2) and (3), subject to the terms of the trust and to
+any order of the court, a trustee shall not be required to disclose to any person
+information or a document which –
+(a) discloses the trustee’s deliberations as to the manner in which the trustee has
+exercised a power or discretion or performed a duty conferred or imposed
+upon the trustee;
+(b) discloses the reason for any particular exercise of a power or discretion or
+performance of a duty referred to in sub-paragraph (a), or the material upon
+which such reason shall or might have been based; or
+(c) relates to the exercise or proposed exercise of a power or discretion, or the
+performance or proposed performance of a duty, referred to in sub-
+paragraph (a).
+Notwithstanding the terms of the trust, on the application of the trustee, an
+enforcer, a beneficiary or, with leave of the court any other person, the court may
+make such order as it thinks fit determining the extent to which any person may
+request or receive information or a document concerning the trust, whether
+generally or in any particular instance.
+Liability for breach of trust
+30 Liability for breach of trust
+(1) Subject to this Law and to the terms of the trust, a trustee shall be liable for a
+breach of trust committed by the trustee or in which the trustee has concurred.44
+(2) A trustee who is liable for a breach of trust shall be liable for –
+(a) the loss or depreciation in value of the trust property resulting from such
+breach; and
+(b) the profit, if any, which would have accrued to the trust property if there had
+been no such breach.45
+Official Consolidated Version
+14 February 2023 – Current
+Page - 19Trusts (Jersey) Law 1984 Article 31
+(3) (3A) (4) (5) Where there are 2 or more breaches of trust, a trustee shall not set off a gain from
+one breach of trust against a loss resulting from another breach of trust.
+A trustee who resigns in order to facilitate a breach of trust shall be liable for that
+breach as if he or she had not resigned.46
+A trustee shall not be liable for a breach of trust committed prior to the trustee’s
+appointment, if such breach of trust was committed by some other person.
+A trustee shall not be liable for a breach of trust committed by a co-trustee unless –
+(a) the trustee becomes aware or ought to have become aware of the
+commission of such breach or of the intention of his or her co-trustee to
+commit a breach of trust; and
+(b) the trustee actively conceals such breach or such intention or fails within a
+reasonable time to take proper steps to protect or restore the trust property or
+prevent such breach.
+(6) A beneficiary may –
+(a) relieve a trustee of liability to the beneficiary for a breach of trust;
+(b) indemnify a trustee against liability for a breach of trust.
+(7) Paragraph (6) shall not apply unless the beneficiary –
+(a) has legal capacity;
+(b) has full knowledge of all material facts; and
+(c) is not improperly induced by the trustee to take action under paragraph (6).
+(8) Where 2 or more trustees are liable in respect of a breach of trust, they shall be
+liable jointly and severally.
+(9) A trustee who becomes aware of a breach of trust to which paragraph (4) relates
+shall take all reasonable steps to have such breach remedied.
+(10) Nothing in the terms of a trust shall relieve, release or exonerate a trustee from
+liability for breach of trust arising from the trustee’s own fraud, wilful misconduct
+or gross negligence.47
+(11) 48
+31 Trustee acting in respect of more than one trust
+(1) A trustee acting for the purposes of more than one trust shall not, in the absence of
+fraud, be affected by notice of any instrument, matter, fact or thing in relation to
+any particular trust if the trustee has obtained notice of it by reason of the trustee’s
+acting or having acted for the purposes of another trust.
+(2) A trustee of a trust shall disclose to his or her co-trustee any interest which he or
+she has as trustee of another trust, if any transaction in relation to the first
+mentioned trust is to be entered into with the trustee of such other trust.
+(3) Subject to this Law (including in particular Articles 21 and 23), but despite any
+other enactment or rule of law to the contrary, a person may in the capacity of a
+trustee of one trust enter into a contract or other arrangement with himself or
+herself in the person’s capacity as a trustee of one or more other trusts.49
+Official Consolidated Version
+14 February 2023 – Current
+Page - 20Trusts (Jersey) Law 1984 Article 32
+32 Trustee’s liability to third parties50
+(1) Where a trustee is a party to any transaction or matter affecting the trust –
+(a) if the other party knows that the trustee is acting as trustee, any claim by the
+other party shall be against the trustee as trustee and shall extend only to the
+trust property;
+(b) if the other party does not know that the trustee is acting as trustee, any
+claim by the other party may be made against the trustee personally (though,
+without prejudice to his or her personal liability, the trustee shall have a right
+of recourse to the trust property by way of indemnity).
+(2) Paragraph (1) shall not affect any liability the trustee may have for breach of trust.
+33 Constructive trustee
+(1) (2) (3) (4) Subject to paragraph (2), where a person (in this Article referred to as a
+constructive trustee) makes or receives any profit, gain or advantage from a breach
+of trust the person shall be deemed to be a trustee of that profit, gain, or advantage.
+Paragraph (1) shall not apply to a bona fide purchaser of property for value and
+without notice of a breach of trust.
+A person who is or becomes a constructive trustee shall deliver up the property of
+which the person is a constructive trustee to the person properly entitled to it.
+This Article shall not be construed as excluding any other circumstances under
+which a person may be or become a constructive trustee.
+34 Position of outgoing trustee51
+(1) Subject to paragraph (2), when a trustee resigns, retires, is removed or otherwise
+ceases to be a trustee, he or she shall duly surrender trust property in his or her
+possession or under his or her control.52
+Article 43A applies where a trustee resigns, retires, is removed or otherwise ceases
+to be a trustee.53
+(2) (2A) 54
+(3) A trustee who resigns, retires, is removed or otherwise ceases to be a trustee and
+has complied with paragraph (1) shall be released from liability to any beneficiary,
+trustee or person interested under the trust for any act or omission in relation to the
+trust property or the trustee’s duty as a trustee except liability –
+(a) arising from any breach of trust to which such trustee (or in the case of a
+corporate trustee any of its officers or employees) was a party or to which
+the trustee was privy;
+(b) in respect of actions to recover from such trustee (or in the case of a
+corporate trustee any of its officers or employees) trust property or the
+proceeds of trust property in the possession of such trustee, officers or
+employees .
+55
+Official Consolidated Version
+14 February 2023 – Current
+Page - 21Trusts (Jersey) Law 1984 Article 35
+Protective trusts; class interests; and certain powers
+35 Spendthrift or protective trust
+(1) The terms of a trust may make the interest of a beneficiary liable to termination.
+(2) Without prejudice to the generality of paragraph (1), the terms of a trust may make
+the interest of a beneficiary in the income or capital of the trust property subject
+to –
+(a) (b) a restriction on alienation or disposal; or
+diminution or termination in the event of the beneficiary becoming bankrupt
+or any of his or her property becoming liable to sequestration for the benefit
+of his or her creditors.
+(3) 56
+(4) 57
+36 Class interests
+(1) Subject to the terms of a trust, the following rules shall apply where a trust or an
+interest under a trust is in favour of a class of persons –
+(2) Rule 1 Rule 2 Rule 3 A class closes when it is no longer possible
+for any other person to become a member of
+the class.
+A woman who is over the age of 55 years
+shall be deemed to be no longer capable of
+bearing a child.
+Where any class interest relates to income
+and for any period there is no member of the
+class in existence the income shall be
+accumulated and, subject to Article 15, shall
+be retained until there is a member of the
+class in existence or the class closes.
+In this Article “class interest” means a trust or an interest under a trust which is in
+favour of a class of persons.
+37 Variation of terms of a trust58
+Without prejudice to any power of the court to vary the terms of a trust, a trust may be
+varied in any manner provided by its terms.
+38 Power of accumulation and advancement
+(1) Subject to Article 15, the terms of a trust may direct or authorize –
+(a) the accumulation, for any period, of all or part of the income of the trust and
+its addition to capital; or
+Official Consolidated Version
+14 February 2023 – Current
+Page - 22Trusts (Jersey) Law 1984 Article 38
+(2) (2A) (3) (4) (5) (6) (b) the retention, for any period, of all or part of the income of the trust in its
+character as income.
+59
+Subject to Article 15, the terms of a trust may direct or authorize the distribution of
+all or part of the income of the trust and whilst the trust continues in existence and
+for so long as and to the extent that –
+(a) the income of the trust is not distributed or required to be distributed in
+accordance with the terms of the trust;
+(b) no trust to accumulate income and add it to capital, or to retain income in its
+character as income, applies; and
+(c) no power to accumulate income and add it to capital, or to retain income in
+its character as income, is exercised,
+the income of the trust shall be retained in its character as income.60
+Subject to the terms of the trust, whilst the trust continues in existence, there shall
+be no time period within which a power to accumulate income and add it to capital,
+to retain income in its character as income or to distribute income must be
+exercised.61
+Subject to the terms of the trust and subject to any prior interests or charges
+affecting the trust property, where a beneficiary is a minor and whether or not the
+beneficiary’s interest –
+(a) (b) is a vested interest; or
+is an interest which will become vested –
+(i) on attaining the age of majority,
+(ii) at any later age, or
+(iii) upon the happening of any event,
+the trustee may –
+(A) accumulate the income attributable to the interest of such beneficiary and
+add it to capital or retain it in its character as income pending the attainment
+of the age of majority or such later age or the happening of such event;
+(B) apply such income or part of it to or for the maintenance, education or other
+benefit of such beneficiary;
+(C) advance or appropriate to or for the benefit of any such beneficiary such
+interest or part of such interest. 62
+The receipt of a parent or the lawful guardian of a beneficiary who is a minor shall
+be a sufficient discharge to the trustee for a payment made under paragraph (3).
+Subject to the terms of the trust and subject to any prior interests or charges
+affecting the trust property, the trustee may advance or apply for the benefit of a
+beneficiary all or part of the trust property prior to the date of the happening of the
+event upon the happening of which the beneficiary becomes entitled absolutely
+thereto.63
+All of the trust property advanced or applied under paragraph (5) shall be brought
+into account in determining from time to time the share of the beneficiary in the
+trust property.64
+Official Consolidated Version
+14 February 2023 – Current
+Page - 23Trusts (Jersey) Law 1984 Article 39
+(7) Trust property advanced or applied under paragraph (5) shall not exceed the
+presumptive, contingent or vested share of the beneficiary in the trust property.
+65
+39 Power of appointment
+The terms of a trust may confer on the trustee or any other person power to appoint or
+assign all or any part of the trust property or any interest in the trust property to, or to
+trustees for the benefit of, any person, whether or not such person was a beneficiary of the
+trust immediately prior to such appointment or assignment.
+40 Power of revocation
+(1) (2) (3) (4) (5) (6) A trust and any exercise of a power under a trust may be expressed to be –
+(a) revocable whether wholly or partly; or
+(b) capable of variation.
+No such revocation or variation shall prejudice anything lawfully done by a trustee
+in relation to a trust before the trustee receives notice of such revocation or
+variation.
+Subject to the terms of the trust, if it is revoked the trustee shall hold the trust
+property in trust for the settlor absolutely.
+Where a trust is partly revoked paragraph (3) shall apply to the property which is
+the subject of such revocation.
+In paragraph (3) “settlor” means the particular person who provided the property
+which is the subject of revocation.
+Notwithstanding paragraphs (3) and (4), Article 43A apples where a trust is wholly
+or partly revoked.66
+41 Power to provide for change of proper law
+The terms of a trust may provide for the proper law of the trust to be changed from the
+law of Jersey to the law of another jurisdiction.
+Failure, lapse and termination of trusts
+42 Failure or lapse of interest
+(1) Subject to the terms of a trust and subject to any order of the court, where –
+(a) an interest lapses;
+(b) a trust terminates;
+(c) there is no beneficiary and no person who can become a beneficiary in
+accordance with the terms of the trust; or
+(d) property is vested in a person which is not for his or her sole benefit and the
+trusts upon which he or she is to hold the property are not declared or
+communicated to the person,
+Official Consolidated Version
+14 February 2023 – Current
+Page - 24Trusts (Jersey) Law 1984 Article 43
+(2) (3) (4) 69
+the interest or property affected by such lapse, termination, lack of beneficiary or
+lack of declaration or communication of trusts shall be held by the trustee or the
+person referred to in sub-paragraph (d), as the case may be, in trust for the settlor
+absolutely or if he or she is dead for his or her personal representative.
+An application to the court under this Article may be made by the Attorney
+General.67
+In paragraph (1) “settlor” means the particular person who provided the interest or
+property affected as mentioned in that paragraph.68
+43 Termination of a Jersey trust
+(1) On the termination of a trust the trust property shall be distributed by the trustee
+within a reasonable time in accordance with the terms of the trust to the persons
+entitled thereto.
+(2) Notwithstanding paragraph (1), Article 43A applies on the termination of a trust.70
+(3) Without prejudice to the powers of the court under paragraph (4) and
+notwithstanding the terms of the trust, where all the beneficiaries are in existence
+and have been ascertained and none are interdicts or minors they may require the
+trustee to terminate the trust and distribute the trust property among them.
+(4) The court may –
+(a) require the trustee to distribute the trust property;
+(b) direct the trustee not to distribute the trust property; or
+(c) make such other order as it thinks fit.
+(5) (6) In this Article “liabilities” includes contingent liabilities.
+An application to the court under this Article may be made by any person referred
+to in Article 51(3).
+Security71
+43A Security72
+(1) A trustee –
+(a) who –
+(i) resigns, retires, is removed or otherwise ceases to be a trustee, or
+(ii) distributes trust property; or
+(b) of a trust that is terminated or wholly or partly revoked,
+may, before distributing or surrendering trust property, as the case may be, require
+to be provided with reasonable security for liabilities whether existing, future,
+contingent or otherwise.
+(2) Where security required to be provided under paragraph (1) is in the form of an
+indemnity, the indemnity may be provided in respect of –
+Official Consolidated Version
+14 February 2023 – Current
+Page - 25Trusts (Jersey) Law 1984 Article 44
+(3) (a) the trustee or a person engaged in the management or administration of the
+trust on behalf of the trustee;
+(b) any or all of the present, future or former officers and employees of the
+trustee or person engaged in the management or administration of the trust
+on behalf of the trustee; and
+(c) the respective successors, heirs, personal representatives or estates of the
+persons mentioned in sub-paragraphs (a) and (b),
+and any person in respect of whom the indemnity is provided under this paragraph
+may enforce the terms of the indemnity in their own right (whether or not they are
+party to the contract or other arrangement providing the indemnity).
+If an indemnity to which paragraph (2) refers is extended or renewed by a contract
+or other arrangement and that contract or other arrangement provides an indemnity
+in respect of any of the persons referred to in paragraph (2), any such person may
+enforce the terms of the indemnity in their own right (whether or not they are party
+to that contract or other arrangement).
+Powers of the court
+44 Appointment of resident trustee
+(1) Where there is no trustee resident in Jersey a beneficiary may apply to the court for
+the appointment of a person nominated for the purpose in the application, who shall
+be a person who resides in Jersey, as an additional trustee.
+(2) The court –
+(a) upon being satisfied that notice of the application by the beneficiary has
+been served upon the trustees;
+(b) having heard any representations made by the trustees or any other
+beneficiary; and
+(c) having ascertained that the person nominated for the purpose in the
+application is willing to act,
+may make an order appointing such person as an additional trustee.
+45 Power to relieve trustee from personal liability
+(1) The court may relieve a trustee either wholly or partly from personal liability for a
+breach of trust where it appears to the court that –
+(a) the trustee is or may be personally liable for the breach of trust;
+(b) the trustee has acted honestly and reasonably;
+(c) the trustee ought fairly to be excused –
+(i) for the breach of trust, or
+(ii) for omitting to obtain the directions of the court in the matter in which
+such breach arose.
+Official Consolidated Version
+14 February 2023 – Current
+Page - 26Trusts (Jersey) Law 1984 Article 46
+(2) Paragraph (1) shall apply whether the transaction alleged to be a breach of trust
+occurred before or after the commencement of this Law.
+46 Power to make beneficiary indemnify for breach of trust
+(1) Where a trustee commits a breach of trust at the instigation or at the request or with
+the consent of a beneficiary, the court may by order impound all or part of the
+interest of the beneficiary by way of indemnity to the trustee or any person
+claiming through the trustee.
+(2) Paragraph (1) applies whether or not such beneficiary is a minor or an interdict.
+47 Variation of terms of a Jersey trust by the court and approval of particular
+transactions
+(1) Subject to paragraph (2), the court may, if it thinks fit, by order approve on behalf
+of –
+(a) (2) (3) a minor or interdict having, directly or indirectly, an interest, whether vested
+or contingent, under the trust;
+(b) any person, whether ascertained or not, who may become entitled, directly or
+indirectly, to an interest under the trust as being at a future date or on the
+happening of a future event a person of any specified description or a
+member of any specified class of persons;
+(ba) any person, if the court is satisfied that despite reasonable effort to find such
+person, the person cannot be found;
+(bb) any person, if the court is satisfied that the person falls within a class of
+beneficiary and that because of the number of persons falling within that
+class it is unreasonable for the person to be contacted;
+(c) any person unborn; or
+(d) any person in respect of any interest of his or hers that may arise by reason
+of any discretionary power given to anyone on the failure or determination
+of any existing interest that has not failed or determined,
+any arrangement, by whomsoever proposed and whether or not there is any other
+person beneficially interested who is capable of assenting thereto, varying or
+revoking all or any of the terms of the trust or enlarging the powers of the trustee of
+managing or administering any of the trust property.73
+The court shall not approve an arrangement on behalf of any person coming within
+paragraph (1)(a), (b), (ba), (bb) or (c) unless the carrying out thereof appears to be
+for the benefit of that person.
+74
+Where in the management or administration of a trust, any sale, lease, pledge,
+charge, surrender, release or other disposition, or any purchase, investment,
+acquisition, expenditure or other transaction is in the opinion of the court expedient
+but the same cannot be effected by reason of the absence of any power for that
+purpose vested in the trustee by the terms of the trust or by law the court may
+confer upon the trustee either generally or in any particular circumstances a power
+for that purpose on such terms and subject to such provisions and conditions, if
+any, as the court thinks fit and may direct in what manner and from what property
+Official Consolidated Version
+14 February 2023 – Current
+Page - 27Trusts (Jersey) Law 1984 Article 47A
+(4) any money authorized to be expended and the costs of any transaction are to be
+paid or borne.
+An application to the court under this Article may be made by any person referred
+to in Article 51(3).
+47A Trusts for charitable or non-charitable purposes75
+(1) Where trust property is held for a charitable or non-charitable purpose and any of
+the circumstances mentioned in paragraph (2) apply, the court may, on the
+application of a trustee or the Attorney General, declare that the property or the
+remainder of the property, as the case may be, shall be held for such other
+charitable or non-charitable purpose, as the case may be, as the court considers to
+be consistent with the original intention of the settlor.
+(2) The circumstances are that –
+(a) the purpose has, as far as is reasonably possible, been fulfilled, has ceased to
+exist or is no longer applicable;
+(b) the purpose cannot be carried out having regard to the directions given by
+the settlor or the spirit of the gift;
+(c) (d) the purpose provides a use for only part of the trust property;
+the property, and any other property applicable for a similar purpose, can
+more effectively be applied to a common purpose, regard being had to the
+spirit of the gift;
+(e) the purpose was laid down by reference to an area that is no longer a unit for
+that purpose, or by reference to a class of persons or to an area that is no
+longer appropriate, regard being had to the spirit of the gift or the practicality
+of administering the gift;
+(f) (g) the purpose has been adequately provided for by other means;
+in the case of a trust for charitable purposes, the purpose has ceased for what
+ever reason to be charitable; or
+(3) (4) (h) the purpose has ceased in any other way to provide a suitable and effective
+method of using the property, regard being had to the spirit of the gift.
+Where trust property is held for a charitable or non-charitable purpose the court
+may, on the application of a trustee or the Attorney General, approve any
+arrangement that varies or revokes the purposes of the trust or enlarges or modifies
+the powers of management or administration of the trustees, if it is satisfied that the
+arrangement –
+(a) is suitable and expedient; and
+(b) is consistent with the original intention of the settlor and the spirit of the gift.
+The court shall not approve an arrangement under paragraph (3) unless it is
+satisfied that any person with a material interest in the trust has had an opportunity
+to be heard.
+47B Articles 47D to 47J: Interpretation76
+(1) In Articles 47D to 47J –
+Official Consolidated Version
+14 February 2023 – Current
+Page - 28Trusts (Jersey) Law 1984 Article 47C
+(2) (a) references to a transfer or other disposition of property to a trust, do not
+include a testamentary disposition;
+(b) “power” includes a discretion as to the way in which an obligation is
+performed.
+In Articles 47E and 47G, “mistake” includes (but is not limited to) –
+(a) a mistake as to –
+(i) the effect of,
+(ii) any consequences of, or
+(iii) any of the advantages to be gained by,
+a transfer or other disposition of property to a trust, or the exercise of a
+power over or in relation to a trust or trust property;
+(b) a mistake as to a fact existing either before or at the time of, a transfer or
+other disposition of property to a trust, or the exercise of a power over or in
+relation to a trust or trust property; or
+(c) a mistake of law including a law of a foreign jurisdiction.
+47C Determination of “mistake”77
+The doctrine of “erreur” in Jersey customary law as applied to the law of contract, shall
+not apply to any question concerning the meaning of “mistake” for the purposes of
+determining an application under Article 47E or 47G.
+47D Application of powers under Articles 47E to 47I78
+Articles 47E to 47I apply in relation to the transfer or other disposition of property to a
+trust, or the exercise of any power over or in relation to a trust or trust property that
+occurs either before or after the coming into force of the Trusts (Amendment No. 6)
+(Jersey) Law 2013.
+47E Power to set aside a transfer or disposition of property to a trust due to
+mistake79
+(1) (2) In this paragraph, “person exercising a power” means a person who exercises a
+power to transfer or make other disposition of property to a trust on behalf of a
+settlor.
+The court may on the application of any person specified in Article 47I(1), and in
+the circumstances set out in paragraph (3), declare that a transfer or other
+disposition of property to a trust –
+(a) (b) by a settlor acting in person (whether alone or with any other settlor); or
+through a person exercising a power,
+is voidable and –
+(i) (ii) has such effect as the court may determine, or
+is of no effect from the time of its exercise.
+Official Consolidated Version
+14 February 2023 – Current
+Page - 29Trusts (Jersey) Law 1984 Article 47F
+(3) The circumstances are where the settlor or person exercising a power –
+(a) made a mistake in relation to the transfer or other disposition of property to a
+trust; and
+(b) would not have made that transfer or other disposition but for that mistake,
+and
+the mistake is of so serious a character as to render it just for the court to make a
+declaration under this Article.
+47F Power to set aside a transfer or disposition of property to a trust exercised by
+fiduciary power80
+(1) In this paragraph, “person exercising a power” means a person who exercises a
+power to transfer or make other disposition of property to a trust on behalf of a
+settlor and who owes a fiduciary duty to the settlor in relation to the exercise of his
+or her power.
+(2) The court may on the application of any person specified in Article 47I(1), and in
+the circumstances set out in paragraph (3), declare that a transfer or other
+disposition of property to a trust by a settlor (whether alone or with any other
+settlor) through a person exercising a power, is voidable and –
+(a) has such effect as the court may determine, or
+(b) is of no effect from the time of its exercise.
+(3) The circumstances are where, in relation to the exercise of his or her power, the
+person exercising a power –
+(a) failed to take into account any relevant considerations or took into account
+irrelevant considerations; and
+(4) (b) would not have exercised the power, or would not have exercised the power
+in the way it was so exercised, but for that failure to take into account
+relevant considerations or that taking into account of irrelevant
+considerations.
+It does not matter whether or not the circumstances set out in paragraph (3)
+occurred as a result of any lack of care or other fault on the part of the person
+exercising a power, or on the part of any person giving advice in relation to the
+exercise of the power.
+47G Power to set aside the exercise of powers in relation to a trust or trust property
+due to mistake81
+(1) (2) In this paragraph, “person exercising a power” means a person who, otherwise than
+in the capacity of trustee, exercises a power over, or in relation to a trust, or trust
+property.
+The court may on the application of any person specified in Article 47I(2), and in
+the circumstances set out in paragraph (3), declare that the exercise of a power by a
+trustee or a person exercising a power over, or in relation to a trust, or trust
+property, is voidable and –
+(a) has such effect as the court may determine; or
+Official Consolidated Version
+14 February 2023 – Current
+Page - 30Trusts (Jersey) Law 1984 Article 47H
+(3) (b) is of no effect from the time of its exercise.
+The circumstances are where the trustee or person exercising a power –
+(a) made a mistake in relation to the exercise of his or her power; and
+(b) would not have exercised the power, or would not have exercised the power
+in the way it was so exercised, but for that mistake, and
+the mistake is of so serious a character as to render it just for the court to make a
+declaration under this Article.
+47H Power to set aside the exercise of fiduciary powers in relation to a trust or trust
+property82
+(1) In this paragraph, “person exercising a power” means a person who, otherwise than
+in the capacity of trustee, exercises a power over, or in relation to a trust, or trust
+property and who owes a fiduciary duty to a beneficiary in relation to the exercise
+of that power.
+(2) The court may on the application of any person specified in Article 47I(2), and in
+the circumstances set out in paragraph (3), declare that the exercise of a power by a
+trustee or a person exercising a power over, or in relation to a trust, or trust
+property, is voidable and –
+(a) has such effect as the court may determine; or
+(b) is of no effect from the time of its exercise.
+(3) The circumstances are where, in relation to the exercise of his or her power, the
+trustee or person exercising a power –
+(a) failed to take into account any relevant considerations or took into account
+irrelevant considerations; and
+(4) (a) would not have exercised the power, or would not have exercised the power
+in the way it was so exercised, but for that failure to take into account
+relevant considerations, or that taking into account of irrelevant
+considerations.
+It does not matter whether or not the circumstances set out in paragraph (3)
+occurred as a result of any lack of care or other fault on the part of the trustee or
+person exercising a power, or on the part of any person giving advice in relation to
+the exercise of the power.
+47I Applications and orders under Articles 47E to 47H83
+(1) An application under Article 47E(2) or 47F(2) may be made by any settlor or any
+of his or her personal representatives or successors in title.
+(2) An application under Article 47G(2) or 47H(2) may be made by –
+(a) the trustee who exercised the power concerned, or the person exercising a
+power (as the case may be);
+(b) any other trustee;
+(c) a beneficiary or enforcer;
+Official Consolidated Version
+14 February 2023 – Current
+Page - 31Trusts (Jersey) Law 1984 Article 47J
+(3) (4) (d) the Attorney General in relation to a trust containing charitable trusts,
+powers or provisions;
+(e) any other person with leave of the court.
+Without prejudice to Article 51 and subject to paragraph (4), the court may,
+consequential upon a declaration made under any of Articles 47E to 47H, make
+such order as it thinks fit.
+No order may be made under paragraph (3) which would prejudice any bona fide
+purchaser for value of any trust property without notice of the matters which render
+the transfer or other disposition of property to a trust, or the exercise of any power
+over or in relation to a trust or trust property, voidable.
+47J Savings in respect of applications made under Articles 47E to 47H84
+Nothing in Articles 47E to 47H shall prejudice –
+(a) any application for a declaration that a transfer or other disposition of property to a
+trust, or the exercise of any power over or in relation to a trust or trust property, is
+void or voidable on grounds other than those specified in Articles 47E to 47H; or
+(b) any personal remedy which may be available against a trustee or any other person.
+PART 3
+PROVISIONS APPLICABLE TO A FOREIGN TRUST
+48 Application of Part 3
+This Part of this Law shall apply only to a foreign trust.
+49 Enforceability of a foreign trust
+(1) Subject to paragraph (2), a foreign trust shall be regarded as being governed by,
+and shall be interpreted in accordance with its proper law.
+(2) A foreign trust shall be unenforceable in Jersey –
+(a) to the extent that it purports –
+(i) to do anything the doing of which is contrary to the law of Jersey,
+(ii) to confer any right or power or impose any obligation the exercise or
+carrying out of which is contrary to the law of Jersey, or
+(iii) to apply directly to immovable property situated in Jersey;
+(b) to the extent that the court declares that the trust is immoral or contrary to
+public policy.
+(3) Where paragraph (2)(a)(iii) applies, any person in whom the title to such
+immovable property is vested shall not be, and shall not be deemed to be, a trustee
+of such immovable property.
+Official Consolidated Version
+14 February 2023 – Current
+Page - 32Trusts (Jersey) Law 1984 Article 50
+PART 4
+PROVISIONS OF GENERAL APPLICATION
+50 Application of Part 4
+This Part of this Law shall apply to a Jersey trust and, to the extent that the context
+admits, shall apply to a foreign trust.
+51 Applications to and certain powers of the court
+(1) A trustee may apply to the court for direction concerning the manner in which the
+trustee may or should act in connection with any matter concerning the trust and
+the court may make such order, if any, as it thinks fit.
+(2) The court may, if it thinks fit –
+(a) make an order concerning –
+(i) the execution or the administration of any trust,
+(ii) the trustee of any trust, including an order relating to the exercise of
+any power, discretion or duty of the trustee, the appointment or
+removal of a trustee, the remuneration of a trustee, the submission of
+accounts, the conduct of the trustee and payments, whether payments
+into court or otherwise,
+(3) (4) (5) (b) (c) (iii) (iv) a beneficiary or any person having a connection with the trust, or
+the appointment or removal of an enforcer in relation to any non-
+charitable purposes of the trust;
+make a declaration as to the validity or the enforceability of a trust;
+rescind or vary any order or declaration made under this Law, or make any
+new or further order or declaration.85
+An application to the court for an order or declaration under paragraph (2) may be
+made by the Attorney General or by the trustee, the enforcer or a beneficiary or,
+with leave of the court, by any other person.
+86
+Where the court makes an order for the appointment of a trustee it may impose
+such conditions as it thinks fit, including conditions as to the vesting of trust
+property.
+Subject to any order of the court, a trustee appointed under this Article shall have
+the same powers, discretions and duties and may act as if the trustee had been
+originally appointed as a trustee.
+52 Execution of instruments by order of the court
+Where any person neglects or refuses to comply with an order of the court directing the
+person to execute or make any conveyance, assignment, or other document or instrument
+or endorsement, for giving effect to any order of the court under this Law, the court may,
+on such terms and conditions, if any, as may be just, order that the conveyance,
+assignment, or other document or instrument or endorsement, shall be executed, made or
+done by such person as the court nominates for the purpose, at the cost of the person in
+Official Consolidated Version
+14 February 2023 – Current
+Page - 33Trusts (Jersey) Law 1984 Article 53
+default, or otherwise, as the court directs, and a conveyance, assignment, document,
+instrument or endorsement so executed, made or done shall operate and be for all
+purposes available as if it had been executed, made or done by the person originally
+directed to execute, make or do it.
+53 Payment of costs
+The court may order the costs and expenses of and incidental to an application to the
+court under this Law to be raised and paid out of the trust property or to be borne and paid
+in such manner and by such persons as it thinks fit.
+54 Nature of trustee’s estate, following trust property and insolvency of trustee
+(1) Subject to paragraph (2) –
+(a) the interest of a trustee in the trust property is limited to that which is
+necessary for the proper performance of the trust; and
+(b) such property shall not be deemed to form part of the trustee’s assets.
+(2) Where a trustee is also a beneficiary of the same trust, paragraph (1) shall not apply
+to the trustee’s interest in the trust property as a beneficiary.
+(3) Without prejudice to the liability of a trustee for breach of trust, trust property
+which has been alienated or converted in breach of trust or the property into which
+it has been converted may be followed and recovered unless it is in the hands of a
+bona fide purchaser for value without notice of a breach of trust or a person (other
+than the trustee) deriving title through such a person.
+87
+(4) Where a trustee becomes insolvent or upon distraint, execution or any similar
+process of law being made, taken or used against any of the trustee’s property, the
+trustee’s creditors shall have no right or claim against the trust property except to
+the extent that the trustee himself or herself has a claim against the trust or has a
+beneficial interest in the trust.
+55 Protection to persons dealing with trustee
+(1) A bona fide purchaser for value without actual notice of any breach of trust –
+(a) may deal with a trustee in relation to trust property as if the trustee was the
+beneficial owner of the trust property; and
+(b) shall not be affected by the trusts on which such property is held.
+(2) No person paying or advancing money to a trustee shall be concerned to see that
+such money is wanted, or that no more than is wanted is raised, or otherwise as to
+the propriety of the transaction or the application of the money.
+Official Consolidated Version
+14 February 2023 – Current
+Page - 34Trusts (Jersey) Law 1984 Article 56
+56 88
+57 Limitation of actions or prescription
+(1) No period of limitation or prescription shall apply to an action brought against a
+trustee –
+(2) (3) (3A) (3B) (3C) (4) (a) in respect of any fraud to which the trustee was a party or to which the
+trustee was privy; or
+(b) to recover from the trustee trust property –
+(i) in the trustee’s possession,
+(ii) under the trustee’s control, or
+(iii) previously received by the trustee and converted to the trustee’s use.
+Where paragraph (1) does not apply, the period within which an action founded on
+breach of trust may be brought against a trustee by a beneficiary is 3 years from –
+(a) (b) the date of delivery of the final accounts to the beneficiary; or
+the date on which the beneficiary first has knowledge of the breach of trust,
+whichever is earlier.89
+Where paragraph (1) does not apply but, when the breach occurs the beneficiary –
+(a) is a minor;
+(b) is an interdict; or
+(c) is under any other legal disability,
+the period to which paragraph (2) refers shall not begin to run before the
+beneficiary ceases to be a minor or interdict or under that other legal disability (as
+the case may be), or sooner dies.90
+Where paragraph (1) does not apply, the period within which an action founded on
+breach of trust may be brought against a trustee by an enforcer is 3 years from –
+(a) the date of delivery of the final accounts to the enforcer; or
+(b) the date on which the enforcer first has knowledge of the breach of trust,
+whichever is earlier.91
+Where paragraph (1) does not apply, the period within which an action founded on
+breach of trust may be brought against a former trustee by a trustee is 3 years from
+the date on which the former trustee ceased to be a trustee.92
+Where paragraph (1) does not apply, no action founded on breach of trust may in
+any event be brought against a trustee by any person after the expiry of the period
+of 21 years following the occurrence of the breach.93
+This Article does not apply to a foreign trust whose proper law is the law of a
+jurisdiction to which the Convention on the law applicable to trusts and on their
+recognition, signed at The Hague on 20th October 1984, for the time being
+extends.94
+Official Consolidated Version
+14 February 2023 – Current
+Page - 35Trusts (Jersey) Law 1984 Article 58
+PART 5
+SUPPLEMENTAL
+58 Application of this Law
+Subject to Article 59, this Law shall apply to trusts constituted or created either before or
+after the commencement of this Law.
+59 Saving provisions
+(1) Nothing in this Law shall –
+(a) abridge or affect the powers, responsibilities or duties under any provision of
+law of the Viscount or any delegate, tuteur, special and general attorney, or
+person acting under the authority of a lasting power of attorney conferred
+under Part 2 of the Capacity and Self-Determination (Jersey) Law 2016;
+(b) affect the legality or validity of anything done before the commencement of
+this Law in relation to a trust existing before the commencement of this Law;
+or
+(2) (3) (4) (c) affect the legality or validity of any trust arising from a document or
+disposition executed or taking effect before the commencement of this
+Law.
+95
+Nothing in this Law shall derogate from the powers of the court which exist
+independently of this Law –
+(a) (c) (d) (e) to set aside or reduce any transfer or other disposition of property;
+(b) to vary any trust;
+to reduce or vary any testamentary or other disposition;
+to make an order relating to matrimonial proceedings; or
+to make an order relating to the avoidance of fraud on creditors.
+Nothing in this Law shall derogate from the provisions of –
+(a) the Loi (1862) sur les teneures en fidéicommis et l’incorporation
+d’associations;
+(b) the Mental Health (Jersey) Law 2016;
+(c) the Sharing of Church Buildings (Jersey) Law 1973.
+96
+Nothing in this Law shall affect a personal representative where he or she is acting
+as such.
+60 Rules of Court
+The power to make rules of court under the Royal Court (Jersey) Law 1948 shall include
+a power to make rules for the purposes of this Law and proceedings thereunder.
+Official Consolidated Version
+14 February 2023 – Current
+Page - 36Trusts (Jersey) Law 1984 Article 61
+61 Citation
+This Law may be cited as the Trusts (Jersey) Law 1984.
+Official Consolidated Version
+
