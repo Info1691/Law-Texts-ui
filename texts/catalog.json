@@ -3,30 +3,42 @@
     "title": "Lewin On Trusts 20th Ed 2020",
     "jurisdiction": "uk",
     "year": "2020",
-    "url_txt": "https://texts.wwwbcb.org/data/textbooks/uk/Lewin-on-Trusts.txt"
+    "url_txt": "./data/textbooks/uk/Lewin-on-Trusts.txt"
   },
   {
     "title": "Underhill & Hayton Law of Trusts (20th) — Concepts",
     "jurisdiction": "uk",
-    "year": "",
-    "url_txt": "https://texts.wwwbcb.org/data/textbooks/uk/underhill-20-01-concepts.txt"
+    "year": "2020",
+    "url_txt": "./data/textbooks/uk/underhill-20-01-concepts.txt"
   },
   {
     "title": "Underhill & Hayton Law of Trusts (20th) — Creation of Trusts",
     "jurisdiction": "uk",
-    "year": "",
-    "url_txt": "https://texts.wwwbcb.org/data/textbooks/uk/underhill-20-02-creation-of-trusts.txt"
+    "year": "2020",
+    "url_txt": "./data/textbooks/uk/underhill-20-02-creation-of-trusts.txt"
   },
   {
-    "title": "Underhill & Hayton Law of Trusts (20th) — Trustees’ powers, duties and liabilities",
+    "title": "Underhill & Hayton Law of Trusts (20th) — Trustees’ powers",
     "jurisdiction": "uk",
-    "year": "",
-    "url_txt": "https://texts.wwwbcb.org/data/textbooks/uk/underhill-20-03-trustees-powers.txt"
+    "year": "2020",
+    "url_txt": "./data/textbooks/uk/underhill-20-03-trustees-powers.txt"
+  },
+  {
+    "title": "Breach of Trust — Birks & Pretto",
+    "jurisdiction": "uk",
+    "year": "2002",
+    "url_txt": "./data/textbooks/uk/breach-of-trust-text-by-birks-and-pretto.txt"
+  },
+  {
+    "title": "Litigating Trust Disputes in Jersey Law",
+    "jurisdiction": "jersey",
+    "year": "2017",
+    "url_txt": "./data/textbooks/jersey/litigating-trust-disputes-in-jersey.txt"
   },
   {
     "title": "Principles Of Jersey Trusts",
     "jurisdiction": "jersey",
-    "year": "",
-    "url_txt": "https://texts.wwwbcb.org/data/textbooks/jersey/Principles-of-Jersey-Trusts.txt"
+    "year": "—",
+    "url_txt": "./data/textbooks/jersey/Principles-of-Jersey-Trusts.txt"
   }
 ]
