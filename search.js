@@ -1,152 +1,153 @@
-/* search.js — full, drop-in */
-
+// --- configuration -----------------------------------------------------------
 const CATALOGS = {
-  textbooks: 'https://texts.wwwbcb.org/texts/catalog.json',
-  laws:      'https://info1691.github.io/laws-ui/laws.json',
-  rules:     'https://info1691.github.io/rules-ui/rules.json'
+  // Textbooks: public catalog you already publish from the ingest pipeline
+  textbooks: "https://info1691.github.io/law-index/catalogs/ingest-catalog.json",
+
+  // Laws & Rules catalogs served by the Law-Texts-ui site (these files below)
+  laws:  location.origin + "/laws.json",
+  rules: location.origin + "/rules.json",
 };
 
-// --- tiny helpers -----------------------------------------------------------
-const $ = (s) => document.querySelector(s);
-const esc = (s) => s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-const sleep = (ms) => new Promise(r=>setTimeout(r,ms));
+// --- helpers ----------------------------------------------------------------
+const $ = sel => document.querySelector(sel);
+const enc = u => encodeURI(u);
+const html = s => s.replace(/[&<>]/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;" }[c]));
+const hilite = (txt, q) => {
+  if (!q) return html(txt);
+  const rx = new RegExp("(" + q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&") + ")", "ig");
+  return html(txt).replace(rx, "<mark>$1</mark>");
+};
 
-// parse q into tokens; keep "quoted phrases" intact
-function parseQuery(q){
-  const out=[]; q=(q||'').trim();
-  const rx=/"([^"]+)"|(\S+)/g; let m;
-  while((m=rx.exec(q))) out.push((m[1]||m[2]).toLowerCase());
-  return out;
-}
-function matchLine(hay, tokens, orMode){
-  hay = hay.toLowerCase();
-  if(orMode) return tokens.some(t=>hay.includes(t));
-  return tokens.every(t=>hay.includes(t));
-}
-// highlight tokens
-function hi(s, tokens){
-  let out = esc(s);
-  tokens.forEach(t=>{
-    if(!t) return;
-    const rx = new RegExp(t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi');
-    out = out.replace(rx, m=>`<mark>${esc(m)}</mark>`);
-  });
-  return out;
-}
-// cut window around first hit
-function windowAround(text, tokens, win){
-  const low=text.toLowerCase();
-  let idx=-1;
-  for(const t of tokens){
-    const i = low.indexOf(t);
-    if(i>=0 && (idx<0 || i<idx)) idx=i;
-  }
-  if(idx<0) idx=0;
+function snippetAround(text, idx, win){
   const start = Math.max(0, idx - Math.floor(win/2));
-  const end = Math.min(text.length, start + win);
-  const prefix = start>0 ? '…' : '';
-  const suffix = end<text.length ? '…' : '';
-  return prefix + text.slice(start,end) + suffix;
+  const end   = Math.min(text.length, start + win);
+  const pre = start>0 ? "…" : "";
+  const post = end<text.length ? "…" : "";
+  return pre + text.slice(start,end) + post;
 }
 
-// fetch catalog then fetch each TXT and search
-async function searchSource(kind, catalogUrl, tokens, orMode, win, perDoc){
-  const container = {textbooks: '#tb', laws: '#lw', rules: '#rl'}[kind];
-  const out = $(container); out.innerHTML = '';
-  let count=0;
+async function getJSON(url){
+  const r = await fetch(url, { cache: "no-store" });
+  if(!r.ok) throw new Error(`Fetch failed: ${url} — ${r.status} ${r.statusText}`);
+  return r.json();
+}
+async function getTXT(url){
+  const r = await fetch(enc(url), { cache: "no-store" });
+  if(!r.ok) throw new Error(`Fetch failed: ${url} — ${r.status} ${r.statusText}`);
+  return r.text();
+}
 
-  let items=[];
-  try{
-    const r = await fetch(catalogUrl, {mode:'cors'});
-    if(!r.ok) throw new Error(`${r.status}`);
-    items = await r.json();
-  }catch(e){
-    out.innerHTML = `<p class="error">Catalog error: ${esc(catalogUrl)} — ${esc(e.message)}</p>`;
-    return 0;
+function renderCard(container, rec, snips, kind){
+  const div = document.createElement("div");
+  div.className = "card";
+  const meta = `${rec.jurisdiction?.toUpperCase?.() || ""} ${rec.year? "· "+rec.year:""}`.trim();
+  div.innerHTML = `
+    <div class="title">${html(rec.title || "(untitled)")}</div>
+    <div class="meta">${html(meta)}</div>
+    ${snips.map(s=>`<span class="snip">${s}</span>`).join("")}
+    <a class="btn-txt" href="${enc(rec.url_txt)}" target="_blank" rel="noopener">open TXT</a>
+  `;
+  container.appendChild(div);
+}
+
+function renderError(container, msg){
+  const pre = document.createElement("pre");
+  pre.className = "error";
+  pre.textContent = msg;
+  container.appendChild(pre);
+}
+
+// --- main search -------------------------------------------------------------
+async function searchAll(query, orMode, win, maxSnips){
+  const counts = { textbooks:0, laws:0, rules:0 };
+
+  // Load catalogs (and show any errors inline)
+  const cats = {};
+  for(const [k, url] of Object.entries(CATALOGS)){
+    try{
+      cats[k] = await getJSON(url);
+    }catch(e){
+      // show catalog error clearly in the section
+      renderError($("#"+k), `Catalog error: ${e.message}`);
+      cats[k] = []; // continue with others
+    }
   }
 
-  for(const it of items){
-    const title = it.title || '(untitled)';
-    const url = it.url_txt;
-    if(!url){ continue; }
-
-    let txt='';
-    try{
-      const r = await fetch(url, {mode:'cors'});
-      if(!r.ok) throw new Error(`${r.status}`);
-      txt = await r.text();
-    }catch(e){
-      const card = document.createElement('div');
-      card.className = 'card';
-      card.innerHTML = `
-        <div class="title">${esc(title)}</div>
-        <div class="meta">${esc(it.jurisdiction||'')} ${esc(it.year||'')}</div>
-        <div class="error">Fetch failed: ${esc(url)} — ${esc(e.message)}</div>`;
-      out.appendChild(card);
-      continue;
-    }
-
-    const lines = txt.split(/\r?\n/);
-    const hits = [];
-    for(let i=0;i<lines.length && hits.length<perDoc;i++){
-      const line = lines[i];
-      if(!line) continue;
-      if(matchLine(line, tokens, orMode)){
-        const snippet = windowAround(line, tokens, win);
-        hits.push(snippet);
+  // Helper to process one catalog list
+  async function process(list, targetEl){
+    const results = [];
+    for(const rec of list){
+      if(!rec?.url_txt) continue;
+      try{
+        const txt = await getTXT(rec.url_txt);
+        const hay = txt.toLowerCase();
+        const qs = orMode? query.split(/\s+/).filter(Boolean) : [query];
+        let found = false, snippets = [];
+        for(const term of qs){
+          if(!term) continue;
+          let pos = 0, hits=0;
+          while((pos = hay.indexOf(term.toLowerCase(), pos)) !== -1){
+            snippets.push(hilite(snippetAround(txt, pos, win), term));
+            pos += term.length;
+            hits++;
+            if(snippets.length >= maxSnips) break;
+          }
+          if(hits>0) found = true;
+          if(snippets.length >= maxSnips) break;
+        }
+        if(found){
+          results.push({ rec, snippets });
+        }
+      }catch(e){
+        // show one-line fetch error for this file
+        renderError(targetEl, e.message);
       }
     }
-    if(hits.length){
-      count += 1;
-      const card = document.createElement('div');
-      card.className = 'card';
-      const chips = [
-        it.jurisdiction ? `<span class="pill">${esc(it.jurisdiction)}</span>`:''
-      ].join('');
-      const first = hi(hits[0], tokens);
-      const rest = hits.slice(1).map(h=>hi(h,tokens)).join('\n');
-      card.innerHTML = `
-        <div class="title">${esc(title)}</div>
-        <div class="meta">${chips} ${esc(it.year||'')}</div>
-        <div class="snippet">${first}${rest?'\n'+rest:''}</div>
-        <a class="open" target="_blank" href="${esc(url)}">open TXT</a>`;
-      out.appendChild(card);
-    }
-    // be polite to GH Pages
-    await sleep(35);
-  }
-  return count;
-}
-
-async function runSearch(){
-  const q = $('#q').value.trim();
-  const tokens = parseQuery(q);
-  const orMode = $('#orMode').checked;
-  const win = Math.max(60, Math.min(1000, parseInt($('#win').value||240,10)));
-  const perDoc = Math.max(1, Math.min(12, parseInt($('#lim').value||6,10)));
-
-  if(!tokens.length){
-    $('#tb').innerHTML=''; $('#lw').innerHTML=''; $('#rl').innerHTML='';
-    $('#counts').textContent = 'Matches — Textbooks: 0 · Laws: 0 · Rules: 0';
-    return;
+    results.forEach(r => renderCard(targetEl, r.rec, r.snippets));
+    return results.length;
   }
 
-  const [t,l,r] = await Promise.all([
-    searchSource('textbooks', CATALOGS.textbooks, tokens, orMode, win, perDoc),
-    searchSource('laws',      CATALOGS.laws,      tokens, orMode, win, perDoc),
-    searchSource('rules',     CATALOGS.rules,     tokens, orMode, win, perDoc)
-  ]);
+  counts.textbooks = await process(cats.textbooks || [], $("#textbooks"));
+  counts.laws      = await process(cats.laws      || [], $("#laws"));
+  counts.rules     = await process(cats.rules     || [], $("#rules"));
 
-  $('#counts').textContent = `Matches — Textbooks: ${t} · Laws: ${l} · Rules: ${r}`;
+  $("#counts").textContent = `Matches — Textbooks: ${counts.textbooks} · Laws: ${counts.laws} · Rules: ${counts.rules}`;
 }
 
-// wire up
-const form = $('#searchForm');
-form.addEventListener('submit', (e)=>{ e.preventDefault(); runSearch(); });
+// --- boot --------------------------------------------------------------------
+(async function init(){
+  // keep query in the box (no clearing)
+  const params = new URLSearchParams(location.search);
+  const q0 = params.get("q") || "";
+  $("#q").value = q0;
 
-// support ?q= in URL
-(function initFromURL(){
-  const u = new URL(location.href);
-  const q = u.searchParams.get('q')||'';
-  if(q){ $('#q').value = q; runSearch(); }
+  const run = () => {
+    const q = $("#q").value.trim();
+    const orMode = $("#ormode").checked;
+    const win = Math.max(60, parseInt($("#win").value||"240",10));
+    const snips = Math.max(1, parseInt($("#snips").value||"6",10));
+
+    // clear old
+    $("#textbooks").innerHTML = "";
+    $("#laws").innerHTML = "";
+    $("#rules").innerHTML = "";
+    $("#counts").textContent = "Searching…";
+
+    // push state (so reloads/bookmarks work)
+    const u = new URL(location.href);
+    if(q) u.searchParams.set("q", q); else u.searchParams.delete("q");
+    history.replaceState({}, "", u);
+
+    if(!q){ $("#counts").textContent = "Enter a term."; return; }
+    searchAll(q, orMode, win, snips).catch(err=>{
+      $("#counts").textContent = "Error.";
+      renderError($("#textbooks"), err.message);
+    });
+  };
+
+  $("#go").addEventListener("click", run);
+  $("#q").addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); run(); } });
+
+  // auto-run if ?q= present
+  if(q0) $("#go").click();
 })();
