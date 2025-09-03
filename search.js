@@ -1,8 +1,18 @@
 // --- configuration -----------------------------------------------------------
+// CATALOGS used by the Search (beta) page
 const CATALOGS = {
-  textbooks: "https://info1691.github.io/law-index/catalogs/ingest-catalog.json",
-  laws:  location.origin + "/laws.json",
-  rules: location.origin + "/rules.json",
+  textbooks: {
+    label: "local catalog",
+    url: "https://texts.wwwbcb.org/texts/catalog.json"
+  },
+  laws: {
+    label: "laws-ui",
+    url: "https://texts.wwwbcb.org/laws.json"
+  },
+  rules: {
+    label: "rules-ui",
+    url: "https://texts.wwwbcb.org/rules.json"
+  }
 };
 
 // --- helpers ----------------------------------------------------------------
