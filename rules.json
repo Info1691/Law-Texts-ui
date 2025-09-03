@@ -3,18 +3,18 @@
     "title": "JFSC Code of Practise",
     "jurisdiction": "jersey",
     "kind": "rule",
-    "url_txt": "./data/rules/jersey/JFSC-Code-Of-Practise.txt"
+    "url_txt": "https://info1691.github.io/rules-ui/data/rules/jersey/JFSC-Code-Of-Practise.txt"
   },
   {
     "title": "SRA Code of Conduct 2019",
     "jurisdiction": "uk",
     "kind": "rule",
-    "url_txt": "./data/rules/uk/sra-code.txt"
+    "url_txt": "https://info1691.github.io/rules-ui/data/rules/uk/sra-code.txt"
   },
   {
     "title": "ICAEW Code of Ethics",
     "jurisdiction": "uk",
     "kind": "rule",
-    "url_txt": "./data/rules/uk/icaew-code.txt"
+    "url_txt": "https://info1691.github.io/rules-ui/data/rules/uk/icaew-code.txt"
   }
 ]
