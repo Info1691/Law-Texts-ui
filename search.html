@@ -2,76 +2,127 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Trust Law Textbooks — Search (beta)</title>
+
+  <!-- Branding / base styles already in this repo -->
   <link rel="icon" href="/logo.png" />
+  <link rel="stylesheet" href="/app.css" />
+  <link rel="stylesheet" href="/brand.css" />
+
   <style>
-    :root { --ink:#0b1736; --muted:#667188; --card:#ffffff; --bg:#f6f7fb; --accent:#2563eb; }
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
-    header{display:flex;align-items:center;gap:.75rem;padding:12px 16px;background:#0c1222;color:#fff;position:sticky;top:0;z-index:2}
-    header img{height:28px;width:28px;object-fit:contain;background:#fff;border-radius:4px;padding:2px}
-    header .brand{font-weight:700}
-    header a{color:#9ec1ff;text-decoration:none}
-    main{max-width:980px;margin:24px auto;padding:0 16px}
-    h1{margin:.25rem 0 1rem}
-    .muted{color:var(--muted)}
-    .bar{display:flex;gap:.5rem;align-items:center;margin:.75rem 0 1rem}
-    .bar input[type=text]{flex:1;padding:.65rem .8rem;border:1px solid #d6d9e3;border-radius:8px;background:#fff}
-    .bar button{padding:.6rem .9rem;border:0;border-radius:8px;background:var(--accent);color:#fff;cursor:pointer}
-    .opts{display:flex;align-items:center;gap:1rem;color:var(--muted);font-size:.9rem;margin-bottom:1rem}
-    section{margin:18px 0}
-    .results{display:grid;gap:12px}
-    .card{background:var(--card);border:1px solid #e6e8f0;border-radius:10px;padding:14px 14px 10px}
-    .title{font-weight:700;margin-bottom:6px}
-    .meta{color:var(--muted);font-size:.88rem;margin-bottom:8px}
-    .snip{display:block;margin:6px 0;padding:8px;border-left:3px solid #e8ebf5;background:#fafbff;border-radius:6px}
-    mark{background:#fff59d}
-    .error{color:#c0392b;white-space:pre-wrap}
-    .pill{display:inline-block;font-size:.78rem;background:#eef2ff;color:#334155;border:1px solid #c7d2fe;border-radius:999px;padding:.15rem .5rem;margin-right:.4rem}
-    .btn-txt{display:inline-block;margin-top:.4rem;padding:.25rem .45rem;border:1px solid #cad1e1;border-radius:999px;text-decoration:none;color:#334155;background:#fff;font-size:.8rem}
+    /* Minimal safety net if app.css/brand.css change */
+    :root { --brand-blue:#0b3a67; --ink:#0b1220; --paper:#f7f8fb; }
+    body{margin:0;background:#0e1117;color:#e6e9ee;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    header.appbar{background:var(--brand-blue);color:#fff;display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;position:sticky;top:0;z-index:10}
+    header .logo{height:28px;width:auto;background:#fff;border-radius:4px;padding:4px}
+    header .title{font-weight:600;font-size:16px;letter-spacing:.2px;white-space:nowrap}
+    header .spacer{flex:1}
+    header .btn{color:#fff;background:rgba(255,255,255,.14);padding:.5rem .75rem;border-radius:8px;text-decoration:none}
+    main{max-width:980px;margin:1.25rem auto;padding:0 1rem}
+    h1{margin:.25rem 0 1rem;font-size:28px}
+    .hint{opacity:.8;font-size:.93rem;margin:.25rem 0 1rem}
+    .searchbar{display:flex;gap:.5rem;align-items:center;margin:.5rem 0 1rem}
+    .searchbar input[type="text"]{flex:1;padding:.65rem .75rem;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:#0b0f15;color:#e6e9ee}
+    .searchbar button{padding:.65rem .9rem;border:0;border-radius:10px;background:#2b6cb0;color:#fff;cursor:pointer}
+    .opts{display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin:.25rem 0 1.25rem;font-size:.93rem;opacity:.95}
+    .opts input[type="number"]{width:80px;padding:.35rem .45rem;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:#0b0f15;color:#e6e9ee}
+    .stats{opacity:.8;margin:.25rem 0 1.0rem}
+    h2{margin:1.25rem 0 .5rem;font-size:20px}
+    .results{display:flex;flex-direction:column;gap:14px}
+    .card{background:#0b0f15;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:14px}
+    .card h3{margin:.15rem 0 .35rem;font-size:16px}
+    .badge{display:inline-block;font-size:.72rem;padding:.18rem .45rem;border-radius:999px;background:#22314d;color:#cfe1ff;margin-right:.4rem}
+    .meta{opacity:.75;font-size:.85rem;margin-bottom:.45rem}
+    .open{display:inline-block;margin-top:.45rem;font-size:.85rem}
+    .open a{color:#9bc1ff;text-decoration:none;border:1px solid rgba(155,193,255,.4);padding:.25rem .5rem;border-radius:8px}
+    .err{color:#ffb4b4;white-space:pre-wrap}
+    @media (max-width:640px){ .searchbar{flex-wrap:wrap} }
   </style>
 </head>
 <body>
-  <header>
-    <img src="/logo.png" alt="Logo" />
-    <div class="brand">Trust Law Textbooks</div>
-    <div style="margin-left:auto"><a href="/index.html">Catalog</a></div>
+  <header class="appbar">
+    <img class="logo" src="/logo.png" alt="Logo" />
+    <div class="title">Trust Law Textbooks</div>
+    <div class="spacer"></div>
+    <a class="btn" href="/index.html">Catalog</a>
   </header>
 
   <main>
     <h1>Search (beta)</h1>
-    <p class="muted">Searches: <strong>Textbooks</strong> (public catalog) + <strong>Laws</strong> (laws-ui) + <strong>Rules</strong> (rules-ui).
-      Results show quotable snippets; click the title to open the full TXT.</p>
+    <div class="hint">
+      Searches: <strong>Textbooks</strong> (local catalog) + <strong>Laws</strong> (laws-ui) + <strong>Rules</strong> (rules-ui).
+      Results show quotable snippets; click the title to open the full TXT.
+    </div>
 
-    <form id="qform" class="bar" autocomplete="off">
+    <div class="searchbar">
       <input id="q" type="text" placeholder="e.g., beddoe consent litigation; use quotes for phrases" />
       <button id="go" type="button">Search</button>
-    </form>
+    </div>
 
     <div class="opts">
-      <label><input id="ormode" type="checkbox" /> OR mode</label>
-      <label>Window: <input id="win" type="number" value="240" style="width:70px"> chars</label>
-      <label>Snippets/doc: <input id="snips" type="number" value="6" style="width:60px"></label>
-      <span id="counts" class="muted"></span>
+      <label><input id="orMode" type="checkbox" /> OR mode</label>
+      <label>Window:
+        <input id="windowChars" type="number" min="80" max="600" step="10" value="240" />
+        chars
+      </label>
+      <label>Snippets/doc:
+        <input id="snippets" type="number" min="1" max="12" step="1" value="6" />
+      </label>
     </div>
+
+    <div class="stats" id="stats">Matches — Textbooks: 0 · Laws: 0 · Rules: 0</div>
 
     <section>
       <h2>Textbooks</h2>
-      <div id="textbooks" class="results"></div>
+      <div id="textbook-errors" class="err"></div>
+      <div id="results-textbooks" class="results"></div>
     </section>
 
     <section>
       <h2>Laws</h2>
-      <div id="laws" class="results"></div>
+      <div id="law-errors" class="err"></div>
+      <div id="results-laws" class="results"></div>
     </section>
 
     <section>
       <h2>Rules</h2>
-      <div id="rules" class="results"></div>
+      <div id="rule-errors" class="err"></div>
+      <div id="results-rules" class="results"></div>
     </section>
+
+    <noscript>
+      <p class="err">This page requires JavaScript.</p>
+    </noscript>
   </main>
 
+  <!-- IMPORTANT: load catalog config BEFORE search.js -->
+  <script src="/search-config.js"></script>
+
+  <!-- Safety fallback if the config file is missing -->
+  <script>
+  if (!window.CATALOGS) {
+    window.CATALOGS = {
+      textbooks: "/texts/catalog.json",
+      laws: "/laws.json",
+      rules: "/rules.json"
+    };
+  }
+  </script>
+
+  <!-- Your existing search engine (already in the repo) -->
   <script src="/search.js"></script>
+
+  <!-- Optional: small bootstrap to reflect ?q= -->
+  <script>
+    (function () {
+      const params = new URLSearchParams(location.search);
+      const q = params.get('q') || '';
+      const el = document.getElementById('q');
+      if (el && q) el.value = q;
+      // If search.js exposes a global kick-off, let it run now.
+      if (q && window.startSearch) window.startSearch();
+    }());
+  </script>
 </body>
 </html>
