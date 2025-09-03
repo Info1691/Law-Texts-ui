@@ -11,13 +11,13 @@
     "jurisdiction": "jersey",
     "year": "1991",
     "kind": "law",
-    "url_txt": "./data/laws/jersey/Companies%20(Jersey)%20Law%201991.txt"
+    "url_txt": "https://info1691.github.io/laws-ui/data/laws/jersey/companies (jersey) Law 1991.txt"
   },
   {
     "title": "Financial Services (Jersey) Law 1998",
     "jurisdiction": "jersey",
     "year": "1998",
     "kind": "law",
-    "url_txt": "./data/laws/jersey/Financial%20Services%20(Jersey)%20Law%201998.txt"
+    "url_txt": "https://info1691.github.io/laws-ui/data/laws/jersey/Financial Services (Jersey) Law 1998.txt"
   }
 ]
