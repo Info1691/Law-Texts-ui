@@ -22,13 +22,13 @@
     "jurisdiction": "uk",
     "year": "2020",
     "url_txt": "./data/textbooks/uk/underhill-20-03-trustees-powers.txt"
-  },
-  {
+   }, 
+   {
     "title": "Breach of Trust — Birks & Pretto",
     "jurisdiction": "uk",
     "year": "2002",
     "url_txt": "./data/textbooks/uk/breach-of-trust-text-by-birks-and-pretto.txt"
-  },
+  }
   {
     "title": "Litigating Trust Disputes in Jersey Law",
     "jurisdiction": "jersey",
