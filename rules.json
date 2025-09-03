@@ -1,20 +1,20 @@
 [
   {
-    "title": "JFSC Code of Practice for Trustees",
+    "title": "JFSC Code of Practise",
     "jurisdiction": "jersey",
-    "year": "2019",
+    "kind": "rule",
     "url_txt": "./data/rules/jersey/JFSC-Code-Of-Practise.txt"
   },
   {
     "title": "SRA Code of Conduct 2019",
     "jurisdiction": "uk",
-    "year": "2019",
+    "kind": "rule",
     "url_txt": "./data/rules/uk/sra-code.txt"
   },
   {
     "title": "ICAEW Code of Ethics",
     "jurisdiction": "uk",
-    "year": "2020",
+    "kind": "rule",
     "url_txt": "./data/rules/uk/icaew-code.txt"
   }
 ]
