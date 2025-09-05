@@ -1,9 +1,9 @@
 {
-  "builtAt": "2025-09-05T12:07:26.478Z",
+  "builtAt": "2025-09-05T12:19:50.337Z",
   "base": "https://texts.wwwbcb.org/",
-  "catalogItems": 0,
-  "docs": 0,
-  "chunkCount": 0,
+  "catalogItems": 13,
+  "docs": 4700,
+  "chunkCount": 4700,
   "engine": "lunr-2.3.9",
   "source": "Law-Tools/scripts/agent3_build.mjs"
 }
