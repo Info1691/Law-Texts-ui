@@ -1,11 +1,1 @@
-{
-  "builtAt": "2025-09-05T12:19:50.337Z",
-  "base": "https://texts.wwwbcb.org/",
-  "catalogItems": 13,
-  "docs": 4700,
-  "chunkCount": 4700,
-  "engine": "lunr-2.3.9",
-  "source": "Law-Tools/scripts/agent3_build.mjs",
-  "index": "lunr-index.json",
-  "chunks": "chunks.jsonl"
-}
+{"ok":true}
