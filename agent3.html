@@ -1,157 +1,109 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <title>Agent 3 — Trust Law (BM25 index)</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <link rel="icon" href="/logo.png"/>
-  <link rel="preconnect" href="https://unpkg.com"/>
-  <script src="https://unpkg.com/lunr/lunr.js"></script>
-  <style>
-    :root{--bg:#0b1220;--panel:#121a2b;--muted:#8aa1c1;--fg:#eaf2ff;--accent:#2f6feb;}
-    html,body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,Segoe UI,Roboto,Helvetica,Arial;}
-    header{display:flex;align-items:center;gap:.75rem;padding:14px 18px;border-bottom:1px solid #22314d;background:#0d1526;}
-    header .brand{font-weight:700;letter-spacing:.2px}
-    main{max-width:1080px;margin:0 auto;padding:18px}
-    .row{display:flex;gap:.5rem;align-items:center}
-    input[type="text"]{flex:1;background:#0e1728;border:1px solid #23324f;border-radius:8px;color:var(--fg);padding:12px 14px}
-    .btn{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:10px 14px;font-weight:600;cursor:pointer}
-    label{color:var(--muted);font-size:.9rem}
-    .note{color:var(--muted);margin:10px 2px}
-    .card{background:var(--panel);border:1px solid #22314d;border-radius:12px;padding:14px 16px;margin:12px 0}
-    .title{font-weight:700;margin-bottom:6px}
-    .meta{color:var(--muted);font-size:.9rem;margin-bottom:10px}
-    .hitmark{background:#3a76ff33;border:1px solid #3a76ff55;border-radius:6px;padding:6px 8px;display:inline-block;margin:6px 0}
-    a{color:#99c0ff;text-decoration:none}
-    .diag{margin-top:18px;color:#7f97b7;font-size:.85rem}
-    mark{background:#444;color:#fff;border-radius:4px;padding:0 3px}
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent 3 — Trust Law (BM25 index)</title>
+<link rel="stylesheet" href="app.css"/>
+<link rel="stylesheet" href="brand.css"/>
+<style>
+:root { --card-bg: #0e1522; --ink:#e9eef7; --muted:#9fb3d1; }
+body { background:#0b1220; color:var(--ink); font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+.wrap { max-width: 1000px; margin: 24px auto; padding: 0 12px; }
+.row { display:flex; gap:8px; align-items:center; }
+input[type=text]{ flex:1; background:#0e1522; border:1px solid #19314f; color:var(--ink); padding:10px 12px; border-radius:8px; }
+button{ background:#2a6df2; border:0; color:white; padding:10px 14px; border-radius:8px; cursor:pointer; }
+.note{ font-size:12px; color:var(--muted); margin:8px 0 18px; }
+.card{ background:var(--card-bg); border:1px solid #142036; border-radius:10px; padding:14px 16px; margin:12px 0; }
+.badge{ background:#213756; color:#b8cff5; padding:2px 8px; border-radius:999px; font-size:12px; }
+small a{ color:#9ec1ff; }
+mark{ background:#f0c36a3d; padding:0 2px; border-radius:2px; }
+#diag{ font-size:12px; color:var(--muted); }
+</style>
 </head>
 <body>
-  <header>
-    <img src="/logo.png" alt="" width="22" height="22"/>
-    <div class="brand">Agent 3 — Trust Law</div>
-    <div style="margin-left:auto;color:#7fa7ff;font-size:.9rem">(BM25/Lunr — no LLM; no hallucinations)</div>
-  </header>
+<div class="wrap">
+  <h2>Agent 3 — Trust Law <small class="badge">(BM25/Lunr)</small></h2>
+  <div class="row" style="margin:10px 0 6px">
+    <input id="q" type="text" placeholder='e.g., "beddoe consent" litigation'/>
+    <label style="display:flex;gap:6px;align-items:center;color:var(--muted);font-size:12px">
+      <input id="orMode" type="checkbox"/> OR mode
+    </label>
+    <button id="go">Search</button>
+  </div>
+  <div class="note">Searches all TXT listed in the catalogs on <b>texts.wwwbcb.org</b>. Results are chunk-level BM25/Lunr matches with source links. No model inference; no hallucinations.</div>
 
-  <main>
-    <div class="row">
-      <input id="q" type="text" placeholder="e.g., beddoe consent, Saunders v Vautier, trustee proper law">
-      <label><input id="or" type="checkbox"> OR mode</label>
-      <button id="go" class="btn">Search</button>
-    </div>
-    <div class="note">Searches all TXT listed in the catalogs on <code>texts.wwwbcb.org</code>. Results are chunk-level matches with source links.</div>
+  <div id="results" class="card">Index loading…</div>
+  <div id="diag" class="card" style="display:none"></div>
+</div>
 
-    <div id="results" class="card">Index loading…</div>
-    <div id="diag" class="diag"></div>
-  </main>
+<script>
+const A3_BASE = location.origin + '/agent3-bm25/';
+const META_URL  = A3_BASE + 'agent3.meta.json';
+const INDEX_URL = A3_BASE + 'lunr-index.json';
+const CHUNKS_URL= A3_BASE + 'chunks.jsonl';
 
-  <script>
-  (async function(){
-    const RESULTS = document.getElementById('results');
-    const DIAG = document.getElementById('diag');
-    const OR = document.getElementById('or');
-    const Q = document.getElementById('q');
-    const GO = document.getElementById('go');
+let idx = null, chunks = null, meta = null;
 
-    // Where the index files live:
-    const BASE = "/agent3-bm25";
-    const INDEX_URL  = BASE + "/lunr-index.json";
-    const CHUNKS_URL = BASE + "/chunks.jsonl";
-
-    // Load index & chunk metadata
-    let lunrIndex, chunksMap = new Map(), total = 0, firstReady = false;
-
-    function htmlEscape(s){ return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
-
-    function* parseJSONL(text){
-      const lines = text.split(/\r?\n/);
-      for (const line of lines) {
-        if (!line.trim()) continue;
-        yield JSON.parse(line);
-      }
+async function boot(){
+  try{
+    const [m,i,c] = await Promise.all([
+      fetch(META_URL).then(r=>r.json()),
+      fetch(INDEX_URL).then(r=>r.json()),
+      fetch(CHUNKS_URL).then(r=>r.text())
+    ]);
+    meta = m;
+    idx = lunr.Index.load(i);
+    chunks = c.trim().split('\n').map(x=>JSON.parse(x));
+    const r = document.getElementById('results');
+    if(meta.catalogItems===0 || chunks.length===0){
+      r.textContent = 'Index empty — catalogs yielded no items. Check agent3-bm25 build.';
+    }else{
+      r.textContent = `Ready. Catalog items: ${meta.catalogItems} • Docs: ${meta.docs} • Chunks: ${meta.chunkCount}`;
     }
+    const d = document.getElementById('diag');
+    d.style.display = 'block';
+    d.textContent = JSON.stringify({meta, loadedChunks: chunks.length}, null, 2);
+  }catch(e){
+    document.getElementById('results').textContent = 'Failed to load index: ' + e;
+  }
+}
+document.getElementById('go').onclick = run;
+document.getElementById('q').addEventListener('keydown', e=>{ if(e.key==='Enter') run(); });
 
-    async function load() {
-      RESULTS.textContent = "Index loading…";
-      const [idxJson, chunksText] = await Promise.all([
-        fetch(INDEX_URL).then(r => r.json()),
-        fetch(CHUNKS_URL).then(r => r.text()),
-      ]);
-      lunrIndex = lunr.Index.load(idxJson);
-      let n = 0;
-      for (const obj of parseJSONL(chunksText)) {
-        chunksMap.set(String(obj.id), obj);
-        n++;
-      }
-      total = n;
-      RESULTS.textContent = "Ready. Enter a query.";
-      DIAG.textContent = `Loaded chunks: ${total}`;
-      firstReady = true;
-    }
+function run(){
+  const r = document.getElementById('results');
+  const q = document.getElementById('q').value.trim();
+  const orMode = document.getElementById('orMode').checked;
+  if(!idx || !chunks){ r.textContent = 'Index not ready.'; return; }
+  if(!q){ r.textContent = 'Enter a query.'; return; }
 
-    function makeOrQuery(q) {
-      // Convert bare "a b c" to "(a) OR (b) OR (c)" while leaving quotes alone
-      // Simple token split that respects double quotes
-      const tokens = [];
-      q.replace(/"([^"]+)"|(\S+)/g, (_, quoted, bare) => tokens.push(quoted ? `"${quoted}"` : bare));
-      return tokens.length > 1 ? tokens.map(t => `(${t})`).join(" OR ") : q;
-    }
+  const terms = q.replace(/"/g,'').split(/\s+/).filter(Boolean);
+  const lunrQuery = terms.map(t => (orMode? t : '+'+t)).join(' ');
 
-    function highlight(text, query) {
-      const terms = [];
-      query.replace(/"([^"]+)"|(\S+)/g, (_, quoted, bare) => terms.push(quoted || bare));
-      let out = htmlEscape(text);
-      for (const t of terms) {
-        if (!t) continue;
-        const re = new RegExp("(" + t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "gi");
-        out = out.replace(re, "<mark>$1</mark>");
-      }
-      return out;
-    }
+  let hits = [];
+  try{
+    hits = idx.search(lunrQuery);
+  }catch(e){
+    r.textContent = 'Query parse error: ' + e;
+    return;
+  }
 
-    function render(results, query) {
-      if (!results.length) {
-        RESULTS.innerHTML = '<div class="card">No matches.</div>';
-        return;
-      }
-      const parts = [];
-      for (const r of results.slice(0, 50)) {
-        const c = chunksMap.get(String(r.ref));
-        if (!c) continue;
-        const snippet = c.text.length > 700 ? c.text.slice(0, 700) + "…" : c.text;
-        parts.push(`
-          <div class="card">
-            <div class="title">${htmlEscape(c.title)} <span class="meta">· ${htmlEscape(c.kind||"")}${c.jurisdiction ? " · " + htmlEscape(c.jurisdiction) : ""}</span></div>
-            <div class="hitmark">${highlight(snippet, query)}</div><br>
-            <a href="${c.url_txt}" target="_blank" rel="noopener">open TXT</a>
-          </div>
-        `);
-      }
-      RESULTS.innerHTML = parts.join("\n");
-    }
+  if(!hits.length){ r.textContent = 'No matches.'; return; }
 
-    function doSearch() {
-      if (!firstReady) return;
-      let q = Q.value.trim();
-      if (!q) { RESULTS.innerHTML = '<div class="card">Enter a query.</div>'; return; }
-      const run = OR.checked ? makeOrQuery(q) : q;
-      const t0 = performance.now();
-      const res = lunrIndex.search(run);
-      const t1 = performance.now();
-      render(res, q);
-      DIAG.textContent = `Query: ${q} · OR=${OR.checked} · Hits=${res.length} · Chunks=${total} · ${Math.round(t1-t0)}ms`;
-    }
-
-    GO.addEventListener('click', doSearch);
-    Q.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
-
-    load().catch(err => {
-      console.error(err);
-      RESULTS.textContent = "Failed to load index.";
-      DIAG.textContent = String(err);
-    });
-  })();
-  </script>
+  const out = hits.slice(0,20).map(h=>{
+    const c = chunks.find(x=>x.id===h.ref) || { text:'[missing chunk]' };
+    const snippet = c.text.length>500 ? c.text.slice(0,500)+'…' : c.text;
+    const src = c.url || '';
+    return `<div class="card">
+      <div style="margin-bottom:6px"><span class="badge">${c.kind||''}</span> ${c.title||''} <small>— ${c.jurisdiction||''}</small></div>
+      <div>${snippet.replace(new RegExp(terms.map(x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'),'gi'), m=>`<mark>${m}</mark>`)}</div>
+      <div style="margin-top:8px"><small><a href="${src}" target="_blank" rel="noopener">open TXT</a></small></div>
+    </div>`;
+  }).join('');
+  r.innerHTML = out;
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/lunr@2.3.9/lunr.min.js"></script>
 </body>
 </html>
